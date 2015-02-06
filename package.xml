@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package>
+  <name>knowrob_robosherlock</name>
+  <version>0.1.0</version>
+  <description>The knowrob_robosherlock package</description>
+
+  <maintainer email="balintbec@cs.uni-bremend.de">Ferenc Balint-Benczedi</maintainer>
+  <author>Ferenc Balint-Benczedi</author>
+  <license>Apache 2.0</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>rosjava_build_tools</build_depend>
+  <build_depend>designator_integration_msgs</build_depend>
+  <run_depend>designator_integration_msgs</run_depend>
+</package>

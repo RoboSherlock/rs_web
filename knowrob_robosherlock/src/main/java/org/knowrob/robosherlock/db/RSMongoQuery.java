@@ -14,15 +14,9 @@ public class RSMongoQuery {
 	}
 
 	public static void main(String[] args) {
-		System.out.println("start");	
 
-		RSMongoWrapper mongoWrapper = new RSMongoWrapper("Scenes");
-		Set<String> collections = mongoWrapper.db.getCollectionNames();
-		for( String c:collections)
-		{
-			System.out.println(c);
-		}
-		
+		RSMongoWrapper mongoWrapper = new RSMongoWrapper("Scenes_annotated");
+		mongoWrapper.getCas("asdd");
 	}
 }
 

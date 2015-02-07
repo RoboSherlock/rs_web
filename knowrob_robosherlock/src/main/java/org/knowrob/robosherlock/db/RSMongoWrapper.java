@@ -1,8 +1,12 @@
 package org.knowrob.robosherlock.db;
 
 import java.net.UnknownHostException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
@@ -11,19 +15,17 @@ import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.QueryBuilder;
 
+import org.bson.types.ObjectId;
+
+
 public class RSMongoWrapper {
-	
-	/*maybe we need a containerClass for the Scene..we will see*/
-	public class RSDBEntry{
-		DBObject scene_;
-		DBObject rgb_;
-		DBObject depth_;
-		DBObject timestamp_;
-		DBObject camInfo_;
-	}
-	
+
+
 	private MongoClient mongoClient;
 	public DB db;
+	public HashMap<String, DBCollection> collections;
+	public Scene scene;
+
 	RSMongoWrapper(String db_name)
 	{
 		String host = "localhost";
@@ -37,7 +39,6 @@ public class RSMongoWrapper {
 		}
 		System.out.println("Connected to mongoDB");
 		db = mongoClient.getDB(db_name);
-		DBCollection cascol = db.getCollection("cas");
 		//get all collections
 		collections = new HashMap<String, DBCollection>();
 		collections.put("cas", db.getCollection("cas"));
@@ -47,32 +48,71 @@ public class RSMongoWrapper {
 		collections.put("camera_info_hires", db.getCollection("camera_info_hires"));
 	}
 
-	public void getCas(String timestamp)
+	public DBObject getDocument(String ts,String collectionName)
 	{
-		DBCollection cas = (DBCollection)collections.get("cas");
-		System.out.println("Docuemnts in CAS collection:"  + cas.count());
-		//		fields.put("PhoneNumber", "NumberLong(" + textField_4.getText() + ")");/"NumberLong(1409046631131301703)"
-		BasicDBObject query = new BasicDBObject("_timestamp",Long.parseLong("1409046631131301703"));
-		//		query.append("_timestamp", val)
-		DBCursor cursor = cas.find(query);
-		System.out.println("Found : "+ cursor.count());
-		if (cursor.size()!=1)
-			System.out.println("Database is corrupt!");
-		else if(cursor.hasNext())
-		{
-			DBObject casEntry = cursor.next();
-			System.out.println(casEntry.containsField("scene"));
-			ObjectId sceneID = (ObjectId)casEntry.get("scene");
-			
-			BasicDBObject q = new BasicDBObject();
-		    query.put("_id", sceneID);
-		    DBCollection scene = (DBCollection)collections.get("scene");
-		    DBObject dbObj = scene.findOne(q);
-		    System.out.println(dbObj);
+		DBCollection casColl = (DBCollection)collections.get("cas");
+		System.out.println("Docuemnts in CAS collection:"  + casColl.count());
+		Long timestamp =null;
+		try{
+			timestamp = Long.parseLong(ts);
 		}
-		cursor.close();
+		catch(NumberFormatException e){
+			System.out.println(e.getMessage());
+		}
+		BasicDBObject query = new BasicDBObject("_timestamp",timestamp);
+		DBObject casD = casColl.findOne(query);
+		if(casD == null){
+			System.out.println("No entry found with that timestamp");
+			return null;
+		}
+		else{
+			if(collectionName.equals("cas")){
+				return casD;
+			}
+			else{
+				ObjectId sceneID = (ObjectId)casD.get(collectionName);
+				query.clear();
+				query.put("_id", sceneID);
+				DBCollection coll = (DBCollection)collections.get(collectionName);
+				DBObject doc = coll.findOne(query);	
+				return doc;
+			}
+		}
 	}
 
+	public Scene getScene(String ts)
+	{
+		DBObject sceneD = getDocument(ts,"scene");
+		if(sceneD!=null)
+		{
+			if(sceneD.containsField("identifiables")){
+				BasicDBList clusters = (BasicDBList) sceneD.get("identifiables");
+				System.out.println("Scene contains: " + clusters.size() + " clusters");
+				for (Object cluster:clusters)
+				{
+					DBObject o = (DBObject)cluster;
+					System.out.println(o.containsField("annotations"));
+				}
+			}
+			return new Scene(sceneD,ts);
+		}
+		else return null;
+	}
+	public void getRGB(String ts)
+	{
+		DBObject rgbD = getDocument(ts,"rgb_image_hires");
+		//convert to something useful.. cv.Mat?
+	}
+	public void getDepth(String ts)
+	{
+		DBObject depthD = getDocument(ts,"depth_image_as_int");
+		//convert to something useful.. cv.Mat?
+	}
+	public void getCamInfo(String ts)
+	{
+		DBObject camInfoD = getDocument(ts,"camera_info_hires");
+		//maybe we don't even need this
+	}
 }
 
 

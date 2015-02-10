@@ -17,7 +17,8 @@ public class RSMongoQuery {
 
 		RSMongoWrapper mongoWrapper = new RSMongoWrapper("Scenes_annotated");
 		Scene scene =  mongoWrapper.getScene("1409046631131301703");
-		scene.getIdentifiables();
+		System.out.println("No. of clusters in scene:" + scene.getNumberOfClusters());
+		scene.searchForAnnotation("iai_rs.annotation.PoseAnnotation");
 	}
 }
 

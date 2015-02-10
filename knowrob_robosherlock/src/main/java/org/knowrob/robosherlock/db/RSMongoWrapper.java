@@ -26,7 +26,7 @@ public class RSMongoWrapper {
 	public HashMap<String, DBCollection> collections;
 	public Scene scene;
 
-	RSMongoWrapper(String db_name)
+	public RSMongoWrapper(String db_name)
 	{
 		String host = "localhost";
 		int port = 27017;

@@ -85,15 +85,6 @@ public class RSMongoWrapper {
 		DBObject sceneD = getDocument(ts,"scene");
 		if(sceneD!=null)
 		{
-			if(sceneD.containsField("identifiables")){
-				BasicDBList clusters = (BasicDBList) sceneD.get("identifiables");
-				System.out.println("Scene contains: " + clusters.size() + " clusters");
-				for (Object cluster:clusters)
-				{
-					DBObject o = (DBObject)cluster;
-					System.out.println(o.containsField("annotations"));
-				}
-			}
 			return new Scene(sceneD,ts);
 		}
 		else return null;
@@ -102,16 +93,24 @@ public class RSMongoWrapper {
 	{
 		DBObject rgbD = getDocument(ts,"rgb_image_hires");
 		//convert to something useful.. cv.Mat?
+		convertToCvMat();
+		//advertise result on the topic for open-ease
 	}
 	public void getDepth(String ts)
 	{
 		DBObject depthD = getDocument(ts,"depth_image_as_int");
 		//convert to something useful.. cv.Mat?
+		convertToCvMat();
 	}
 	public void getCamInfo(String ts)
 	{
 		DBObject camInfoD = getDocument(ts,"camera_info_hires");
 		//maybe we don't even need this
+	}
+	
+	public void convertToCvMat()
+	{
+		
 	}
 }
 

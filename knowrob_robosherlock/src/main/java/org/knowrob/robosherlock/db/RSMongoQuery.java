@@ -16,7 +16,8 @@ public class RSMongoQuery {
 	public static void main(String[] args) {
 
 		RSMongoWrapper mongoWrapper = new RSMongoWrapper("Scenes_annotated");
-		mongoWrapper.getScene("1409046631131301703");
+		Scene scene =  mongoWrapper.getScene("1409046631131301703");
+		scene.getIdentifiables();
 	}
 }
 

@@ -23,3 +23,12 @@ rs_components:'PrimitiveShapeAnnotator',rs_components:'ClusterColorHistogramCalc
 We've implemented unit tests for the pipeline generation which can be found in prolog/knowrob_robosherlock.plt. These tests can be executed with:
     ```rosrun rosprolog rosprolog-test knowrob_robosherlock```
 The test may also be a good entry point for you to see how you can use the pipeline planning for your own projects.
+Note: You might not be able to execute the unit tests if you are using the current version of KnowRob (January 2015) and Ubuntu 14.04 with SWI-prolog 6.6.
+If you get an error when you try to execute the tests, look into knowrob_common/prolog/plunit.pl and look for the declare_module statement in line 248.
+Change it from:
+
+    '$declare_module'(Name, Context, File, Line, false),
+to
+
+    '$declare_module'(Name, test, Context, File, Line, false),
+(see http://sourceforge.net/p/yap/plunit/ci/d215c5bf2b83b4f2766f204d7464a56ea8e914e2/ for details).

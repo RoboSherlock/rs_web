@@ -1514,7 +1514,7 @@
     <rdfs:subClassOf>
         <owl:Restriction>
             <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#perceptualInputRequired"/>
-            <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#RsCvMat"/>
+            <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#RsPclPointcloud"/>
         </owl:Restriction>
     </rdfs:subClassOf>
     <rdfs:subClassOf>
@@ -2651,7 +2651,7 @@
 
 <owl:NamedIndividual rdf:about="http://knowrob.org/kb/rs_components.owl#InstanceNormalEstimator">
     <rdf:type rdf:resource="http://knowrob.org/kb/rs_components.owl#NormalEstimator"/>
-    <requiresInput rdf:resource="http://knowrob.org/kb/rs_components.owl#RsCvMat"/>
+    <requiresInput rdf:resource="http://knowrob.org/kb/rs_components.owl#RsPclPointcloud"/>
     <factResult rdf:resource="http://knowrob.org/kb/rs_components.owl#RsPclNormalscloud"/>
 </owl:NamedIndividual>
 

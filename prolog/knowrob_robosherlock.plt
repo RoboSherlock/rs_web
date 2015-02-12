@@ -91,7 +91,7 @@ test(build_pipeline_from_predicates1):-
   build_pipeline_from_predicates([shape,color],S),
   length(S,Length),
   assertion(Length == 8),
-  assertion(S == ['http://knowrob.org/kb/rs_components.owl#CollectionReader','http://knowrob.org/kb/rs_components.owl#NormalEstimator','http://knowrob.org/kb/rs_components.owl#ImagePreprocessor','http://knowrob.org/kb/rs_components.owl#PointCloudClusterExtractor','http://knowrob.org/kb/rs_components.owl#FlatObjectAnnotator','http://knowrob.org/kb/rs_components.owl#SacModelAnnotator','http://knowrob.org/kb/rs_components.owl#PrimitiveShapeAnnotator','http://knowrob.org/kb/rs_components.owl#ClusterColorHistogramCalculator']). 
+  assertion(S == ['http://knowrob.org/kb/rs_components.owl#CollectionReader','http://knowrob.org/kb/rs_components.owl#ImagePreprocessor','http://knowrob.org/kb/rs_components.owl#NormalEstimator','http://knowrob.org/kb/rs_components.owl#PointCloudClusterExtractor','http://knowrob.org/kb/rs_components.owl#FlatObjectAnnotator','http://knowrob.org/kb/rs_components.owl#SacModelAnnotator','http://knowrob.org/kb/rs_components.owl#PrimitiveShapeAnnotator','http://knowrob.org/kb/rs_components.owl#ClusterColorHistogramCalculator']). 
 
 
 % OLD TESTS

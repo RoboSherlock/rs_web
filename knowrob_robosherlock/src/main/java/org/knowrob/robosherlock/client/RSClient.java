@@ -1,5 +1,6 @@
 package org.knowrob.robosherlock.client;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.ros.exception.RemoteException;
@@ -18,9 +19,9 @@ public class RSClient extends AbstractNodeMain {
 
 	ServiceClient<designator_integration_msgs.DesignatorCommunicationRequest,
 	designator_integration_msgs.DesignatorCommunicationResponse> serviceClient;
-	
+
 	public ConnectedNode node;
-	
+
 	@Override
 	public GraphName getDefaultNodeName() {
 		return GraphName.of("knowrob_robosherlock/rs_client");
@@ -28,7 +29,7 @@ public class RSClient extends AbstractNodeMain {
 	//  rosjava_test_msgs.AddTwoInts._TYPE
 	@Override
 	public void onStart(final ConnectedNode connectedNode) {
-		
+
 		this.node = connectedNode;
 
 		// wait for node to be ready
@@ -60,14 +61,16 @@ public class RSClient extends AbstractNodeMain {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		
 		DesignatorCommunicationRequest request = serviceClient.newMessage();		
 		DesignatorRequest req =  node.getTopicMessageFactory().newFromType(DesignatorRequest._TYPE);
 		Designator desig =  node.getTopicMessageFactory().newFromType(Designator._TYPE);
 		KeyValuePair k1 = node.getTopicMessageFactory().newFromType(KeyValuePair._TYPE);
-		desig.setType(2);
+		desig.setType(1);
 		k1.setKey("TIMESTAMP");
 		k1.setValueString(timestamp);
+		ArrayList<KeyValuePair> list = new ArrayList<KeyValuePair>();
+		list.add(k1);
+		desig.setDescription(list);
 		req.setDesignator(desig);
 		request.setRequest(req);
 		System.out.println("Calling service with timestamp t="+timestamp);

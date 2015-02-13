@@ -789,6 +789,12 @@
     </rdfs:subClassOf>
     <rdfs:subClassOf>
         <owl:Restriction>
+            <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#perceptualInputRequired"/>
+            <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#RsAnnotationPlane"/>
+        </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+        <owl:Restriction>
             <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#perceptualOutput"/>
             <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#RsAnnotationShape"/>
         </owl:Restriction>
@@ -1051,6 +1057,12 @@
     </rdfs:subClassOf>
     <rdfs:subClassOf>
         <owl:Restriction>
+            <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#perceptualInputRequired"/>
+            <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#RsAnnotationPlane"/>
+        </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+        <owl:Restriction>
             <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#perceptualOutput"/>
             <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#RsSceneCluster"/>
         </owl:Restriction>
@@ -1242,24 +1254,6 @@
 <!-- http://knowrob.org/kb/rs_components.owl#FlatObjectAnnotator -->
 <owl:Class rdf:about="http://knowrob.org/kb/rs_components.owl#FlatObjectAnnotator">
     <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_components.owl#RoboSherlockComponent"/>
-    <rdfs:subClassOf>
-        <owl:Restriction>
-            <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#perceptualInputRequired"/>
-            <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#RsCvMat"/>
-        </owl:Restriction>
-    </rdfs:subClassOf>
-    <rdfs:subClassOf>
-        <owl:Restriction>
-            <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#perceptualOutput"/>
-            <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#RsSceneCluster"/>
-        </owl:Restriction>
-    </rdfs:subClassOf>
-    <rdfs:subClassOf>
-        <owl:Restriction>
-            <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#perceptualOutput"/>
-            <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#RsAnnotationShape"/>
-        </owl:Restriction>
-    </rdfs:subClassOf>
     <rdfs:subClassOf>
         <owl:Restriction>
             <owl:onProperty rdf:resource="&srdl2-cap;dependsOnCapability"/>

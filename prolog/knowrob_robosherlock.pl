@@ -1,9 +1,9 @@
 :- module(knowrob_robosherlock,
     [
         call_robosherlock/2, 
-	scene_clusters_count/3,
-	compute_annotators/1,
-	annotators/1,
+  scene_clusters_count/3,
+  compute_annotators/1,
+  annotators/1,
   compute_annotator_outputs/2,
   compute_annotator_inputs/2,
   annotator_outputs/2,
@@ -68,33 +68,29 @@ compute_annotators(A) :- owl_subclass_of(A,rs_components:'RoboSherlockComponent'
 % cache the annotators
 :- forall(compute_annotators(A), assert(annotators(A)) ).
 
-% cache outputs/inputs
+% Get outputs of Annotator
 compute_annotator_outputs(Annotator,Output) :- annotators(Annotator), class_properties(Annotator,rs_components:'perceptualOutput',Output).
+% Get inputs of Annotator
 compute_annotator_inputs(Annotator,Input) :- annotators(Annotator), class_properties(Annotator,rs_components:'perceptualInputRequired',Input).
-% compute_type_available(Output) :- annotators(A), class_properties(A,rs_components:'perceptualOutput',Output).
+% cache outputs/inputs
 :- forall(compute_annotator_outputs(A,O), assert(annotator_outputs(A,O)) ).
 :- forall(compute_annotator_inputs(A,I), assert(annotator_inputs(A,I)) ).
-% :- forall(compute_type_available(O), assert(type_available(O)) ).
 
-% shape_annotators(A) :- annotators(A), class_properties(A,rs_components:'perceptualOutput',rs_components:'RsAnnotationShape').
 shape_annotators(A) :- annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsAnnotationShape' ).
-shape_annotators_old(A) :- owl_has(A,rs_components:factResult,rs_components:'RsAnnotationShape').
+% shape_annotators_old(A) :- owl_has(A,rs_components:factResult,rs_components:'RsAnnotationShape').
 
-% Get inputs of Annotator
-% annotator_inputs(Annotator,Input) :- owl_has(Annotator,rs_components:requiresInput,Input).
-% Get outputs of Annotator
-% annotator_outputs(Annotator,Output) :- owl_has(Annotator,rs_components:factResult,Output).
 
 % Get every type that can be put out by any annotator
-% type_available(Output) :- owl_has(_,rs_components:factResult,Output).
 type_available(Output) :- annotator_outputs(_,Output).
 
 % Check if Annotator A is somewhere in the Depedency chain of D.
-% This means for example:
-% annotator_in_dependency_chain_of(collectionReader,shape) should be true.
-% annotator_in_dependency_chain_of(shape, collectionReader) should be false.
-% annotator_in_dependency_chain_of(shape, imagePreprocessor) should be false.
-% annotator_in_dependency_chain_of(X, collectionreader) should be false.
+% This means for example in RoboSherlock, where the CollectionReader should be at
+% the first place in every pipeline:
+% annotator_in_dependency_chain_of(CollectionReader,SomeShapeAnnotator) should be true.
+% annotator_in_dependency_chain_of(SomeShapeAnnotator, CollectionReader) should be false.
+% annotator_in_dependency_chain_of(SomeShapeAnnotator, imagePreprocessor) should be false.
+% annotator_in_dependency_chain_of(X, Collectionreader) should be false.
+%
 % Trivial case: A is in the dependency chain of D, if A provides a type that D needs.
 annotator_in_dependency_chain_of(A, D) :- 
 	annotator_outputs(A,Input),

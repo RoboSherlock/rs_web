@@ -13,38 +13,38 @@ test(build_pipeline1):-
   build_pipeline(['http://knowrob.org/kb/rs_components.owl#NormalEstimator','http://knowrob.org/kb/rs_components.owl#SacModelAnnotator'],S),
   length(S,Length),
   assertion(Length == 6),
-  assertion(S == ['http://knowrob.org/kb/rs_components.owl#CollectionReader','http://knowrob.org/kb/rs_components.owl#ImagePreprocessor','http://knowrob.org/kb/rs_components.owl#PointCloudClusterExtractor','http://knowrob.org/kb/rs_components.owl#FlatObjectAnnotator','http://knowrob.org/kb/rs_components.owl#NormalEstimator','http://knowrob.org/kb/rs_components.owl#SacModelAnnotator']). 
+  assertion(S == ['http://knowrob.org/kb/rs_components.owl#CollectionReader','http://knowrob.org/kb/rs_components.owl#ImagePreprocessor','http://knowrob.org/kb/rs_components.owl#PlaneAnnotator','http://knowrob.org/kb/rs_components.owl#PointCloudClusterExtractor','http://knowrob.org/kb/rs_components.owl#NormalEstimator','http://knowrob.org/kb/rs_components.owl#SacModelAnnotator']). 
 
 % Build a chain for SacModelAnnotator only.
 test(build_pipeline2):-
   build_pipeline(['http://knowrob.org/kb/rs_components.owl#SacModelAnnotator'],S),
   length(S,Length),
   assertion(Length == 6),
-  assertion(S == ['http://knowrob.org/kb/rs_components.owl#CollectionReader','http://knowrob.org/kb/rs_components.owl#ImagePreprocessor','http://knowrob.org/kb/rs_components.owl#PointCloudClusterExtractor','http://knowrob.org/kb/rs_components.owl#NormalEstimator','http://knowrob.org/kb/rs_components.owl#FlatObjectAnnotator','http://knowrob.org/kb/rs_components.owl#SacModelAnnotator']). 
+  assertion(S == ['http://knowrob.org/kb/rs_components.owl#CollectionReader','http://knowrob.org/kb/rs_components.owl#ImagePreprocessor','http://knowrob.org/kb/rs_components.owl#PlaneAnnotator','http://knowrob.org/kb/rs_components.owl#PointCloudClusterExtractor','http://knowrob.org/kb/rs_components.owl#NormalEstimator','http://knowrob.org/kb/rs_components.owl#SacModelAnnotator']). 
 
 % Test the behavior, when a complete pipeline is given
 % If there are multiple solutions possible, the input pipelines does not have to be equal to the
 % computed pipeline. 
 test(build_pipeline_complete1):-
-  build_pipeline(['http://knowrob.org/kb/rs_components.owl#CollectionReader','http://knowrob.org/kb/rs_components.owl#FlatObjectAnnotator','http://knowrob.org/kb/rs_components.owl#NormalEstimator','http://knowrob.org/kb/rs_components.owl#ImagePreprocessor','http://knowrob.org/kb/rs_components.owl#PointCloudClusterExtractor','http://knowrob.org/kb/rs_components.owl#SacModelAnnotator'],S),
+  build_pipeline(['http://knowrob.org/kb/rs_components.owl#CollectionReader','http://knowrob.org/kb/rs_components.owl#NormalEstimator','http://knowrob.org/kb/rs_components.owl#ImagePreprocessor','http://knowrob.org/kb/rs_components.owl#PointCloudClusterExtractor','http://knowrob.org/kb/rs_components.owl#SacModelAnnotator'],S),
   length(S,Length),
   assertion(Length == 6),
-  assertion(S == ['http://knowrob.org/kb/rs_components.owl#CollectionReader','http://knowrob.org/kb/rs_components.owl#ImagePreprocessor','http://knowrob.org/kb/rs_components.owl#PointCloudClusterExtractor','http://knowrob.org/kb/rs_components.owl#NormalEstimator','http://knowrob.org/kb/rs_components.owl#FlatObjectAnnotator','http://knowrob.org/kb/rs_components.owl#SacModelAnnotator']). 
+  assertion(S == ['http://knowrob.org/kb/rs_components.owl#CollectionReader','http://knowrob.org/kb/rs_components.owl#ImagePreprocessor','http://knowrob.org/kb/rs_components.owl#PlaneAnnotator','http://knowrob.org/kb/rs_components.owl#PointCloudClusterExtractor','http://knowrob.org/kb/rs_components.owl#NormalEstimator','http://knowrob.org/kb/rs_components.owl#SacModelAnnotator']). 
 
 
 % Test the behavior, when a complete pipeline is given, but in the wrong order
 test(build_pipeline_complete2):-
-  build_pipeline(['http://knowrob.org/kb/rs_components.owl#ImagePreprocessor','http://knowrob.org/kb/rs_components.owl#CollectionReader','http://knowrob.org/kb/rs_components.owl#PointCloudClusterExtractor'],S),
+  build_pipeline(['http://knowrob.org/kb/rs_components.owl#ImagePreprocessor','http://knowrob.org/kb/rs_components.owl#PlaneAnnotator','http://knowrob.org/kb/rs_components.owl#CollectionReader','http://knowrob.org/kb/rs_components.owl#PointCloudClusterExtractor'],S),
   length(S,Length),
-  assertion(Length == 3),
-  assertion(S == ['http://knowrob.org/kb/rs_components.owl#CollectionReader','http://knowrob.org/kb/rs_components.owl#ImagePreprocessor','http://knowrob.org/kb/rs_components.owl#PointCloudClusterExtractor']). 
+  assertion(Length == 4),
+  assertion(S == ['http://knowrob.org/kb/rs_components.owl#CollectionReader','http://knowrob.org/kb/rs_components.owl#ImagePreprocessor','http://knowrob.org/kb/rs_components.owl#PlaneAnnotator','http://knowrob.org/kb/rs_components.owl#PointCloudClusterExtractor']). 
 
 % Test the behavior, when a complete pipeline is given, but in the wrong order
 test(build_pipeline_complete3):-
-  build_pipeline(['http://knowrob.org/kb/rs_components.owl#PointCloudClusterExtractor','http://knowrob.org/kb/rs_components.owl#CollectionReader','http://knowrob.org/kb/rs_components.owl#ImagePreprocessor'],S),
+  build_pipeline(['http://knowrob.org/kb/rs_components.owl#PlaneAnnotator','http://knowrob.org/kb/rs_components.owl#PointCloudClusterExtractor','http://knowrob.org/kb/rs_components.owl#CollectionReader','http://knowrob.org/kb/rs_components.owl#ImagePreprocessor'],S),
   length(S,Length),
-  assertion(Length == 3),
-  assertion(S == ['http://knowrob.org/kb/rs_components.owl#CollectionReader','http://knowrob.org/kb/rs_components.owl#ImagePreprocessor','http://knowrob.org/kb/rs_components.owl#PointCloudClusterExtractor']). 
+  assertion(Length == 4),
+  assertion(S == ['http://knowrob.org/kb/rs_components.owl#CollectionReader','http://knowrob.org/kb/rs_components.owl#ImagePreprocessor','http://knowrob.org/kb/rs_components.owl#PlaneAnnotator','http://knowrob.org/kb/rs_components.owl#PointCloudClusterExtractor']). 
 
 % check a list of annotators, that already fulfils the requirements.
 % Input List should be equal to Output List.
@@ -59,15 +59,15 @@ test(build_pipeline_with_multiple_inputs):-
   build_pipeline(['http://knowrob.org/kb/rs_components.owl#PCLFeatureExtractor'],S),
   length(S,Length),
   assertion(Length == 6),
-  assertion(S == ['http://knowrob.org/kb/rs_components.owl#CollectionReader','http://knowrob.org/kb/rs_components.owl#ImagePreprocessor','http://knowrob.org/kb/rs_components.owl#PointCloudClusterExtractor','http://knowrob.org/kb/rs_components.owl#NormalEstimator','http://knowrob.org/kb/rs_components.owl#FlatObjectAnnotator','http://knowrob.org/kb/rs_components.owl#PCLFeatureExtractor']).  % Note: FlatObjectAnnotator may be removed in the future
+  assertion(S == ['http://knowrob.org/kb/rs_components.owl#CollectionReader','http://knowrob.org/kb/rs_components.owl#ImagePreprocessor','http://knowrob.org/kb/rs_components.owl#PlaneAnnotator','http://knowrob.org/kb/rs_components.owl#PointCloudClusterExtractor','http://knowrob.org/kb/rs_components.owl#NormalEstimator','http://knowrob.org/kb/rs_components.owl#PCLFeatureExtractor']).  
 
 % Test correct pipeline
 test(requirement_checking1):-
-  annotatorlist_requirements_fulfilled(['http://knowrob.org/kb/rs_components.owl#ImagePreprocessor','http://knowrob.org/kb/rs_components.owl#CollectionReader','http://knowrob.org/kb/rs_components.owl#PointCloudClusterExtractor']).
+  annotatorlist_requirements_fulfilled(['http://knowrob.org/kb/rs_components.owl#ImagePreprocessor','http://knowrob.org/kb/rs_components.owl#CollectionReader','http://knowrob.org/kb/rs_components.owl#PlaneAnnotator','http://knowrob.org/kb/rs_components.owl#PointCloudClusterExtractor']).
 
 % Test correct pipeline in wrong order
 test(requirement_checking2):-
-  annotatorlist_requirements_fulfilled(['http://knowrob.org/kb/rs_components.owl#ImagePreprocessor','http://knowrob.org/kb/rs_components.owl#PointCloudClusterExtractor','http://knowrob.org/kb/rs_components.owl#CollectionReader']).
+  annotatorlist_requirements_fulfilled(['http://knowrob.org/kb/rs_components.owl#ImagePreprocessor','http://knowrob.org/kb/rs_components.owl#PointCloudClusterExtractor','http://knowrob.org/kb/rs_components.owl#CollectionReader','http://knowrob.org/kb/rs_components.owl#PlaneAnnotator']).
 
 % Test pipeline that only consists of CollectionReader.
 % Since it has no other dependencies, it should be fine.
@@ -91,7 +91,7 @@ test(build_pipeline_from_predicates1):-
   build_pipeline_from_predicates([shape,color],S),
   length(S,Length),
   assertion(Length == 8),
-  assertion(S == ['http://knowrob.org/kb/rs_components.owl#CollectionReader','http://knowrob.org/kb/rs_components.owl#ImagePreprocessor','http://knowrob.org/kb/rs_components.owl#NormalEstimator','http://knowrob.org/kb/rs_components.owl#PointCloudClusterExtractor','http://knowrob.org/kb/rs_components.owl#FlatObjectAnnotator','http://knowrob.org/kb/rs_components.owl#SacModelAnnotator','http://knowrob.org/kb/rs_components.owl#PrimitiveShapeAnnotator','http://knowrob.org/kb/rs_components.owl#ClusterColorHistogramCalculator']). 
+  assertion(S == ['http://knowrob.org/kb/rs_components.owl#CollectionReader','http://knowrob.org/kb/rs_components.owl#ImagePreprocessor','http://knowrob.org/kb/rs_components.owl#NormalEstimator','http://knowrob.org/kb/rs_components.owl#PlaneAnnotator','http://knowrob.org/kb/rs_components.owl#PointCloudClusterExtractor','http://knowrob.org/kb/rs_components.owl#SacModelAnnotator','http://knowrob.org/kb/rs_components.owl#PrimitiveShapeAnnotator','http://knowrob.org/kb/rs_components.owl#ClusterColorHistogramCalculator']). 
 
 
 % OLD TESTS

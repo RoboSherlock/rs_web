@@ -25,6 +25,7 @@
   annotators_for_predicate/2,
   annotators_for_predicates/2,
   build_pipeline_from_predicates/2,
+  build_pipeline_for_object/2,
   obj_has_predicate/2,
   predicates_for_object/2
 ]).
@@ -241,12 +242,13 @@ obj_has_predicate(text, Obj):-
 predicates_for_object(Obj,Preds):- 
 	setof(X,obj_has_predicate(X,Obj),Preds).
 
-% TODO:
-% Read in all predicates and look for suitable annotators in the knowledge base.
-
 build_pipeline_from_predicates(ListOfPredicates,Pipeline):-
 	setof(X,annotators_for_predicates(ListOfPredicates, X), Annotators),
   build_pipeline(Annotators, Pipeline).
+
+build_pipeline_for_object(Obj,Pipeline):-
+  predicates_for_object(Obj,ListOfPredicates),!,
+  build_pipeline_from_predicates(ListOfPredicates,Pipeline).
 % 
 % build_pipeline_from_predicates([shape,color],Pipeline):-
 % 	setof(X,shape_annotators(X),ShapeAnnotators),

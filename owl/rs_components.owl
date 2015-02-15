@@ -212,6 +212,14 @@
     
 
 
+    <!-- http://knowrob.org/kb/rs_components.owl#Affordances -->
+
+    <owl:Class rdf:about="http://knowrob.org/kb/rs_components.owl#Affordances">
+        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_components.owl#VisualAppearance"/>
+    </owl:Class>
+    
+
+
     <!-- http://knowrob.org/kb/rs_components.owl#AnnotationComponent -->
 
     <owl:Class rdf:about="http://knowrob.org/kb/rs_components.owl#AnnotationComponent">
@@ -742,6 +750,14 @@
     
 
 
+    <!-- http://knowrob.org/kb/rs_components.owl#GraspPoints -->
+
+    <owl:Class rdf:about="http://knowrob.org/kb/rs_components.owl#GraspPoints">
+        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_components.owl#HandlingPoints"/>
+    </owl:Class>
+    
+
+
     <!-- http://knowrob.org/kb/rs_components.owl#GroundTruthAnnotator -->
 
     <owl:Class rdf:about="http://knowrob.org/kb/rs_components.owl#GroundTruthAnnotator">
@@ -780,6 +796,14 @@
                 <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#PerceiveColorCapability"/>
             </owl:Restriction>
         </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://knowrob.org/kb/rs_components.owl#HandlingPoints -->
+
+    <owl:Class rdf:about="http://knowrob.org/kb/rs_components.owl#HandlingPoints">
+        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_components.owl#VisualAppearance"/>
     </owl:Class>
     
 
@@ -938,6 +962,15 @@
 
     <owl:Class rdf:about="http://knowrob.org/kb/rs_components.owl#KitchenUtensil">
         <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_components.owl#ObjectsToTest"/>
+    </owl:Class>
+    
+
+
+    <!-- http://knowrob.org/kb/rs_components.owl#Knob -->
+
+    <owl:Class rdf:about="http://knowrob.org/kb/rs_components.owl#Knob">
+        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_components.owl#GraspPoints"/>
+        <rdfs:comment>A Knob can be twisted</rdfs:comment>
     </owl:Class>
     
 
@@ -1184,6 +1217,22 @@
 
     <owl:Class rdf:about="http://knowrob.org/kb/rs_components.owl#OnTable">
         <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_components.owl#QualitativeLocationDescription"/>
+    </owl:Class>
+    
+
+
+    <!-- http://knowrob.org/kb/rs_components.owl#OneHandGraspable -->
+
+    <owl:Class rdf:about="http://knowrob.org/kb/rs_components.owl#OneHandGraspable">
+        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_components.owl#GraspPoints"/>
+    </owl:Class>
+    
+
+
+    <!-- http://knowrob.org/kb/rs_components.owl#OpeningPoints -->
+
+    <owl:Class rdf:about="http://knowrob.org/kb/rs_components.owl#OpeningPoints">
+        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_components.owl#HandlingPoints"/>
     </owl:Class>
     
 
@@ -1539,6 +1588,14 @@
                 <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#PerceiveColorCapability"/>
             </owl:Restriction>
         </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://knowrob.org/kb/rs_components.owl#PushPoints -->
+
+    <owl:Class rdf:about="http://knowrob.org/kb/rs_components.owl#PushPoints">
+        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_components.owl#HandlingPoints"/>
     </owl:Class>
     
 
@@ -2451,6 +2508,14 @@
     
 
 
+    <!-- http://knowrob.org/kb/rs_components.owl#Stir -->
+
+    <owl:Class rdf:about="http://knowrob.org/kb/rs_components.owl#Stir">
+        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_components.owl#Affordances"/>
+    </owl:Class>
+    
+
+
     <!-- http://knowrob.org/kb/rs_components.owl#StorageWriter -->
 
     <owl:Class rdf:about="http://knowrob.org/kb/rs_components.owl#StorageWriter">
@@ -2551,6 +2616,14 @@
                 <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#PerceiveColorCapability"/>
             </owl:Restriction>
         </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://knowrob.org/kb/rs_components.owl#TwoHandGraspable -->
+
+    <owl:Class rdf:about="http://knowrob.org/kb/rs_components.owl#TwoHandGraspable">
+        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_components.owl#GraspPoints"/>
     </owl:Class>
     
 

@@ -24,7 +24,9 @@
   build_pipeline/2,
   annotators_for_predicate/2,
   annotators_for_predicates/2,
-  build_pipeline_from_predicates/2
+  build_pipeline_from_predicates/2,
+  obj_has_predicate/2,
+  predicates_for_object/2
 ]).
 
 :- rdf_meta
@@ -217,6 +219,27 @@ annotators_for_predicate(product,A) :-
 
 annotators_for_predicates(Predicates, A):-
   member(P,Predicates), annotators_for_predicate(P, A).
+
+obj_has_predicate(shape, Obj):- 
+  class_properties(Obj,'http://knowrob.org/kb/rs_components.owl#hasVisualProperty',O),owl_subclass_of(O, knowrob:'SpatialThingTypeByShape').
+
+obj_has_predicate(color, Obj):- 
+  class_properties(Obj,'http://knowrob.org/kb/rs_components.owl#hasVisualProperty',O),owl_subclass_of(O, knowrob:'ColoredThing').
+
+obj_has_predicate(size, Obj):- 
+  class_properties(Obj,'http://knowrob.org/kb/rs_components.owl#hasVisualProperty',O),owl_subclass_of(O, rs_components:'Size').
+
+obj_has_predicate(logo, Obj):- 
+  class_properties(Obj,'http://knowrob.org/kb/rs_components.owl#hasVisualProperty',O),owl_subclass_of(O, rs_components:'Logo').
+
+obj_has_predicate(text, Obj):- 
+  class_properties(Obj,'http://knowrob.org/kb/rs_components.owl#hasVisualProperty',O),owl_subclass_of(O, rs_components:'TextOnObject').
+
+% TODO: Define something for product
+
+
+predicates_for_object(Obj,Preds):- 
+	setof(X,obj_has_predicate(X,Obj),Preds).
 
 % TODO:
 % Read in all predicates and look for suitable annotators in the knowledge base.

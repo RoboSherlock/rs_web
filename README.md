@@ -18,6 +18,11 @@ rs_components:'PrimitiveShapeAnnotator',rs_components:'ClusterColorHistogramCalc
 ```rosrun iai_rs_cpp rs_runAE -visualizer test.xml```. Note: test.xml is the name of one of your existing analysis engines.
 * Start the json_prolog service for the pipeline planning: 
 ```roslaunch knowrob_robosherlock knowrob_robosherlock.launch```
+* Start the query_runAE_service.py shell to send queries to RoboSherlock with:
+```python `rospack find iai_rs_cpp`/scripts/query_runAE_service.py```
+* In the loaded shell, ask RoboSherlock to execute a pipeline to detect the Shape and Color Property of objects:
+```rs_query$ detect shape,color```
+Please note, that you can use auto completion in the query_runAE_service.py shell.
 
 ### Unit tests
 We've implemented unit tests for the pipeline generation which can be found in prolog/knowrob_robosherlock.plt. These tests can be executed with:

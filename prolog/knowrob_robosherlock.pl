@@ -2,6 +2,7 @@
     [
         call_robosherlock/2, 
   scene_clusters_count/3,
+  current_robot/1,
   compute_annotators/1,
   annotators/1,
   compute_annotator_outputs/2,
@@ -42,6 +43,11 @@
 
 :- owl_parse('package://knowrob_robosherlock/owl/rs_components.owl').
 :- rdf_db:rdf_register_ns(rs_components, 'http://knowrob.org/kb/rs_components.owl#',     [keep(true)]).
+:- rdf_db:rdf_register_ns(pr2, 'http://knowrob.org/kb/PR2.owl#',     [keep(true)]).
+
+% Load robots with their capabilities
+:- owl_parse('package://knowrob_robosherlock/owl/PR2.owl'). % Load our own PR2 which has an enhanced ontology (ColorCameras etc.)
+:- owl_parse('package://knowrob_srdl/owl/pico.owl'). % Jazz Robot http://www.gostai.com/products/jazz/openjazz/index.html
 
 call_robosherlock(Response,Timestamp):-
     jpl_new('org.knowrob.robosherlock.client.RSClient',[],Client),
@@ -59,6 +65,11 @@ scene_clusters_count(Timestamp,Collection,Count):-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Pipeline Planning
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Specify the robot in use
+:- assert(current_robot('http://knowrob.org/kb/PR2.owl#PR2Robot1')).
+% :- assert(current_robot('http://knowrob.org/kb/pico.owl#jazz')).
+
 compute_annotators(A) :- owl_subclass_of(A,rs_components:'RoboSherlockComponent'),
                   not(A = 'http://knowrob.org/kb/rs_components.owl#RoboSherlockComponent'), 
                   not(A = 'http://knowrob.org/kb/rs_components.owl#AnnotationComponent'), 
@@ -72,9 +83,10 @@ compute_annotators(A) :- owl_subclass_of(A,rs_components:'RoboSherlockComponent'
 :- forall(compute_annotators(A), assert(annotators(A)) ).
 
 % Get outputs of Annotator
-compute_annotator_outputs(Annotator,Output) :- annotators(Annotator), class_properties(Annotator,rs_components:'perceptualOutput',Output).
+compute_annotator_outputs(Annotator,Output) :- current_robot(R),!,annotators(Annotator), class_properties(Annotator,rs_components:'perceptualOutput',Output),  action_feasible_on_robot(Annotator, R).
+
 % Get inputs of Annotator
-compute_annotator_inputs(Annotator,Input) :- annotators(Annotator), class_properties(Annotator,rs_components:'perceptualInputRequired',Input).
+compute_annotator_inputs(Annotator,Input) :- current_robot(R),!,annotators(Annotator), class_properties(Annotator,rs_components:'perceptualInputRequired',Input),  action_feasible_on_robot(Annotator, R).
 % cache outputs/inputs
 :- forall(compute_annotator_outputs(A,O), assert(annotator_outputs(A,O)) ).
 :- forall(compute_annotator_inputs(A,I), assert(annotator_inputs(A,I)) ).
@@ -266,5 +278,6 @@ build_pipeline_for_object(Obj,Pipeline):-
 
 :- print('----------\n').
 :- print('RSComponents ontology is available under http://knowrob.org/kb/rs_components.owl#\n').
+:- print('Available robots: pr2:\'PR2Robot1\', \'http://knowrob.org/kb/pico.owl#jazz_robot1\'\n').
 :- print('----------\n').
 

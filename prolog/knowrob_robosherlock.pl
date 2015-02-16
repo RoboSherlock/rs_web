@@ -7,6 +7,7 @@
   annotators/1,
   compute_annotator_outputs/2,
   compute_annotator_inputs/2,
+  reset_planning/0,
   annotator_outputs/2,
   annotator_inputs/2,
   shape_annotators/1,
@@ -69,6 +70,7 @@ scene_clusters_count(Timestamp,Collection,Count):-
 % Specify the robot in use
 :- assert(current_robot('http://knowrob.org/kb/PR2.owl#PR2Robot1')).
 % :- assert(current_robot('http://knowrob.org/kb/pico.owl#jazz')).
+set_current_robot(R):- retractall( current_robot(_) ), assert(current_robot(R)).
 
 compute_annotators(A) :- owl_subclass_of(A,rs_components:'RoboSherlockComponent'),
                   not(A = 'http://knowrob.org/kb/rs_components.owl#RoboSherlockComponent'), 
@@ -90,6 +92,15 @@ compute_annotator_inputs(Annotator,Input) :- current_robot(R),!,annotators(Annot
 % cache outputs/inputs
 :- forall(compute_annotator_outputs(A,O), assert(annotator_outputs(A,O)) ).
 :- forall(compute_annotator_inputs(A,I), assert(annotator_inputs(A,I)) ).
+
+% If you changed the robot model or something else in this code,
+% call this rule to cache the annotators and their I/Os again.
+reset_planning:- retractall(annotator_outputs(_,_)),
+  retractall(annotator_inputs(_,_)),
+  retractall(annotators(_)),
+  forall(compute_annotators(A), assert(annotators(A)) ),
+  forall(compute_annotator_outputs(A,O), assert(annotator_outputs(A,O)) ),
+  forall(compute_annotator_inputs(A,I), assert(annotator_inputs(A,I)) ).
 
 shape_annotators(A) :- annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsAnnotationShape' ).
 % shape_annotators_old(A) :- owl_has(A,rs_components:factResult,rs_components:'RsAnnotationShape').

@@ -3,6 +3,7 @@
         call_robosherlock/2, 
   scene_clusters_count/3,
   current_robot/1,
+  set_current_robot/1,
   compute_annotators/1,
   annotators/1,
   compute_annotator_outputs/2,

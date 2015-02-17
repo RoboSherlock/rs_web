@@ -88,10 +88,10 @@ test(input_checking_for_type_without_input_requirements):-
 % Test build_pipeline_from ...
 % which is the interface to the outer world
 test(build_pipeline_from_predicates1):-
-  build_pipeline_from_predicates([shape,color],S),
+  build_pipeline_from_predicates([shape,color],S),!, % Test the first solution
   length(S,Length),
   assertion(Length == 8),
-  assertion(S == ['http://knowrob.org/kb/rs_components.owl#CollectionReader','http://knowrob.org/kb/rs_components.owl#ImagePreprocessor','http://knowrob.org/kb/rs_components.owl#NormalEstimator','http://knowrob.org/kb/rs_components.owl#PlaneAnnotator','http://knowrob.org/kb/rs_components.owl#PointCloudClusterExtractor','http://knowrob.org/kb/rs_components.owl#SacModelAnnotator','http://knowrob.org/kb/rs_components.owl#PrimitiveShapeAnnotator','http://knowrob.org/kb/rs_components.owl#ClusterColorHistogramCalculator']). 
+  assertion(S == ['http://knowrob.org/kb/rs_components.owl#CollectionReader','http://knowrob.org/kb/rs_components.owl#ImagePreprocessor','http://knowrob.org/kb/rs_components.owl#PlaneAnnotator','http://knowrob.org/kb/rs_components.owl#PointCloudClusterExtractor','http://knowrob.org/kb/rs_components.owl#ClusterColorHistogramCalculator','http://knowrob.org/kb/rs_components.owl#NormalEstimator','http://knowrob.org/kb/rs_components.owl#SacModelAnnotator','http://knowrob.org/kb/rs_components.owl#PrimitiveShapeAnnotator']). 
 
 
 % OLD TESTS

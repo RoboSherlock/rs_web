@@ -30,6 +30,10 @@
   build_pipeline_from_predicates/2,
   build_pipeline_for_object/2,
   obj_has_predicate/2,
+  enumerate_annotator_sets_for_predicate/2,
+  enumerate_annotator_sets_for_predicates/2,
+  subsequence/2,
+  subseq/2,
   predicates_for_object/2
 ]).
 
@@ -263,11 +267,29 @@ obj_has_predicate(text, Obj):-
 % TODO: Define something for product
 
 
+% Yield every subsequence of possible Annotators for a given Predicate
+enumerate_annotator_sets_for_predicate(Predicate, AnnotatorSet):-
+  setof(X, annotators_for_predicate(Predicate,X), Annotators), 
+  subseq(Annotators, AnnotatorSet).
+
+% For each predicate:
+%   Select a subsequence of the corresponding annotators
+%
+%   color: [1,2]
+%   shape: [3]
+%
+%   Result: [1,2,3] , [1,3], [2,3]
+enumerate_annotator_sets_for_predicates(Predicates, AnnotatorSet):-
+  maplist(enumerate_annotator_sets_for_predicate,Predicates,X),
+  flatten(X, AnnotatorSet).
+
+
 predicates_for_object(Obj,Preds):- 
 	setof(X,obj_has_predicate(X,Obj),Preds).
 
 build_pipeline_from_predicates(ListOfPredicates,Pipeline):-
-	setof(X,annotators_for_predicates(ListOfPredicates, X), Annotators),
+	% setof(X,annotators_for_predicates(ListOfPredicates, X), Annotators), % Only build one list of annotators for the given Predicates
+  enumerate_annotator_sets_for_predicates(ListOfPredicates, Annotators),
   build_pipeline(Annotators, Pipeline).
 
 build_pipeline_for_object(Obj,Pipeline):-
@@ -282,6 +304,17 @@ build_pipeline_for_object(Obj,Pipeline):-
 % test(N,R):- R is N*N.
 % ?- maplist(test,[3,5,7],X).
 % X = [9,25,49].
+
+
+% Source: http://a-programmers-life.blogspot.de/2010/10/subsequences-in-prolog.html
+%
+% Return all subsequences of a given set.
+% Starts with the full sequence
+subsequence([H|T],[H|T2]) :- subsequence(T,T2).
+subsequence([H|T],[H2|T2]) :- subsequence(T,[H2|T2]).
+subsequence(_,[]).
+
+subseq(Sequence, Subsequence):- subsequence(Sequence, Subsequence), not(Subsequence = []).
 
 
 /*

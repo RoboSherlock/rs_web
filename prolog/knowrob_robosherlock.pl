@@ -57,6 +57,7 @@
 % Load robots with their capabilities
 :- owl_parse('package://knowrob_robosherlock/owl/PR2.owl'). % Load our own PR2 which has an enhanced ontology (ColorCameras etc.)
 :- owl_parse('package://knowrob_robosherlock/owl/pico.owl'). % Jazz Robot http://www.gostai.com/products/jazz/openjazz/index.html
+:- owl_parse('package://knowrob_robosherlock/owl/test_objects.owl'). % Load objects to reason about
 
 call_robosherlock(Response,Timestamp):-
     jpl_new('org.knowrob.robosherlock.client.RSClient',[],Client),
@@ -253,7 +254,8 @@ annotators_for_predicates(Predicates, A):-
   member(P,Predicates), annotators_for_predicate(P, A).
 
 obj_has_predicate(shape, Obj):- 
-  class_properties(Obj,'http://knowrob.org/kb/rs_components.owl#hasVisualProperty',O),owl_subclass_of(O, knowrob:'SpatialThingTypeByShape').
+  % class_properties(Obj,'http://knowrob.org/kb/rs_components.owl#hasVisualProperty',O),owl_subclass_of(O, knowrob:'SpatialThingTypeByShape'). % the default class for shapes in KnowRob
+  class_properties(Obj,'http://knowrob.org/kb/rs_components.owl#hasVisualProperty',O),owl_subclass_of(O, rs_components:'Shape').
 
 obj_has_predicate(color, Obj):- 
   class_properties(Obj,'http://knowrob.org/kb/rs_components.owl#hasVisualProperty',O),owl_subclass_of(O, knowrob:'ColoredThing').

@@ -5448,7 +5448,7 @@
 
     <owl:NamedIndividual rdf:about="&pr2;pr2_head_mount_kinect_ir_link">
         <rdf:type rdf:resource="&srdl2-comp;UrdfLink"/>
-        <rdf:type rdf:resource="&srdl2-comp;Camera"/>
+        <rdf:type rdf:resource="http://knowrob.org/kb/rs_components.owl#KinectIRProjectionCamera"/>
         <srdl2-comp:urdfName>head_mount_kinect_ir_link</srdl2-comp:urdfName>
         <srdl2-comp:mass_value rdf:datatype="&qudt-unit;Kilogram">0.1</srdl2-comp:mass_value>
         <srdl2-comp:inertia_ixx rdf:datatype="&qudt-unit;Kilogram">0.01</srdl2-comp:inertia_ixx>
@@ -5502,7 +5502,7 @@
 
     <owl:NamedIndividual rdf:about="&pr2;pr2_head_mount_kinect_rgb_link">
         <rdf:type rdf:resource="&srdl2-comp;UrdfLink"/>
-        <rdf:type rdf:resource="&srdl2-comp;Camera"/>
+        <rdf:type rdf:resource="&srdl2-comp;ColorCamera"/>
         <srdl2-comp:urdfName>head_mount_kinect_rgb_link</srdl2-comp:urdfName>
         <srdl2-comp:mass_value rdf:datatype="&qudt-unit;Kilogram">0.1</srdl2-comp:mass_value>
         <srdl2-comp:inertia_ixx rdf:datatype="&qudt-unit;Kilogram">0.01</srdl2-comp:inertia_ixx>

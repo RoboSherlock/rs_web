@@ -1717,6 +1717,7 @@
                     <owl:unionOf rdf:parseType="Collection">
                         <rdf:Description rdf:about="http://knowrob.org/kb/srdl2-comp.owl#ThreeDimensionalLaserScanner"/>
                         <rdf:Description rdf:about="http://knowrob.org/kb/srdl2-comp.owl#TimeOfFlightCamera"/>
+                        <rdf:Description rdf:about="http://knowrob.org/kb/rs_components.owl#DepthCamera"/>
                     </owl:unionOf>
                 </owl:Class>
             </owl:someValuesFrom>
@@ -1744,6 +1745,16 @@
             <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/srdl2-comp.owl#InfraredCamera"/>
         </owl:Restriction>
     </rdfs:subClassOf>
+</owl:Class>
+
+<!-- http://knowrob.org/kb/rs_components.owl#DepthCamera -->
+<owl:Class rdf:about="http://knowrob.org/kb/rs_components.owl#DepthCamera">
+    <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/srdl2-comp.owl#Camera"/>
+</owl:Class>
+
+<!-- http://knowrob.org/kb/rs_components.owl#KinectIRProjectionCamera -->
+<owl:Class rdf:about="http://knowrob.org/kb/rs_components.owl#KinectIRProjectionCamera">
+    <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_components.owl#DepthCamera"/>
 </owl:Class>
 
 <!-- http://knowrob.org/kb/rs_components.owl#VisualAppearance -->

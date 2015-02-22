@@ -34,7 +34,9 @@
   enumerate_annotator_sets_for_predicates/2,
   subsequence/2,
   subseq/2,
-  predicates_for_object/2
+  predicates_for_object/2,
+  perceptual_capabilities_on_robot/2,
+  perceptual_capabilities_on_current_robot/1
 ]).
 
 :- rdf_meta
@@ -50,10 +52,11 @@
 :- owl_parse('package://knowrob_robosherlock/owl/rs_components.owl').
 :- rdf_db:rdf_register_ns(rs_components, 'http://knowrob.org/kb/rs_components.owl#',     [keep(true)]).
 :- rdf_db:rdf_register_ns(pr2, 'http://knowrob.org/kb/PR2.owl#',     [keep(true)]).
+:- rdf_db:rdf_register_ns(jazz, 'http://knowrob.org/kb/pico.owl#',     [keep(true)]).
 
 % Load robots with their capabilities
 :- owl_parse('package://knowrob_robosherlock/owl/PR2.owl'). % Load our own PR2 which has an enhanced ontology (ColorCameras etc.)
-:- owl_parse('package://knowrob_srdl/owl/pico.owl'). % Jazz Robot http://www.gostai.com/products/jazz/openjazz/index.html
+:- owl_parse('package://knowrob_robosherlock/owl/pico.owl'). % Jazz Robot http://www.gostai.com/products/jazz/openjazz/index.html
 
 call_robosherlock(Response,Timestamp):-
     jpl_new('org.knowrob.robosherlock.client.RSClient',[],Client),
@@ -316,6 +319,13 @@ subsequence(_,[]).
 
 subseq(Sequence, Subsequence):- subsequence(Sequence, Subsequence), not(Subsequence = []).
 
+% get the capabilities for a arbitary robot
+perceptual_capabilities_on_robot(Cap,Robot):-
+  cap_available_on_robot(Cap,Robot),owl_direct_subclass_of(Cap,srdl2cap:'PerceptionCapability').
+
+% get the capabilities for the current robot
+perceptual_capabilities_on_current_robot(Cap):-
+  current_robot(R),!,cap_available_on_robot(Cap,R),owl_direct_subclass_of(Cap,srdl2cap:'PerceptionCapability').
 
 /*
 * Definitions done

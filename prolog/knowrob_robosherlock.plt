@@ -103,7 +103,7 @@ test(linemod_predicate_for_pancakemaker):-
   obj_has_predicate(linemod,'http://knowrob.org/kb/rs_test_objects.owl#PancakeMaker'),!.
 
 
-test(build_pipeline_for_object):-
+test(build_pipeline_for_object_milk):-
   build_pipeline_for_object('http://knowrob.org/kb/rs_test_objects.owl#Milk',S),!, % Test the first solution
   length(S,Length),
   assertion(Length == 9),
@@ -119,4 +119,17 @@ test(build_pipeline_for_object):-
   'http://knowrob.org/kb/rs_components.owl#ClusterColorHistogramCalculator',
   'http://knowrob.org/kb/rs_components.owl#BlortAnnotator']).
 
+test(build_pipeline_for_object_pancakemaker):-
+  build_pipeline_for_object('http://knowrob.org/kb/rs_test_objects.owl#PancakeMaker',S),!, % Test the first solution
+  length(S,Length),
+  assertion(Length == 7),
+  assertion(S == 
+  [
+  'http://knowrob.org/kb/rs_components.owl#CollectionReader',
+  'http://knowrob.org/kb/rs_components.owl#ImagePreprocessor',
+  'http://knowrob.org/kb/rs_components.owl#PlaneAnnotator',
+  'http://knowrob.org/kb/rs_components.owl#PointCloudClusterExtractor',
+  'http://knowrob.org/kb/rs_components.owl#Cluster3DGeometryAnnotator',
+  'http://knowrob.org/kb/rs_components.owl#LinemodAnnotator',
+  'http://knowrob.org/kb/rs_components.owl#ClusterColorHistogramCalculator']).
 :- end_tests(knowrob_robosherlock).

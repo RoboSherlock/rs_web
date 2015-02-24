@@ -8,6 +8,9 @@
 %         A is 2^3,
 %         assertion(A == 8).
 
+% load test objects
+:- owl_parse('package://knowrob_robosherlock/owl/test_objects.owl').
+
 % Build a Chain for PlaneEstimation and SacModelAnnotator
 test(build_pipeline1):-
   build_pipeline(['http://knowrob.org/kb/rs_components.owl#NormalEstimator','http://knowrob.org/kb/rs_components.owl#SacModelAnnotator'],S),
@@ -93,52 +96,27 @@ test(build_pipeline_from_predicates1):-
   assertion(Length == 8),
   assertion(S == ['http://knowrob.org/kb/rs_components.owl#CollectionReader','http://knowrob.org/kb/rs_components.owl#ImagePreprocessor','http://knowrob.org/kb/rs_components.owl#PlaneAnnotator','http://knowrob.org/kb/rs_components.owl#PointCloudClusterExtractor','http://knowrob.org/kb/rs_components.owl#ClusterColorHistogramCalculator','http://knowrob.org/kb/rs_components.owl#NormalEstimator','http://knowrob.org/kb/rs_components.owl#SacModelAnnotator','http://knowrob.org/kb/rs_components.owl#PrimitiveShapeAnnotator']). 
 
+test(blort_predicate_for_milk):-
+  obj_has_predicate(blort,'http://knowrob.org/kb/rs_test_objects.owl#Milk'),!.
 
-% OLD TESTS
-/**/
-/*test(build_pipeline_with_multiple_inputs2):-*/
-/*  build_pipeline(['http://knowrob.org/kb/rs_components.owl#RSARegionGrowing'],S),*/
-/*  length(S,Length),*/
-/*  assertion(Length == 4),*/
-/*  assertion(S == ['http://knowrob.org/kb/rs_components.owl#RSACollectionReader','http://knowrob.org/kb/rs_components.owl#RSAImagePreprocessor','http://knowrob.org/kb/rs_components.owl#RSANormalEstimation','http://knowrob.org/kb/rs_components.owl#RSARegionGrowing']). */
-/**/
-/*% build a pipeline for annotators that are in a different height and branch of the dependency tree*/
-/*test(build_pipeline_with_different_branch_and_height):-*/
-/*  build_pipeline(['http://knowrob.org/kb/rs_components.owl#RSASacModelAnnotator','http://knowrob.org/kb/rs_components.owl#RSARegionGrowing'],S),*/
-/*  length(S,Length),*/
-/*  assertion(Length == 5),*/
-/*  assertion(S == ['http://knowrob.org/kb/rs_components.owl#RSACollectionReader','http://knowrob.org/kb/rs_components.owl#RSAImagePreprocessor','http://knowrob.org/kb/rs_components.owl#RSANormalEstimation','http://knowrob.org/kb/rs_components.owl#RSARegionGrowing','http://knowrob.org/kb/rs_components.owl#RSASacModelAnnotator']). */
-/**/
-/**/
-/**/
-/*%%%%%%%%  */
-/*%%%%%%%%  Check error handling in build_pipeline*/
-/*%%%%%%%%  */
-/**/
-/*% check a list of annotators, where all inputs of the given annotator*/
-/*% can't be fulfilled. Build pipeline should be false.*/
-/*test(build_pipeline_unsolvable):-*/
-/*  \+ build_pipeline(['http://knowrob.org/kb/rs_components.owl#RSAUnsolvableAlgorithm'],_).*/
-/**/
-/**/
-/*% check a list of annotators, where one input of the given annotator*/
-/*% can't be fulfilled. Build pipeline should be false.*/
-/*test(build_pipeline_unsolvable2):-*/
-/*  \+ build_pipeline(['http://knowrob.org/kb/rs_components.owl#RSAWithOneUnsolvableInput'],_).*/
-/**/
-/**/
-/**/
-/**/
-/**/
-/**/
-/**/
-/**/
-/**/
-/*% check input providable of a list of annotators, where all inputs of the given annotator can't be fulfilled*/
-/*test(input_checking_fail):-*/
-/*  \+ can_inputs_be_provided_for_annotator_list(['http://knowrob.org/kb/rs_components.owl#RSAUnsolvableAlgorithm']).*/
-/**/
-/*test(input_checking_with_one_input_unsatisfiable_out_of_two):-*/
-/*  \+ can_inputs_be_provided_for_annotator_list(['http://knowrob.org/kb/rs_components.owl#RSAWithOneUnsolvableInput']).*/
-/**/
+test(linemod_predicate_for_pancakemaker):-
+  obj_has_predicate(linemod,'http://knowrob.org/kb/rs_test_objects.owl#PancakeMaker'),!.
+
+
+test(build_pipeline_for_object):-
+  build_pipeline_for_object('http://knowrob.org/kb/rs_test_objects.owl#Milk',S),!, % Test the first solution
+  length(S,Length),
+  assertion(Length == 9),
+  assertion(S == 
+  [
+  'http://knowrob.org/kb/rs_components.owl#CollectionReader',
+  'http://knowrob.org/kb/rs_components.owl#ImagePreprocessor',
+  'http://knowrob.org/kb/rs_components.owl#NormalEstimator',
+  'http://knowrob.org/kb/rs_components.owl#PlaneAnnotator',
+  'http://knowrob.org/kb/rs_components.owl#PointCloudClusterExtractor',
+  'http://knowrob.org/kb/rs_components.owl#SacModelAnnotator',
+  'http://knowrob.org/kb/rs_components.owl#PrimitiveShapeAnnotator',
+  'http://knowrob.org/kb/rs_components.owl#ClusterColorHistogramCalculator',
+  'http://knowrob.org/kb/rs_components.owl#BlortAnnotator']).
+
 :- end_tests(knowrob_robosherlock).

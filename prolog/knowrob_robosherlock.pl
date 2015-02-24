@@ -249,6 +249,15 @@ annotators_for_predicate(text,A) :-
   annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsAnnotationGoggles' ).
 annotators_for_predicate(product,A) :- 
   annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsAnnotationGoggles' ).
+annotators_for_predicate(detection,A) :- 
+  annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsAnnotationDetection' ).
+
+% Detection Clue Annotators. Pick specific Annotators, not based on their inputs/outputs
+annotators_for_predicate(blort,A) :- 
+  annotators(A), A = 'http://knowrob.org/kb/rs_components.owl#BlortAnnotator'.
+
+annotators_for_predicate(linemod,A) :- 
+  annotators(A), A = 'http://knowrob.org/kb/rs_components.owl#LinemodAnnotator'.
 
 annotators_for_predicates(Predicates, A):-
   member(P,Predicates), annotators_for_predicate(P, A).
@@ -268,8 +277,14 @@ obj_has_predicate(logo, Obj):-
 
 obj_has_predicate(text, Obj):- 
   class_properties(Obj,'http://knowrob.org/kb/rs_components.owl#hasVisualProperty',O),owl_subclass_of(O, rs_components:'TextOnObject').
-
 % TODO: Define something for product
+
+% Predicates for DetectionClues
+obj_has_predicate(blort, Obj):- 
+  class_properties(Obj,'http://knowrob.org/kb/rs_components.owl#hasDetectionClue',O), O = 'http://knowrob.org/kb/rs_components.owl#BlortModel'.
+
+obj_has_predicate(linemod, Obj):- 
+  class_properties(Obj,'http://knowrob.org/kb/rs_components.owl#hasDetectionClue',O),O = 'http://knowrob.org/kb/rs_components.owl#LinemodModel'.
 
 
 % Yield every subsequence of possible Annotators for a given Predicate

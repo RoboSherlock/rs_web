@@ -15,7 +15,7 @@ rs_components:'PrimitiveShapeAnnotator',rs_components:'ClusterColorHistogramCalc
 ### Usage
 * Install RoboSherlock. Currently, you MUST use the pipeline_modification branch: https://github.com/code-iai/iai_robosherlock/tree/pipeline_modification
 * Start RoboSherlock with: 
-```rosrun iai_rs_cpp rs_runAE -visualizer test.xml```. Note: test.xml is the name of one of your existing analysis engines.
+```rosrun iai_rs_cpp rs_runAE -pipelinegen -visualizer test.xml```. Note: test.xml is the name of one of your existing analysis engines.
 * Start the json_prolog service for the pipeline planning: 
 ```roslaunch knowrob_robosherlock knowrob_robosherlock.launch```
 * Start the query_runAE_service.py shell to send queries to RoboSherlock with:

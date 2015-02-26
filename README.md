@@ -21,7 +21,7 @@ rs_components:'PrimitiveShapeAnnotator',rs_components:'ClusterColorHistogramCalc
 * Start the query_runAE_service.py shell to send queries to RoboSherlock with:
 ```python `rospack find iai_rs_cpp`/scripts/query_runAE_service.py```
 * In the loaded shell, ask RoboSherlock to execute a pipeline to detect the Shape and Color Property of objects:
-```rs_query$ detect shape,color```
+```rs_query$ detect SHAPE,COLOR```
 Please note, that you can use auto completion in the query_runAE_service.py shell.
 
 ### Useful commands

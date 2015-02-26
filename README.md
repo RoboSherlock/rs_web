@@ -24,6 +24,10 @@ rs_components:'PrimitiveShapeAnnotator',rs_components:'ClusterColorHistogramCalc
 ```rs_query$ detect shape,color```
 Please note, that you can use auto completion in the query_runAE_service.py shell.
 
+### Useful commands
+ * RoboSherlock is capable of executing multiple generated pipelines in sequence, if the requested properties can be detected by different combinations of annotators in a pipeline. Use the 'solution' command in the query_runAE_service.py shell to define wether you want to try out every possible combination (command: solution all) or the one with the most annotators that compute the requested properties (command: solution single).
+ * By default, you will load a couple of test objects with the knowrob_robosherlock.launch file. Knowledge about these objects is asserted in a Knowledge Base, which enables RoboSherlock to plan Pipelines specifically for them. Use the 'detectobj' command to build a pipeline for a given object. The defined objects can be seen by using the tab completion feature when you've entered 'detectobj' plus a space in the query_runAE_service.py shell. The selected solution mode, as discussed above, will also affect the 'detectobj' command.
+
 ### Unit tests
 We've implemented unit tests for the pipeline generation which can be found in prolog/knowrob_robosherlock.plt. These tests can be executed with:
     ```rosrun rosprolog rosprolog-test knowrob_robosherlock```

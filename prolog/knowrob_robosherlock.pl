@@ -251,6 +251,8 @@ annotators_for_predicate(product,A) :-
   annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsAnnotationGoggles' ).
 annotators_for_predicate(detection,A) :- 
   annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsAnnotationDetection' ).
+annotators_for_predicate(handle,A) :- 
+  annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsAnnotationHandleannotation' ).
 
 % Detection Clue Annotators. Pick specific Annotators, not based on their inputs/outputs
 annotators_for_predicate(blort,A) :- 
@@ -277,7 +279,13 @@ obj_has_predicate(logo, Obj):-
 
 obj_has_predicate(text, Obj):- 
   class_properties(Obj,'http://knowrob.org/kb/rs_components.owl#hasVisualProperty',O),owl_subclass_of(O, rs_components:'TextOnObject').
+
+obj_has_predicate(handle, Obj):- 
+  class_properties(Obj,'http://knowrob.org/kb/rs_components.owl#hasVisualProperty',O),owl_subclass_of(O, knowrob:'Handle').
 % TODO: Define something for product
+%
+obj_has_predicate(location, Obj):- 
+  class_properties(Obj,'http://knowrob.org/kb/knowrob.owl#aboveOf',O).
 
 % Predicates for DetectionClues
 obj_has_predicate(blort, Obj):- 

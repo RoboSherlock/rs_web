@@ -43,6 +43,33 @@
     
 
 
+    <!-- http://knowrob.org/kb/knowrob.owl#Handle -->
+
+    <rdf:Description rdf:about="&knowrob;Handle">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="&rs_components;hasVisualProperty"/>
+                <owl:someValuesFrom rdf:resource="&knowrob;Handle"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/rs_test_objects.owl#Bottle -->
+
+    <owl:Class rdf:about="http://knowrob.org/kb/rs_test_objects.owl#Bottle">
+        <rdfs:subClassOf rdf:resource="&knowrob;PackagingContainerProduct"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="&rs_components;hasVisualProperty"/>
+                <owl:someValuesFrom rdf:resource="&rs_components;CylinderShape"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
     <!-- http://knowrob.org/kb/rs_test_objects.owl#Cereal -->
 
     <owl:Class rdf:about="http://knowrob.org/kb/rs_test_objects.owl#Cereal">
@@ -73,6 +100,15 @@
     
 
 
+    <!-- http://knowrob.org/kb/rs_test_objects.owl#DrawerHandle -->
+
+    <owl:Class rdf:about="http://knowrob.org/kb/rs_test_objects.owl#DrawerHandle">
+        <rdfs:subClassOf rdf:resource="&knowrob;Handle"/>
+        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_test_objects.owl#ObjectsToTest"/>
+    </owl:Class>
+    
+
+
     <!-- http://knowrob.org/kb/rs_test_objects.owl#Drink -->
 
     <owl:Class rdf:about="http://knowrob.org/kb/rs_test_objects.owl#Drink">
@@ -93,6 +129,21 @@
 
     <owl:Class rdf:about="http://knowrob.org/kb/rs_test_objects.owl#KellogsLogo">
         <rdfs:subClassOf rdf:resource="&rs_components;Logo"/>
+    </owl:Class>
+    
+
+
+    <!-- http://knowrob.org/kb/rs_test_objects.owl#KetchupBottle -->
+
+    <owl:Class rdf:about="http://knowrob.org/kb/rs_test_objects.owl#KetchupBottle">
+        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_test_objects.owl#Bottle"/>
+        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_test_objects.owl#ObjectsToTest"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="&rs_components;hasVisualProperty"/>
+                <owl:someValuesFrom rdf:resource="&knowrob;RedColor"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
     </owl:Class>
     
 
@@ -186,6 +237,32 @@
     <!-- http://knowrob.org/kb/rs_test_objects.owl#ObjectsToTest -->
 
     <owl:Class rdf:about="http://knowrob.org/kb/rs_test_objects.owl#ObjectsToTest"/>
+    
+
+
+    <!-- http://knowrob.org/kb/rs_test_objects.owl#Pancake -->
+
+    <owl:Class rdf:about="http://knowrob.org/kb/rs_test_objects.owl#Pancake">
+        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_test_objects.owl#ObjectsToTest"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="&knowrob;aboveOf"/>
+                <owl:someValuesFrom rdf:resource="&knowrob;PancakeMaker"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="&rs_components;hasVisualProperty"/>
+                <owl:someValuesFrom rdf:resource="&knowrob;YellowColor"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="&rs_components;hasVisualProperty"/>
+                <owl:someValuesFrom rdf:resource="&rs_components;RoundShape"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
     
 
 

@@ -1384,6 +1384,11 @@
 <!-- http://knowrob.org/kb/rs_components.owl#ConeShape -->
 <owl:Class rdf:about="http://knowrob.org/kb/rs_components.owl#ConeShape">
     <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_components.owl#Shape"/>
+  </owl:Class>
+
+<!-- http://knowrob.org/kb/rs_components.owl#RoundShape -->
+<owl:Class rdf:about="http://knowrob.org/kb/rs_components.owl#RoundShape">
+    <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_components.owl#Shape"/>
 </owl:Class>
 
 <!-- http://knowrob.org/kb/rs_components.owl#GraspPoints -->

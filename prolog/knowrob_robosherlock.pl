@@ -36,7 +36,10 @@
   subseq/2,
   predicates_for_object/2,
   perceptual_capabilities_on_robot/2,
-  perceptual_capabilities_on_current_robot/1
+  perceptual_capabilities_on_current_robot/1,
+  build_pipeline_for_subclass_leafs/3,
+  build_pipeline_for_subclasses/3,
+  leaf_subclasses/2
 ]).
 
 :- rdf_meta

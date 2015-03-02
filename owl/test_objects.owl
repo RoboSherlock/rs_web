@@ -63,7 +63,7 @@
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="&rs_components;hasVisualProperty"/>
-                <owl:someValuesFrom rdf:resource="&rs_components;CylinderShape"/>
+                <owl:someValuesFrom rdf:resource="&rs_components;CylindricalShape"/>
             </owl:Restriction>
         </rdfs:subClassOf>
     </owl:Class>

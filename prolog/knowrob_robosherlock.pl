@@ -253,7 +253,7 @@ annotators_for_predicate(detection,A) :-
   annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsAnnotationDetection' ).
 annotators_for_predicate(handle,A) :- 
   annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsAnnotationHandleannotation' ).
-annotators_for_predicate(cylindral_shape,A) :- 
+annotators_for_predicate(cylindrical_shape,A) :- 
   annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsAnnotationCylindricalshape' ).
 
 detect(Type,Annotator):- annotators_for_predicate(Type,Annotator).
@@ -269,10 +269,12 @@ annotators_for_predicates(Predicates, A):-
   member(P,Predicates), annotators_for_predicate(P, A).
 
 obj_has_predicate(cylindrical_shape, Obj):- 
-  class_properties(Obj,'http://knowrob.org/kb/rs_components.owl#hasVisualProperty',O),owl_subclass_of(O, rs_components:'CylinderShape').
+  class_properties(Obj,'http://knowrob.org/kb/rs_components.owl#hasVisualProperty',O),
+  owl_subclass_of(O, rs_components:'CylindricalShape').
 
 obj_has_predicate(shape, Obj):- 
-  class_properties(Obj,'http://knowrob.org/kb/rs_components.owl#hasVisualProperty',O),owl_subclass_of(O, rs_components:'Shape').
+  class_properties(Obj,'http://knowrob.org/kb/rs_components.owl#hasVisualProperty',O),owl_subclass_of(O, rs_components:'Shape'),
+  not(O = 'http://knowrob.org/kb/rs_components.owl#CylindricalShape').
 
 obj_has_predicate(color, Obj):- 
   class_properties(Obj,'http://knowrob.org/kb/rs_components.owl#hasVisualProperty',O),owl_subclass_of(O, knowrob:'ColoredThing').

@@ -346,7 +346,7 @@ build_single_pipeline_for_object(Obj,Pipeline):-
   build_single_pipeline_from_predicates(ListOfPredicates,Pipeline).
 
 build_pipeline_for_subclasses(Obj,Pipeline,ChildObj):-
-  owl_direct_subclass_of(ChildObj,Obj),
+  owl_subclass_of(ChildObj,Obj),
   build_single_pipeline_for_object(ChildObj,Pipeline).
 
 % build_pipeline_from_predicates([shape,color],Pipeline):-

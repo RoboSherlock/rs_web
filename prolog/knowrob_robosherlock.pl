@@ -330,14 +330,25 @@ predicates_for_object(Obj,Preds):-
 	setof(X,obj_has_predicate(X,Obj),Preds).
 
 build_pipeline_from_predicates(ListOfPredicates,Pipeline):-
-	% setof(X,annotators_for_predicates(ListOfPredicates, X), Annotators), % Only build one list of annotators for the given Predicates
   enumerate_annotator_sets_for_predicates(ListOfPredicates, Annotators),
+  build_pipeline(Annotators, Pipeline).
+
+build_single_pipeline_from_predicates(ListOfPredicates,Pipeline):-
+	setof(X,annotators_for_predicates(ListOfPredicates, X), Annotators), % Only build one list of annotators for the given Predicates
   build_pipeline(Annotators, Pipeline).
 
 build_pipeline_for_object(Obj,Pipeline):-
   predicates_for_object(Obj,ListOfPredicates),!,
   build_pipeline_from_predicates(ListOfPredicates,Pipeline).
-% 
+
+build_single_pipeline_for_object(Obj,Pipeline):-
+  predicates_for_object(Obj,ListOfPredicates),!,
+  build_single_pipeline_from_predicates(ListOfPredicates,Pipeline).
+
+build_pipeline_for_subclasses(Obj,Pipeline,ChildObj):-
+  owl_direct_subclass_of(ChildObj,Obj),
+  build_single_pipeline_for_object(ChildObj,Pipeline).
+
 % build_pipeline_from_predicates([shape,color],Pipeline):-
 % 	setof(X,shape_annotators(X),ShapeAnnotators),
 %   build_pipeline(ShapeAnnotators, Pipeline).

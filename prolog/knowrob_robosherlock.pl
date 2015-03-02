@@ -256,14 +256,17 @@ annotators_for_predicate(handle,A) :-
 annotators_for_predicate(cylindrical_shape,A) :- 
   annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsAnnotationCylindricalshape' ).
 
-detect(Type,Annotator):- annotators_for_predicate(Type,Annotator).
-
 % Detection Clue Annotators. Pick specific Annotators, not based on their inputs/outputs
 annotators_for_predicate(blort,A) :- 
   annotators(A), A = 'http://knowrob.org/kb/rs_components.owl#BlortAnnotator'.
 
 annotators_for_predicate(linemod,A) :- 
   annotators(A), A = 'http://knowrob.org/kb/rs_components.owl#LinemodAnnotator'.
+
+annotators_for_predicate(pancakedetector,A) :- 
+  annotators(A), A = 'http://knowrob.org/kb/rs_components.owl#PancakeAnnotator'.
+
+detect(Type,Annotator):- annotators_for_predicate(Type,Annotator).
 
 annotators_for_predicates(Predicates, A):-
   member(P,Predicates), annotators_for_predicate(P, A).
@@ -293,7 +296,7 @@ obj_has_predicate(handle, Obj):-
 % TODO: Define something for product
 %
 obj_has_predicate(location, Obj):- 
-  class_properties(Obj,'http://knowrob.org/kb/knowrob.owl#aboveOf',O).
+  class_properties(Obj,'http://knowrob.org/kb/knowrob.owl#aboveOf',_).
 
 % Predicates for DetectionClues
 obj_has_predicate(blort, Obj):- 
@@ -301,6 +304,9 @@ obj_has_predicate(blort, Obj):-
 
 obj_has_predicate(linemod, Obj):- 
   class_properties(Obj,'http://knowrob.org/kb/rs_components.owl#hasDetectionClue',O),O = 'http://knowrob.org/kb/rs_components.owl#LinemodModel'.
+
+obj_has_predicate(pancakedetector, Obj):- 
+  class_properties(Obj,'http://knowrob.org/kb/rs_components.owl#hasDetectionClue',O),O = 'http://knowrob.org/kb/rs_components.owl#PancakeDetector'.
 
 
 % Yield every subsequence of possible Annotators for a given Predicate
@@ -363,6 +369,10 @@ perceptual_capabilities_on_current_robot(Cap):-
 detect_volume(Obj,P):-
   owl_subclass_of(Obj,knowrob:'Container'),
   obj_has_predicate(cylindrical_shape, Obj),
+  build_pipeline_for_object(Obj,P).
+
+detect_if_individual_present(Obj,DependentObjectClass,P):-
+  owl_individual_of(_, DependentObjectClass),
   build_pipeline_for_object(Obj,P).
 
 /*

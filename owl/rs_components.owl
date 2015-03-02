@@ -716,12 +716,6 @@
     <rdfs:subClassOf>
         <owl:Restriction>
             <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#perceptualOutput"/>
-            <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#RsAnnotationDetection"/>
-        </owl:Restriction>
-    </rdfs:subClassOf>
-    <rdfs:subClassOf>
-        <owl:Restriction>
-            <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#perceptualOutput"/>
             <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#RsAnnotationMlnatoms"/>
         </owl:Restriction>
     </rdfs:subClassOf>
@@ -1275,6 +1269,36 @@
 <!-- http://knowrob.org/kb/rs_components.owl#PancakeAnnotator -->
 <owl:Class rdf:about="http://knowrob.org/kb/rs_components.owl#PancakeAnnotator">
     <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_components.owl#RoboSherlockComponent"/>
+    <rdfs:subClassOf>
+        <owl:Restriction>
+            <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#perceptualInputRequired"/>
+            <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#RsCvMat"/>
+        </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+        <owl:Restriction>
+            <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#perceptualInputRequired"/>
+            <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#RsSceneCluster"/>
+        </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+        <owl:Restriction>
+            <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#perceptualInputRequired"/>
+            <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#RsAnnotationPlane"/>
+        </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+        <owl:Restriction>
+            <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#perceptualInputRequired"/>
+            <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#RsAnnotationDetection"/>
+        </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+        <owl:Restriction>
+            <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#perceptualOutput"/>
+            <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#RsDemoPancake"/>
+        </owl:Restriction>
+    </rdfs:subClassOf>
 </owl:Class>
 
 <!-- http://knowrob.org/kb/rs_components.owl#AcatTFBroadcaster -->
@@ -1448,6 +1472,11 @@
 
 <!-- http://knowrob.org/kb/rs_components.owl#LinemodModel -->
 <owl:Class rdf:about="http://knowrob.org/kb/rs_components.owl#LinemodModel">
+    <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_components.owl#ModelDetection"/>
+</owl:Class>
+
+<!-- http://knowrob.org/kb/rs_components.owl#PancakeDetector -->
+<owl:Class rdf:about="http://knowrob.org/kb/rs_components.owl#PancakeDetector">
     <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_components.owl#ModelDetection"/>
 </owl:Class>
 
@@ -2005,7 +2034,6 @@
     <requiresInput rdf:resource="http://knowrob.org/kb/rs_components.owl#RsAnnotationShape"/>
     <requiresInput rdf:resource="http://knowrob.org/kb/rs_components.owl#RsAnnotationSemanticcolor"/>
     <requiresInput rdf:resource="http://knowrob.org/kb/rs_components.owl#RsAnnotationGeometry"/>
-    <factResult rdf:resource="http://knowrob.org/kb/rs_components.owl#RsAnnotationDetection"/>
     <factResult rdf:resource="http://knowrob.org/kb/rs_components.owl#RsAnnotationMlnatoms"/>
 </owl:NamedIndividual>
 
@@ -2481,6 +2509,11 @@
 
 <owl:NamedIndividual rdf:about="http://knowrob.org/kb/rs_components.owl#InstancePancakeAnnotator">
     <rdf:type rdf:resource="http://knowrob.org/kb/rs_components.owl#PancakeAnnotator"/>
+    <requiresInput rdf:resource="http://knowrob.org/kb/rs_components.owl#RsCvMat"/>
+    <requiresInput rdf:resource="http://knowrob.org/kb/rs_components.owl#RsSceneCluster"/>
+    <requiresInput rdf:resource="http://knowrob.org/kb/rs_components.owl#RsAnnotationPlane"/>
+    <requiresInput rdf:resource="http://knowrob.org/kb/rs_components.owl#RsAnnotationDetection"/>
+    <factResult rdf:resource="http://knowrob.org/kb/rs_components.owl#RsDemoPancake"/>
 </owl:NamedIndividual>
 
 <!-- http://knowrob.org/kb/rs_components.owl#InstanceAcatTFBroadcaster -->

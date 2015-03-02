@@ -246,20 +246,8 @@
         <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_test_objects.owl#ObjectsToTest"/>
         <rdfs:subClassOf>
             <owl:Restriction>
-                <owl:onProperty rdf:resource="&knowrob;aboveOf"/>
-                <owl:someValuesFrom rdf:resource="&knowrob;PancakeMaker"/>
-            </owl:Restriction>
-        </rdfs:subClassOf>
-        <rdfs:subClassOf>
-            <owl:Restriction>
-                <owl:onProperty rdf:resource="&rs_components;hasVisualProperty"/>
-                <owl:someValuesFrom rdf:resource="&knowrob;YellowColor"/>
-            </owl:Restriction>
-        </rdfs:subClassOf>
-        <rdfs:subClassOf>
-            <owl:Restriction>
-                <owl:onProperty rdf:resource="&rs_components;hasVisualProperty"/>
-                <owl:someValuesFrom rdf:resource="&rs_components;RoundShape"/>
+                <owl:onProperty rdf:resource="&rs_components;hasDetectionClue"/>
+                <owl:someValuesFrom rdf:resource="&rs_components;PancakeDetector"/>
             </owl:Restriction>
         </rdfs:subClassOf>
     </owl:Class>
@@ -359,6 +347,25 @@
     <owl:Class rdf:about="http://knowrob.org/kb/rs_test_objects.owl#TextTee">
         <rdfs:subClassOf rdf:resource="&rs_components;TextOnObject"/>
     </owl:Class>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Individuals
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://knowrob.org/kb/rs_test_objects.owl#PancakeMaker1 -->
+
+    <owl:NamedIndividual rdf:about="http://knowrob.org/kb/rs_test_objects.owl#PancakeMaker1">
+        <rdf:type rdf:resource="http://knowrob.org/kb/rs_test_objects.owl#PancakeMaker"/>
+    </owl:NamedIndividual>
 </rdf:RDF>
 
 

@@ -253,6 +253,10 @@ annotators_for_predicate(detection,A) :-
   annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsAnnotationDetection' ).
 annotators_for_predicate(handle,A) :- 
   annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsAnnotationHandleannotation' ).
+annotators_for_predicate(cylindral_shape,A) :- 
+  annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsAnnotationCylindricalshape' ).
+
+detect(Type,Annotator):- annotators_for_predicate(Type,Annotator).
 
 % Detection Clue Annotators. Pick specific Annotators, not based on their inputs/outputs
 annotators_for_predicate(blort,A) :- 
@@ -264,8 +268,10 @@ annotators_for_predicate(linemod,A) :-
 annotators_for_predicates(Predicates, A):-
   member(P,Predicates), annotators_for_predicate(P, A).
 
+obj_has_predicate(cylindrical_shape, Obj):- 
+  class_properties(Obj,'http://knowrob.org/kb/rs_components.owl#hasVisualProperty',O),owl_subclass_of(O, rs_components:'CylinderShape').
+
 obj_has_predicate(shape, Obj):- 
-  % class_properties(Obj,'http://knowrob.org/kb/rs_components.owl#hasVisualProperty',O),owl_subclass_of(O, knowrob:'SpatialThingTypeByShape'). % the default class for shapes in KnowRob
   class_properties(Obj,'http://knowrob.org/kb/rs_components.owl#hasVisualProperty',O),owl_subclass_of(O, rs_components:'Shape').
 
 obj_has_predicate(color, Obj):- 
@@ -351,6 +357,11 @@ perceptual_capabilities_on_robot(Cap,Robot):-
 % get the capabilities for the current robot
 perceptual_capabilities_on_current_robot(Cap):-
   current_robot(R),!,cap_available_on_robot(Cap,R),owl_direct_subclass_of(Cap,srdl2cap:'PerceptionCapability').
+
+detect_volume(Obj,P):-
+  owl_subclass_of(Obj,knowrob:'Container'),
+  obj_has_predicate(cylindrical_shape, Obj),
+  build_pipeline_for_object(Obj,P).
 
 /*
 * Definitions done

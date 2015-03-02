@@ -349,6 +349,16 @@ build_pipeline_for_subclasses(Obj,Pipeline,ChildObj):-
   owl_subclass_of(ChildObj,Obj),
   build_single_pipeline_for_object(ChildObj,Pipeline).
 
+build_pipeline_for_subclass_leafs(Obj,Pipeline,ChildObj):-
+  leaf_subclasses(ChildObj,Obj),
+  build_single_pipeline_for_object(ChildObj,Pipeline).
+
+% Return all subclasses of Superclass, that do not have direct subclasses.
+% If you think of the ontology as a tree,
+% this will be the leaf nodes
+leaf_subclasses(Sub, Superclass):-
+owl_subclass_of(Sub, Superclass), \+ owl_direct_subclass_of(_,Sub).
+
 % build_pipeline_from_predicates([shape,color],Pipeline):-
 % 	setof(X,shape_annotators(X),ShapeAnnotators),
 %   build_pipeline(ShapeAnnotators, Pipeline).

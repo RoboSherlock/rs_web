@@ -39,7 +39,8 @@
   perceptual_capabilities_on_current_robot/1,
   build_pipeline_for_subclass_leafs/3,
   build_pipeline_for_subclasses/3,
-  leaf_subclasses/2
+  leaf_subclasses/2,
+  detect/2
 ]).
 
 :- rdf_meta
@@ -54,6 +55,7 @@
 
 :- owl_parse('package://knowrob_robosherlock/owl/rs_components.owl').
 :- rdf_db:rdf_register_ns(rs_components, 'http://knowrob.org/kb/rs_components.owl#',     [keep(true)]).
+:- rdf_db:rdf_register_ns(rs_test_objects, 'http://knowrob.org/kb/rs_test_objects.owl#',     [keep(true)]).
 :- rdf_db:rdf_register_ns(pr2, 'http://knowrob.org/kb/PR2.owl#',     [keep(true)]).
 :- rdf_db:rdf_register_ns(jazz, 'http://knowrob.org/kb/pico.owl#',     [keep(true)]).
 

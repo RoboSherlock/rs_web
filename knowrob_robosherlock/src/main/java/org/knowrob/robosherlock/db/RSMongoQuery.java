@@ -41,7 +41,7 @@ public class RSMongoQuery {
 			System.out.println("Cluster " + i + " matches");	
 		}
 		//methods for getting extra information about cluster
-		
+		mongoWrapper.getRGB("1409046631131301703");
 		
 	}
 }

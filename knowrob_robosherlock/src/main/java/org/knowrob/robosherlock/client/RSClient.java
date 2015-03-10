@@ -43,7 +43,8 @@ public class RSClient extends AbstractNodeMain {
 
 
 		try {
-			serviceClient = node.newServiceClient("RoboSherlock_ferenc/trigger_uima_pipeline", 
+			String service_name = "RoboSherlock_"+System.getProperty("user.name")+"trigger_uima_pipeline";
+			serviceClient = node.newServiceClient(service_name, 
 					designator_integration_msgs.DesignatorCommunication._TYPE);
 		} catch (ServiceNotFoundException e) {
 			throw new RosRuntimeException(e);

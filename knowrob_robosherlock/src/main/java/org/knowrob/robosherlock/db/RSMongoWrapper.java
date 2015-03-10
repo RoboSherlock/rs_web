@@ -15,7 +15,10 @@ import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.QueryBuilder;
 
+import org.bson.BSONObject;
+import org.bson.types.Binary;
 import org.bson.types.ObjectId;
+import org.opencv.core.*;
 
 
 public class RSMongoWrapper {
@@ -93,25 +96,37 @@ public class RSMongoWrapper {
 	{
 		DBObject rgbD = getDocument(ts,"rgb_image_hires");
 		//convert to something useful.. cv.Mat?
-		convertToCvMat();
+		convertToCvMat(rgbD);
 		//advertise result on the topic for open-ease
 	}
 	public void getDepth(String ts)
 	{
 		DBObject depthD = getDocument(ts,"depth_image_as_int");
 		//convert to something useful.. cv.Mat?
-		convertToCvMat();
+		convertToCvMat(depthD);
 	}
 	public void getCamInfo(String ts)
 	{
 		DBObject camInfoD = getDocument(ts,"camera_info_hires");
 		//maybe we don't even need this
 	}
-	
-	public void convertToCvMat()
+
+	public void convertToCvMat(DBObject imgObj)
 	{
+		Integer cols = (Integer)imgObj.get("cols");
+		Integer rows = (Integer)imgObj.get("rows");
+		Integer mat_type = (Integer)imgObj.get("mat_type");
+		Integer step_size = (Integer)imgObj.get("step_size");
+		Binary data = (Binary)imgObj.get("data");
+		
+		System.out.println("Cols: "+ cols + " Rows: " + rows);
+		Mat img = new Mat(rows,cols,mat_type);
+		if(img.rows() !=0 && img.cols() !=0){
+			img.put(0, 0, data.getData());
+		}
 		
 	}
+
 }
 
 

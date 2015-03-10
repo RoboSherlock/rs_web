@@ -19,6 +19,7 @@ import org.bson.BSONObject;
 import org.bson.types.Binary;
 import org.bson.types.ObjectId;
 import org.opencv.core.*;
+import org.opencv.highgui.Highgui;
 
 
 public class RSMongoWrapper {
@@ -111,20 +112,22 @@ public class RSMongoWrapper {
 		//maybe we don't even need this
 	}
 
-	public void convertToCvMat(DBObject imgObj)
+	public Mat convertToCvMat(DBObject imgObj)
 	{
 		Integer cols = (Integer)imgObj.get("cols");
 		Integer rows = (Integer)imgObj.get("rows");
 		Integer mat_type = (Integer)imgObj.get("mat_type");
-		Integer step_size = (Integer)imgObj.get("step_size");
-		Binary data = (Binary)imgObj.get("data");
-		
-		System.out.println("Cols: "+ cols + " Rows: " + rows);
-		Mat img = new Mat(rows,cols,mat_type);
+		byte[] myBytes = (byte []) imgObj.get("data");
+		System.out.println("Cols: "+ cols + " Rows: " + rows + " Mat Type: "+mat_type);
+		Mat img = null;
+		if (mat_type == 2)
+			img= new Mat(rows, cols,CvType.CV_8U);
+		else
+			img=new Mat(rows,cols,mat_type);
 		if(img.rows() !=0 && img.cols() !=0){
-			img.put(0, 0, data.getData());
+			img.put(0, 0, myBytes);
 		}
-		
+		return img;
 	}
 
 }

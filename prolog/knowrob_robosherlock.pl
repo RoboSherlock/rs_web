@@ -40,7 +40,8 @@
   build_pipeline_for_subclass_leafs/3,
   build_pipeline_for_subclasses/3,
   leaf_subclasses/2,
-  detect/2
+  detect/2,
+  query_result/5
 ]).
 
 :- rdf_meta
@@ -70,11 +71,21 @@ call_robosherlock(Response,Timestamp):-
     jpl_call('org.knowrob.utils.ros.RosUtilities',runRosjavaNode,[Client,Arr],_),
     jpl_call(Client,'callService',[Timestamp],Response).
 
+%%count object hypotheses logged in a scene by timestamp and Scene name
 scene_clusters_count(Timestamp,Collection,Count):-
     jpl_new('org.knowrob.robosherlock.db.RSMongoWrapper',[Collection],RS),
     jpl_call(RS,'getScene',[Timestamp],SceneObject),
     jpl_call(SceneObject,'getNumberOfClusters',[],Count).		
 
+% Query the results of the database
+% Terms are: shape,color,size...for now..add instance
+% example: query_result(['size','shape'],['medium','flat'],'1409046631131301703','Scenes_annotated',R).
+query_result(Terms,Values,Timestamp,Collection,R):-
+    jpl_new('org.knowrob.robosherlock.db.RSMongoWrapper',[Collection],RS),
+    jpl_call(RS,'getScene',[Timestamp],SceneObject),
+    jpl_list_to_array(Terms,ATerms),
+    jpl_list_to_array(Values,AValues),	
+    jpl_call(SceneObject,'query',[ATerms,AValues],R).		
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

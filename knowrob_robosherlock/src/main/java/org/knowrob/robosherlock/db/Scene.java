@@ -12,8 +12,8 @@ public class Scene {
 	DBObject sceneDocument;
 	long timestamp;
 	BasicDBList identifiables;
-	
-	
+
+
 	class EntryPair{
 		public EntryPair(String name2, String value2) {
 			this.name=name2;
@@ -22,19 +22,37 @@ public class Scene {
 		String name;
 		String value;		
 	}
-	
+
 	/*entry in DB with the type name of the annotation and field name that contains
 	the value of interest*/
-	private static final Map<String,String> defTypes;
+	//this is the mapping between the type and the name of the field in mongo that contains the value
+	public static final Map<String,String> typeToValueField;
 	static
 	{
-		defTypes = new HashMap <String,String> ();
-		defTypes.put ("iai_rs.annotation.Geometry","size");
-		defTypes.put ("iai_rs.annotation.Shape", "shape");
-		defTypes.put ("iai_rs.annotation.TFLocation","frame_id");
-//		defTypes.put ("iai_rs.annotation.SemanticColor","color");
+		typeToValueField = new HashMap <String,String> ();
+		typeToValueField.put ("iai_rs.annotation.Geometry","size");
+		typeToValueField.put ("iai_rs.annotation.Shape", "shape");
+		typeToValueField.put ("iai_rs.annotation.TFLocation","frame_id");
+		typeToValueField.put ("iai_rs.annotation.SemanticColor","color");
 	}
 	
+	//todo: this is ugly...I mean...really..really...need to unify query terms for open-ease with query terms for RS
+	//I hope open-ease interface changes from prolog to something that will not make me rewrite the same code in 
+	// three places
+	
+	//this is a mapping between what can be queried in prolog from open-ease and the types in MongoDB
+	public static final Map<String,String> termToType;
+	static
+	{
+		termToType = new HashMap<String,String> ();
+		termToType.put ("size","iai_rs.annotation.Geometry");
+		termToType.put ("shape","iai_rs.annotation.Shape");
+		termToType.put ("location","iai_rs.annotation.TFLocation");
+		termToType.put ("color","iai_rs.annotation.SemanticColor");
+		termToType.put ("logo","iai_rs.annotation.Goggles");
+		termToType.put ("instance", "iai_rs.annnotation.Detection");
+	}
+
 	Scene(DBObject sceneD, String timestamp)
 	{
 		this.sceneDocument = sceneD;
@@ -66,12 +84,10 @@ public class Scene {
 				if(annotation.containsField("_type")){
 					String type = (String)annotation.get("_type");
 					if(type.equals(key.name)){
-					
-						
 						if(!key.name.equals("iai_rs.annotation.SemanticColor")){
-							String value = (String)	annotation.get(defTypes.get(type));
+							String value = (String)	annotation.get(typeToValueField.get(type));
 							if(value.equals(key.value)){
-								System.out.println("Cluster " + index + " has " + key.name +" " +key.value);
+								//System.out.println("Cluster " + index + " has " + key.name +" " +key.value);
 								return true;
 							}
 							else 
@@ -90,11 +106,11 @@ public class Scene {
 									String color = (String)colors.get(i);
 									Double ratio = (Double)ratios.get(i);
 									if(ratio>0.20 && color.equals(key.value)){
-										System.out.println("Cluster " + index + " has " + key.name +" "+ key.value);
+										//System.out.println("Cluster " + index + " has " + key.name +" "+ key.value);
 										return true;
 									}
 								}
-							return false;	
+								return false;	
 							}
 						}
 					}
@@ -103,7 +119,7 @@ public class Scene {
 		}
 		return false;
 	}
-	
+
 	public ArrayList<Integer> query(ArrayList<EntryPair> Keys){
 		int cIndex = 0;
 		ArrayList<Integer> clustersFound = new ArrayList<Integer>();
@@ -116,7 +132,7 @@ public class Scene {
 				if(!searchForAnnotation(key, o, cIndex)){
 					found=false;
 				}
-				
+
 			}
 			if(found){
 				clustersFound.add((Integer) cIndex);
@@ -142,6 +158,8 @@ public class Scene {
 		}
 		return found;
 	}
+
+	//man I hav no clue what are all of these query funcions for...
 	public ArrayList<Integer> query(HashMap<String,String> query)
 	{
 		ArrayList<Integer> resultClusterIndices = new ArrayList<Integer>();
@@ -152,5 +170,34 @@ public class Scene {
 		}
 		resultClusterIndices = query(queryItems);
 		return resultClusterIndices;
+	}
+	//this is for jpl
+	public String query(String[] terms, String[] values)
+	{
+		HashMap<String,String> temp=new HashMap <String,String>();
+		if(terms.length != values.length)
+			return null;
+		else
+		{
+			for (int i=0; i<terms.length; ++i)
+			{
+				temp.put((String)termToType.get(terms[i]), values[i]);
+			}
+			ArrayList<Integer> clusterIds = query(temp);
+			String result="";
+			for (Integer index:clusterIds)
+				result += "[cluster_"+index+"]";
+			return result;
+		}
+	}
+	
+	public String arrayTest(String[] stuff)
+	{
+		System.out.println(stuff.length);
+		for (int i=0;i<stuff.length;++i)
+		{
+			System.out.println(stuff[i]);
+		}
+		return "whatever";
 	}
 }

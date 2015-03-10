@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.knowrob.robosherlock.db.RSMongoWrapper;
+import org.opencv.core.Core;
 
 
 public class RSMongoQuery {
@@ -18,19 +19,19 @@ public class RSMongoQuery {
 	}
 
 	public static void main(String[] args) {
+		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
 		RSMongoWrapper mongoWrapper = new RSMongoWrapper("Scenes_annotated");
 		Scene scene =  mongoWrapper.getScene("1409046631131301703");
-		System.out.println("No. of clusters in scene:" + scene.getNumberOfClusters());
-//		scene.query("iai_rs.annotation.Geometry","medium");
-//		scene.query("iai_rs.annotation.SemanticColor","white");
+//		System.out.println("No. of clusters in scene:" + scene.getNumberOfClusters());
 		
 		final HashMap<String,String> query;
 		
 		query = new HashMap <String,String> ();
 		query.put ("iai_rs.annotation.Geometry","medium");
 		query.put ("iai_rs.annotation.SemanticColor", "yellow");
-		query.put ("iai_rs.annotation.Shape", "round");
+//		query.put ("iai_rs.annotation.Shape", "box");
+		
 		ArrayList<Integer> results = scene.query(query);
 		if(results.size()==0)
 		{
@@ -40,9 +41,9 @@ public class RSMongoQuery {
 		{
 			System.out.println("Cluster " + i + " matches");	
 		}
-		//methods for getting extra information about cluster
+
 		mongoWrapper.getRGB("1409046631131301703");
-		
+		mongoWrapper.getDepth("1409046631131301703");
 	}
 }
 

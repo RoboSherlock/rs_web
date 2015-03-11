@@ -43,7 +43,9 @@ public class RSClient extends AbstractNodeMain {
 
 
 		try {
-			String service_name = "RoboSherlock_"+System.getProperty("user.name")+"trigger_uima_pipeline";
+			//service name change required in RoboSherlock (to not collide with other RS instances running on the same machine
+//			String service_name = "RoboSherlock_"+System.getProperty("user.name")+"/trigger_uima_pipeline";
+			String service_name = "/robosherlock/designator_request/single_solution";
 			serviceClient = node.newServiceClient(service_name, 
 					designator_integration_msgs.DesignatorCommunication._TYPE);
 		} catch (ServiceNotFoundException e) {
@@ -52,7 +54,7 @@ public class RSClient extends AbstractNodeMain {
 
 	}
 	//call RoboSherlock with a timestamp. RS should get the frame at this timestamp and process it
-	public String callService(String timestamp)
+	public void callService(String timestamp)
 	{
 		// wait for node to be ready
 		try {
@@ -65,12 +67,12 @@ public class RSClient extends AbstractNodeMain {
 		DesignatorCommunicationRequest request = serviceClient.newMessage();		
 		DesignatorRequest req =  node.getTopicMessageFactory().newFromType(DesignatorRequest._TYPE);
 		Designator desig =  node.getTopicMessageFactory().newFromType(Designator._TYPE);
-		KeyValuePair k1 = node.getTopicMessageFactory().newFromType(KeyValuePair._TYPE);
-		desig.setType(1);
-		k1.setKey("TIMESTAMP");
-		k1.setValueString(timestamp);
+		desig.setType(0);
 		ArrayList<KeyValuePair> list = new ArrayList<KeyValuePair>();
-		list.add(k1);
+		addKeyValuePair("TIMESTAMP", timestamp, list);
+		addKeyValuePair("SHAPE","box",list);
+		addKeyValuePair("COLOR","yellow",list);
+		addKeyValuePair("SIZE", "medium",list);
 		desig.setDescription(list);
 		req.setDesignator(desig);
 		request.setRequest(req);
@@ -79,13 +81,23 @@ public class RSClient extends AbstractNodeMain {
 				{
 			@Override
 			public void onSuccess(DesignatorCommunicationResponse arg0) {
-				System.out.println("Successfully called servidce.");
+//				System.out.println("Successfully called servidce.");
 			}
 			@Override
 			public void onFailure(RemoteException e) {
 				throw new RosRuntimeException(e);
 			}
 				});
-		return "Success";
+//		return "Success";
+	}
+	
+	void addKeyValuePair(String Key, String Value, ArrayList<KeyValuePair> list)
+	{
+		KeyValuePair kvp = node.getTopicMessageFactory().newFromType(KeyValuePair._TYPE);
+		kvp.setKey(Key);
+		kvp.setValueString(Value);
+		//this will not allow hierarchical tree structures, but will have to do for now
+		kvp.setId(list.size()+1);
+		list.add(kvp);
 	}
 }

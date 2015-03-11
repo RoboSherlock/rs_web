@@ -1,6 +1,6 @@
 :- module(knowrob_robosherlock,
     [
-        call_robosherlock/2, 
+        call_robosherlock/1, 
   scene_clusters_count/3,
   current_robot/1,
   set_current_robot/1,
@@ -65,11 +65,11 @@
 :- owl_parse('package://knowrob_robosherlock/owl/pico.owl'). % Jazz Robot http://www.gostai.com/products/jazz/openjazz/index.html
 :- owl_parse('package://knowrob_robosherlock/owl/test_objects.owl'). % Load objects to reason about
 
-call_robosherlock(Response,Timestamp):-
+call_robosherlock(Timestamp):-
     jpl_new('org.knowrob.robosherlock.client.RSClient',[],Client),
     jpl_list_to_array(['org.knowrob.robosherlock.client.RSClient'], Arr),
     jpl_call('org.knowrob.utils.ros.RosUtilities',runRosjavaNode,[Client,Arr],_),
-    jpl_call(Client,'callService',[Timestamp],Response).
+    jpl_call(Client,'callService',[Timestamp],_),!.
 
 %%count object hypotheses logged in a scene by timestamp and Scene name
 scene_clusters_count(Timestamp,Collection,Count):-

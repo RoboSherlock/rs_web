@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.knowrob.robosherlock.db.RSMongoWrapper;
-import org.opencv.core.Core;
+//import org.opencv.core.Core;
 
 
 public class RSMongoQuery {
@@ -19,7 +19,7 @@ public class RSMongoQuery {
 	}
 
 	public static void main(String[] args) {
-		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+//		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
 		RSMongoWrapper mongoWrapper = new RSMongoWrapper("Scenes_annotated");
 		Scene scene =  mongoWrapper.getScene("1409046631131301703");

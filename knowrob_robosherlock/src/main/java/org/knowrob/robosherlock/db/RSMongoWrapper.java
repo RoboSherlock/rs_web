@@ -18,8 +18,8 @@ import com.mongodb.QueryBuilder;
 import org.bson.BSONObject;
 import org.bson.types.Binary;
 import org.bson.types.ObjectId;
-import org.opencv.core.*;
-import org.opencv.highgui.Highgui;
+//import org.opencv.core.*;
+//import org.opencv.highgui.Highgui;
 
 
 public class RSMongoWrapper {
@@ -97,38 +97,38 @@ public class RSMongoWrapper {
 	{
 		DBObject rgbD = getDocument(ts,"rgb_image_hires");
 		//convert to something useful.. cv.Mat?
-		convertToCvMat(rgbD);
+//		convertToCvMat(rgbD);
 		//advertise result on the topic for open-ease
 	}
 	public void getDepth(String ts)
 	{
 		DBObject depthD = getDocument(ts,"depth_image_as_int");
 		//convert to something useful.. cv.Mat?
-		convertToCvMat(depthD);
+//		convertToCvMat(depthD);
 	}
 	public void getCamInfo(String ts)
 	{
 		DBObject camInfoD = getDocument(ts,"camera_info_hires");
 		//maybe we don't even need this
 	}
-
-	public Mat convertToCvMat(DBObject imgObj)
-	{
-		Integer cols = (Integer)imgObj.get("cols");
-		Integer rows = (Integer)imgObj.get("rows");
-		Integer mat_type = (Integer)imgObj.get("mat_type");
-		byte[] myBytes = (byte []) imgObj.get("data");
-		System.out.println("Cols: "+ cols + " Rows: " + rows + " Mat Type: "+mat_type);
-		Mat img = null;
-		if (mat_type == 2)
-			img= new Mat(rows, cols,CvType.CV_8U);
-		else
-			img=new Mat(rows,cols,mat_type);
-		if(img.rows() !=0 && img.cols() !=0){
-			img.put(0, 0, myBytes);
-		}
-		return img;
-	}
+//
+//	public Mat convertToCvMat(DBObject imgObj)
+//	{
+//		Integer cols = (Integer)imgObj.get("cols");
+//		Integer rows = (Integer)imgObj.get("rows");
+//		Integer mat_type = (Integer)imgObj.get("mat_type");
+//		byte[] myBytes = (byte []) imgObj.get("data");
+//		System.out.println("Cols: "+ cols + " Rows: " + rows + " Mat Type: "+mat_type);
+//		Mat img = null;
+//		if (mat_type == 2)
+//			img= new Mat(rows, cols,CvType.CV_8U);
+//		else
+//			img=new Mat(rows,cols,mat_type);
+//		if(img.rows() !=0 && img.cols() !=0){
+//			img.put(0, 0, myBytes);
+//		}
+//		return img;
+//	}
 
 }
 

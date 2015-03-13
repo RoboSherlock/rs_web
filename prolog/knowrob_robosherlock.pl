@@ -41,12 +41,14 @@
   build_pipeline_for_subclasses/3,
   leaf_subclasses/2,
   detect/2,
-  query_result/5
+  query_result/5,
+  detect_if_individual_present/3
 ]).
 
 :- rdf_meta
    call_robosherlock(+,+),
-   scene_clusters_count(+,+,+).
+   scene_clusters_count(+,+,+),
+   build_pipeline_for_object(+,+).
 
 :- use_module(library('jpl')).
 

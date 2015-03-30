@@ -2,6 +2,7 @@
 % dependencies
 :- register_ros_package(knowrob_common).
 :- register_ros_package(knowrob_robosherlock).
+:- register_ros_package(knowrob_vis).
 
 %:- use_module(library('jpl')).
 %:- jpl_set_default_jvm_opts(['-Xmx2048M']).

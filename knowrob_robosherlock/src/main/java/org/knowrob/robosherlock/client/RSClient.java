@@ -44,8 +44,8 @@ public class RSClient extends AbstractNodeMain {
 
 		try {
 			//service name change required in RoboSherlock (to not collide with other RS instances running on the same machine
-//			String service_name = "RoboSherlock_"+System.getProperty("user.name")+"/trigger_uima_pipeline";
-			String service_name = "/robosherlock/designator_request/single_solution";
+			String service_name = "/RoboSherlock_openease/designator_request/single_solution";
+//			String service_name = "/robosherlock/designator_request/single_solution";
 			serviceClient = node.newServiceClient(service_name, 
 					designator_integration_msgs.DesignatorCommunication._TYPE);
 		} catch (ServiceNotFoundException e) {
@@ -54,7 +54,7 @@ public class RSClient extends AbstractNodeMain {
 
 	}
 	//call RoboSherlock with a timestamp. RS should get the frame at this timestamp and process it
-	public void callService(String timestamp)
+	public void callService(String[] queryItems, String timestamp)
 	{
 		// wait for node to be ready
 		try {
@@ -64,16 +64,16 @@ public class RSClient extends AbstractNodeMain {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+		
 		DesignatorCommunicationRequest request = serviceClient.newMessage();		
 		DesignatorRequest req =  node.getTopicMessageFactory().newFromType(DesignatorRequest._TYPE);
 		Designator desig =  node.getTopicMessageFactory().newFromType(Designator._TYPE);
 		desig.setType(0);
-		ArrayList<KeyValuePair> list = new ArrayList<KeyValuePair>();
-		addKeyValuePair("TIMESTAMP", timestamp, list);
-		addKeyValuePair("SHAPE","box",list);
-		addKeyValuePair("COLOR","yellow",list);
-		addKeyValuePair("SIZE", "medium",list);
-		desig.setDescription(list);
+		
+		ArrayList<KeyValuePair> kvp_list = new ArrayList<KeyValuePair>();
+		addKeyValuePair("TIMESTAMP", timestamp, kvp_list);
+		parseQuery(queryItems, kvp_list);
+		desig.setDescription(kvp_list);
 		req.setDesignator(desig);
 		request.setRequest(req);
 		System.out.println("Calling service with timestamp t="+timestamp);
@@ -89,6 +89,22 @@ public class RSClient extends AbstractNodeMain {
 			}
 				});
 //		return "Success";
+	}
+	boolean parseQuery(String[] queryItems, ArrayList<KeyValuePair> list)
+	{
+		for (int i=0; i<queryItems.length; ++i)
+		{
+			String[] kvp = queryItems[i].split(":");
+			if(kvp.length != 2)
+			{
+				System.out.println("Malformed key value pair. for the query like this: ['shape:box','color:blue','location:table-tob']");
+			}
+			else 
+			{
+				addKeyValuePair(kvp[0].toUpperCase(),kvp[1].toUpperCase(),list);
+			}
+		}
+	return true;	
 	}
 	
 	void addKeyValuePair(String Key, String Value, ArrayList<KeyValuePair> list)

@@ -62,15 +62,15 @@ public class Scene {
 		catch(NumberFormatException e){
 			System.out.println("Timestamp not a number");
 		}
-		getIdentifiablesAndAnnotations();
+//		getIdentifiablesAndAnnotations();
 	}
 
-	public void getIdentifiablesAndAnnotations(){
-		if(sceneDocument.containsField("identifiables")){
-			this.identifiables = (BasicDBList) sceneDocument.get("identifiables");
-			System.out.println("Scene contains: " + this.identifiables.size() + " clusters");
-		}
-	}
+//	public void getIdentifiablesAndAnnotations(){
+//		if(sceneDocument.containsField("identifiables")){
+//			this.identifiables = (BasicDBList) sceneDocument.get("identifiables");
+//			System.out.println("Scene contains: " + this.identifiables.size() + " clusters");
+//		}
+//	}
 	public int getNumberOfClusters(){
 		return identifiables.size();
 	}

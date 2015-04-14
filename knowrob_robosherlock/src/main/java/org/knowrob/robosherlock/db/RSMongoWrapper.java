@@ -29,6 +29,7 @@ public class RSMongoWrapper {
 	public DB db;
 	public HashMap<String, DBCollection> collections;
 	public Scene scene;
+	public HashMap<Integer, String> timestamps;
 
 	public RSMongoWrapper(String db_name)
 	{
@@ -50,6 +51,8 @@ public class RSMongoWrapper {
 		collections.put("depth_image_as_int", db.getCollection("depth_image_as_int"));
 		collections.put("rgb_image_hires", db.getCollection("rgb_image_hires"));
 		collections.put("camera_info_hires", db.getCollection("camera_info_hires"));
+		timestamps= new HashMap<Integer, String>();
+		getAllTimestamps();
 	}
 
 	public DBObject getDocument(String ts,String collectionName)
@@ -83,6 +86,23 @@ public class RSMongoWrapper {
 			}
 		}
 	}
+	public void getAllTimestamps()
+	{
+		DBCollection casColl = (DBCollection)collections.get("cas");
+		DBCursor cursor = casColl.find();
+		Integer index=0;
+		while(cursor.hasNext())
+		{
+			DBObject casEntry = cursor.next();
+			if(casEntry.containsField("_timestamp"))
+			{
+				Long ts = (Long)casEntry.get("_timestamp");
+				timestamps.put(index, ts.toString());
+				index++;
+			}
+		}
+		System.out.println("found "+index+" entries"); 
+	}
 
 	public Scene getScene(String ts)
 	{
@@ -96,40 +116,39 @@ public class RSMongoWrapper {
 	public void getRGB(String ts)
 	{
 		DBObject rgbD = getDocument(ts,"rgb_image_hires");
-		//convert to something useful.. cv.Mat?
-//		convertToCvMat(rgbD);
-		//advertise result on the topic for open-ease
+		//convertToCvMat(rgbD);
+
 	}
 	public void getDepth(String ts)
 	{
 		DBObject depthD = getDocument(ts,"depth_image_as_int");
 		//convert to something useful.. cv.Mat?
-//		convertToCvMat(depthD);
+		//convertToCvMat(depthD);
 	}
 	public void getCamInfo(String ts)
 	{
 		DBObject camInfoD = getDocument(ts,"camera_info_hires");
 		//maybe we don't even need this
 	}
-//
-//	public Mat convertToCvMat(DBObject imgObj)
-//	{
-//		Integer cols = (Integer)imgObj.get("cols");
-//		Integer rows = (Integer)imgObj.get("rows");
-//		Integer mat_type = (Integer)imgObj.get("mat_type");
-//		byte[] myBytes = (byte []) imgObj.get("data");
-//		System.out.println("Cols: "+ cols + " Rows: " + rows + " Mat Type: "+mat_type);
-//		Mat img = null;
-//		if (mat_type == 2)
-//			img= new Mat(rows, cols,CvType.CV_8U);
-//		else
-//			img=new Mat(rows,cols,mat_type);
-//		if(img.rows() !=0 && img.cols() !=0){
-//			img.put(0, 0, myBytes);
-//		}
-//		return img;
-//	}
-
+/*  convert a mat entry from mongo to an opencv mat. good to have but not used atm.
+	public Mat convertToCvMat(DBObject imgObj)
+	{
+		Integer cols = (Integer)imgObj.get("cols");
+		Integer rows = (Integer)imgObj.get("rows");
+		Integer mat_type = (Integer)imgObj.get("mat_type");
+		byte[] myBytes = (byte []) imgObj.get("data");
+		System.out.println("Cols: "+ cols + " Rows: " + rows + " Mat Type: "+mat_type);
+		Mat img = null;
+		if (mat_type == 2)
+			img= new Mat(rows, cols,CvType.CV_8U);
+		else
+			img=new Mat(rows,cols,mat_type);
+		if(img.rows() !=0 && img.cols() !=0){
+			img.put(0, 0, myBytes);
+		}
+		return img;
+	}
+*/
 }
 
 

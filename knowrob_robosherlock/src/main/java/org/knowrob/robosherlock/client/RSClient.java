@@ -45,7 +45,7 @@ public class RSClient extends AbstractNodeMain {
 		try {
 			//service name change required in RoboSherlock (to not collide with other RS instances running on the same machine
 			String service_name = "/RoboSherlock_openease/designator_request/single_solution";
-//			String service_name = "/robosherlock/designator_request/single_solution";
+			//			String service_name = "/robosherlock/designator_request/single_solution";
 			serviceClient = node.newServiceClient(service_name, 
 					designator_integration_msgs.DesignatorCommunication._TYPE);
 		} catch (ServiceNotFoundException e) {
@@ -64,12 +64,12 @@ public class RSClient extends AbstractNodeMain {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		
+
 		DesignatorCommunicationRequest request = serviceClient.newMessage();		
 		DesignatorRequest req =  node.getTopicMessageFactory().newFromType(DesignatorRequest._TYPE);
 		Designator desig =  node.getTopicMessageFactory().newFromType(Designator._TYPE);
 		desig.setType(0);
-		
+
 		ArrayList<KeyValuePair> kvp_list = new ArrayList<KeyValuePair>();
 		addKeyValuePair("TIMESTAMP", timestamp, kvp_list);
 		parseQuery(queryItems, kvp_list);
@@ -81,32 +81,40 @@ public class RSClient extends AbstractNodeMain {
 				{
 			@Override
 			public void onSuccess(DesignatorCommunicationResponse arg0) {
-//				System.out.println("Successfully called servidce.");
+				//				System.out.println("Successfully called servidce.");
 			}
 			@Override
 			public void onFailure(RemoteException e) {
 				throw new RosRuntimeException(e);
 			}
 				});
-//		return "Success";
+		//		return "Success";
 	}
 	boolean parseQuery(String[] queryItems, ArrayList<KeyValuePair> list)
 	{
 		for (int i=0; i<queryItems.length; ++i)
 		{
-			String[] kvp = queryItems[i].split(":");
-			if(kvp.length != 2)
+
+			if(queryItems[i].contains(":"))
 			{
-				System.out.println("Malformed key value pair. for the query like this: ['shape:box','color:blue','location:table-tob']");
+				String[] kvp = queryItems[i].split(":");
+				if(kvp.length != 2 )
+				{
+					System.out.println("Malformed key value pair. for the query like this: ['shape:box','color:blue','location:table-tob']");
+				}
+				else 
+				{
+					addKeyValuePair(kvp[0].toUpperCase(),kvp[1].toUpperCase(),list);
+				}
 			}
-			else 
+			else
 			{
-				addKeyValuePair(kvp[0].toUpperCase(),kvp[1].toUpperCase(),list);
+				addKeyValuePair(queryItems[i].toUpperCase(),"",list);
 			}
 		}
-	return true;	
+		return true;	
 	}
-	
+
 	void addKeyValuePair(String Key, String Value, ArrayList<KeyValuePair> list)
 	{
 		KeyValuePair kvp = node.getTopicMessageFactory().newFromType(KeyValuePair._TYPE);

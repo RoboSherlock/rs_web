@@ -1,7 +1,6 @@
 :- module(knowrob_robosherlock,
     [
-        call_robosherlock/1, 
-        call_robosherlock/2,
+  call_robosherlock/2,
   scene_clusters_count/3,
   current_robot/1,
   set_current_robot/1,
@@ -69,19 +68,25 @@
 :- owl_parse('package://knowrob_robosherlock/owl/pico.owl'). % Jazz Robot http://www.gostai.com/products/jazz/openjazz/index.html
 :- owl_parse('package://knowrob_robosherlock/owl/test_objects.owl'). % Load objects to reason about
 
-call_robosherlock(Timestamp):-
-    jpl_new('org.knowrob.robosherlock.client.RSClient',[],Client),
-    jpl_list_to_array(['org.knowrob.robosherlock.client.RSClient'], Arr),
-    jpl_call('org.knowrob.utils.ros.RosUtilities',runRosjavaNode,[Client,Arr],_),
-    jpl_call(Client,'callService',[Timestamp],_),!.
-    
+client_interface :-
+	client_interface(_).
 
-call_robosherlock(Query,Timestamp):-
+:- assert(rs_interface(fail)).
+client_interface(Client) :-
+	rs_interface(fail),
 	jpl_new('org.knowrob.robosherlock.client.RSClient',[],Client),
+	retract(rs_interface(fail)),
     jpl_list_to_array(['org.knowrob.robosherlock.client.RSClient'], Arr),
     jpl_call('org.knowrob.utils.ros.RosUtilities',runRosjavaNode,[Client,Arr],_),
+    assert(rs_interface(Client)),!.
+       
+client_interface(Client) :-
+	rs_interface(Client).
+
+call_robosherlock(Query,FrameID):-
+    client_interface(Cl),
     jpl_list_to_array(Query,QueryArray),
-    jpl_call(Client,'callService',[QueryArray,Timestamp],_),!.
+    jpl_call(Cl,'callService',[QueryArray,FrameID],_),!.
     
 
 %%count object hypotheses logged in a scene by timestamp and Scene name

@@ -949,7 +949,7 @@
 </owl:Class>
 
 <!-- http://knowrob.org/kb/rs_components.owl#BlortAnnotator -->
-<owl:Class rdf:about="http://knowrob.org/kb/rs_components.owl#BlortAnnotator">
+<!--<owl:Class rdf:about="http://knowrob.org/kb/rs_components.owl#BlortAnnotator">
     <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_components.owl#DetectionComponent"/>
     <rdfs:subClassOf>
         <owl:Restriction>
@@ -963,7 +963,7 @@
             <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#RsAnnotationDetection"/>
         </owl:Restriction>
     </rdfs:subClassOf>
-</owl:Class>
+</owl:Class> -->
 
 <!-- http://knowrob.org/kb/rs_components.owl#SupervoxelAnnotator -->
 <owl:Class rdf:about="http://knowrob.org/kb/rs_components.owl#SupervoxelAnnotator">

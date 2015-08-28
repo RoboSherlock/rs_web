@@ -1,26 +1,26 @@
 <?xml version="1.0"?>
-<package>
-  <name>knowrob_robosherlock</name>
+<package format="2">
+  <name>rs_kbreasoning</name>
   <version>0.1.0</version>
-  <description>The knowrob_robosherlock package</description>
+  <description>The robosherlock knowledge processing package</description>
 
   <maintainer email="balintbec@cs.uni-bremend.de">Ferenc Balint-Benczedi</maintainer>
   <author>Ferenc Balint-Benczedi</author>
+  <author>Patrick Mania</author>
   <license>Apache 2.0</license>
 
   <buildtool_depend>catkin</buildtool_depend>
   
-  <build_depend>rosjava_build_tools</build_depend>
-  <build_depend>designator_integration_msgs</build_depend>
+  <depend>rosjava_build_tools</depend>
+  <depend>designator_integration_msgs</depend>
   
-  <build_depend>knowrob_common</build_depend>
-  <build_depend>knowrob_vis</build_depend>
-  <build_depend>knowrob_actions</build_depend>
-  <build_depend>knowrob_srdl</build_depend>
+  <depend>knowrob_common</depend>
+  <depend>knowrob_vis</depend>
+  <depend>knowrob_actions</depend>
+  <depend>knowrob_srdl</depend>
+  <depend>robosherlock</depend>
+  <depend>designator_integration_cpp</depend>
 
-  <run_depend>knowrob_actions</run_depend>
-  <run_depend>knowrob_srdl</run_depend>
-  <run_depend>knowrob_vis</run_depend>
-  <run_depend>designator_integration_msgs</run_depend>
+  
 
 </package>

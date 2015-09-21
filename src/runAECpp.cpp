@@ -543,7 +543,7 @@ public:
     {
       delete rs::DesignatorWrapper::req_designator;
     }
-    rs::DesignatorWrapper::req_designator = new Designator(req.request.designator);
+    rs::DesignatorWrapper::req_designator = new designator_integration::Designator(req.request.designator);
     outInfo("Received Designator call: ");
     rs::DesignatorWrapper::req_designator->printDesignator();
 
@@ -605,19 +605,19 @@ public:
         for(auto & designator : designator_response.designators)
         {
           // Convert the designator msg object to a normal Designator
-          Designator d(designator);
+          designator_integration::Designator d(designator);
           // Insert the current PIPELINEID
           d.setValue("PIPELINEID", pipelineId);
           full_designator_response.designators.push_back(d.serializeToMessage());
         }
 
         // Define an ACTION designator with the planned pipeline
-        Designator pipeline_action;
+        designator_integration::Designator pipeline_action;
         pipeline_action.setType(designator_integration::Designator::ACTION);
         std::list<designator_integration::KeyValuePair *> lstDescription;
         for(auto & annotatorName : new_pipeline_order)
         {
-          designator_integration::designator_integration::KeyValuePair *oneAnno = new designator_integration::designator_integration::KeyValuePair();
+          designator_integration::KeyValuePair *oneAnno = new designator_integration::KeyValuePair();
           oneAnno->setValue(annotatorName);
           lstDescription.push_back(oneAnno);
         }
@@ -652,7 +652,7 @@ public:
     for(auto & designator : full_designator_response.designators)
     {
       // Convert the designator msg object to a normal Designator
-      Designator d(designator);
+      designator_integration::Designator d(designator);
       d.printDesignator();
       outInfo("------------------");
       res.response.designators.push_back(d.serializeToMessage());

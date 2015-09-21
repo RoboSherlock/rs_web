@@ -27,7 +27,7 @@
         <rdfs:comment rdf:datatype="&xsd;string">Testobjects for evaluation
         </rdfs:comment>
         <owl:imports rdf:resource="package://knowrob_common/owl/knowrob.owl"/>
-        <owl:imports rdf:resource="package://knowrob_robosherlock/owl/rs_components.owl"/>
+        <owl:imports rdf:resource="package://rs_kbreasoning/owl/rs_components.owl"/>
     </owl:Ontology>
     
 

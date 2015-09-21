@@ -1,7 +1,17 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(rs_kbreasoning)
 
-find_package(catkin REQUIRED rosjava_build_tools rosprolog designator_integration_cpp designator_integration_msgs knowrob_common knowrob_actions knowrob_srdl knowrob_vis robosherlock)
+
+find_package(json_prolog QUIET)
+ if(json_prolog_FOUND)
+    message("OPTIONAL MODULE json_prolog FOUND")
+    set(OPTIONAL_json json_prolog)
+    add_definitions( -DJSON_PROLOG_FOUND)
+ endif(json_prolog_FOUND)
+
+find_package(catkin REQUIRED rosjava_build_tools rosprolog designator_integration_cpp
+             designator_integration_msgs knowrob_common knowrob_actions knowrob_srdl
+             knowrob_vis robosherlock ${OPTIONAL_json})
 
 catkin_rosjava_setup(installApp publishMavenJavaPublicationToMavenRepository writeClasspath)
 
@@ -33,7 +43,6 @@ find_include_dirs(RS_INCLUDE_DIRS_LIST)
 catkin_package(
     DEPENDS designator_integration_msgs 
 )
-
 
 ###########
 ## Build ##

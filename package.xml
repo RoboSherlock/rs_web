@@ -18,6 +18,7 @@
   <depend>knowrob_vis</depend>
   <depend>knowrob_actions</depend>
   <depend>knowrob_srdl</depend>
+  <depend>json_prolog</depend>
   <depend>robosherlock</depend>
   <depend>designator_integration_cpp</depend>
 

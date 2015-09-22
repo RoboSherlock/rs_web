@@ -10,7 +10,7 @@ find_package(json_prolog QUIET)
 
 find_package(catkin REQUIRED rosjava_build_tools rosprolog designator_integration_cpp
              designator_integration_msgs knowrob_common knowrob_actions knowrob_srdl
-             knowrob_vis robosherlock ${OPTIONAL_json})
+             knowrob_vis robosherlock ${OPTIONAL_json} robosherlock_demos)
 
 catkin_rosjava_setup(installApp publishMavenJavaPublicationToMavenRepository writeClasspath)
 
@@ -59,7 +59,7 @@ include_directories(
 ################################################################################
 
 ##Update xml list of annotators inside analysis engines
-update_analysis_engines(robosherlock)
+update_analysis_engines(robosherlock robosherlock_demos)
 
 ## generate classes from the typesystem xml files
 generate_type_system(robosherlock)
@@ -71,6 +71,9 @@ find_additional_files()
 add_library(rs_designator_wrapper SHARED src/DesignatorWrapper.cpp)
 add_dependencies(rs_designator_wrapper designator_integration_msgs_gencpp)
 target_link_libraries(rs_designator_wrapper designator_integration rs_core)
+
+rs_add_library(rs_handleAnnotator src/annotators/HandleAnnotator.cpp src/annotators/handle_extractor.cpp)
+target_link_libraries(rs_handleAnnotator rs_core ${catkin_LIBRARIES})
 
 rs_add_executable(runAE src/runAECpp.cpp src/RSPipelineManager.cpp)
 #set_target_properties(rs_runAE PROPERTIES COMPILE_DEFINITIONS RS_PATH="${${RS_CMAKE_PROJECT_NAME}_SOURCE_DIR}")

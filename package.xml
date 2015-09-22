@@ -20,6 +20,7 @@
   <depend>knowrob_srdl</depend>
   <depend>json_prolog</depend>
   <depend>robosherlock</depend>
+  <depend>robosherlock_demos</depend>
   <depend>designator_integration_cpp</depend>
 
   

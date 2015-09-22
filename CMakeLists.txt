@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(rs_kbreasoning)
 
-
 find_package(json_prolog QUIET)
  if(json_prolog_FOUND)
     message("OPTIONAL MODULE json_prolog FOUND")

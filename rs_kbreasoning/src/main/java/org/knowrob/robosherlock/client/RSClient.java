@@ -19,7 +19,7 @@ import com.mongodb.MongoWaitQueueFullException;
 import designator_integration_msgs.*;
 
 public class RSClient extends AbstractNodeMain {
-
+	
 	ServiceClient<designator_integration_msgs.DesignatorCommunicationRequest,
 	designator_integration_msgs.DesignatorCommunicationResponse> serviceClient;
 	int globalTSIndex;
@@ -32,7 +32,6 @@ public class RSClient extends AbstractNodeMain {
 	//  rosjava_test_msgs.AddTwoInts._TYPE
 	@Override
 	public void onStart(final ConnectedNode connectedNode) {
-
 		this.node = connectedNode;
 		mongoWrapper = new RSMongoWrapper("RSOpenEaseData");
 		globalTSIndex = 0;

@@ -214,7 +214,7 @@ public:
     default_pipeline.push_back("SacModelAnnotator");
     default_pipeline.push_back("PrimitiveShapeAnnotator");
     //    default_pipeline.push_back("VisualizerAnnotator");
-    //    default_pipeline.push_back("ResultAdvertiser");
+    default_pipeline.push_back("ShoppingResultAdvertiser");
     default_pipeline.push_back("StorageWriter");
     // default_pipeline.push_back("ClusterColorHistogramCalculator"); // removed color histogram for tests
     //
@@ -296,10 +296,10 @@ public:
     dw.setCAS(cas);
 
     designator_response = dw.getDesignatorResponseMsg();
-
     cas->reset();
     outInfo("processing finished");
   }
+
   // Call process() and
   // decide if the pipeline should be reset or not
   void process(bool reset_pipeline_after_process, designator_integration_msgs::DesignatorResponse &designator_response)
@@ -534,6 +534,27 @@ public:
   {
     designator_integration::Designator *desigRequest = new designator_integration::Designator(req.request.designator);
 
+
+//    if(desigRequest != NULL)
+//    {
+//      std::list<std::string> keys = desigRequest->keys();
+//      bool foundTS = false;
+//      for(std::list<std::string>::iterator it = keys.begin(); it != keys.end(); ++it)
+//      {
+//        if(*it == "TIMESTAMP")
+//        {
+//          foundTS = true;
+//        }
+//      }
+//      if(foundTS)
+//      {
+//        KeyValuePair *kvp = iai_rs::DesignatorWrapper::req_designator->childForKey("TIMESTAMP");
+//        std::string ts = kvp->stringValue();
+//        timestamp = convertToInt(ts);
+//        outInfo("received timestamp:" << timestamp);
+//      }
+//    }
+
     if(desigRequest->type() != designator_integration::Designator::OBJECT)
     {
       outInfo(" ***** RECEIVED SERVICE CALL WITH UNHANDELED DESIGNATOR TYPE (everything != OBJECT) ! Aborting... ****** ");
@@ -543,6 +564,7 @@ public:
     {
       delete rs::DesignatorWrapper::req_designator;
     }
+
     rs::DesignatorWrapper::req_designator = new designator_integration::Designator(req.request.designator);
     outInfo("Received Designator call: ");
     rs::DesignatorWrapper::req_designator->printDesignator();
@@ -581,10 +603,12 @@ public:
       json_prolog::PrologBindings bdg = *it;
       std::string prologResult = bdg["A"].toString();
       std::vector<std::string> new_pipeline_order = createPipelineFromPrologResult(bdg["A"].toString());
+
+      //needed for saving results and returning them on a ros topic
       if(waitForServiceCall && !new_pipeline_order.empty())
       {
         new_pipeline_order.push_back("StorageWriter");
-        new_pipeline_order.push_back("ResultAdvertiser");
+        new_pipeline_order.push_back("ShoppingResultAdvertiser");
       }
       outInfo(FG_BLUE << "Executing Pipeline #" << pipelineId);
 

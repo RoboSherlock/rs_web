@@ -116,7 +116,6 @@ public class RSClient extends AbstractNodeMain {
 			System.out.println("Frame id not formated correctly. Usecase: 'frame:x'; incrementing ts index by one");
 			globalTSIndex = (globalTSIndex+1) % mongoWrapper.timestamps.size();
 			System.out.println("globalTSIndex: " + globalTSIndex);
-
 		}
 		else
 		{
@@ -156,7 +155,7 @@ public class RSClient extends AbstractNodeMain {
 				String[] kvp = queryItems[i].split(":");
 				if(kvp.length != 2 )
 				{
-					System.out.println("Malformed key value pair. for the query like this: ['shape:box','color:blue','location:table-tob']");
+					System.out.println("Malformed key value pair. for the query like this: ['shape:box','color:blue','location:table-top']");
 				}
 				else 
 				{

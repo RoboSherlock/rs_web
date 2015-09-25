@@ -190,8 +190,10 @@ public:
         ei.setKeepOrganized(true);
         ei.setIndices(indices);
         ei.filterDirectly(cloud_ptr);
-        //replace point cloud with the new one..allows
-        cas.set(VIEW_CLOUD,*cloud_ptr);
+
+        //replace point cloud with the new one..allows ...why did I not finish this comment?:)))
+//        cas.set(VIEW_CLOUD,*cloud_ptr);
+
         std::vector<pcl::ModelCoefficients> handle_coefficients;
         handle_indices.clear();
         outInfo("Extracting Handles ");

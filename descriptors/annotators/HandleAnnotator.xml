@@ -11,7 +11,7 @@
     <configurationParameterSettings/>
     <typeSystemDescription>
       <imports>
-        <import location="../../../iai_rs_cpp/descriptors/typesystem/allTypesDescriptor.xml"/>
+        <import location="../../../rs_refactored/descriptors/typesystem/all_types.xml"/>
       </imports>
     </typeSystemDescription>
     <typePriorities/>
@@ -20,11 +20,11 @@
       <capability>
         <inputs/>
         <outputs>
-          <type allAnnotatorFeatures="true">iai_rs.annotation.HandleAnnotation</type>
+          <type allAnnotatorFeatures="true">rs.annotation.HandleAnnotation</type>
         </outputs>
         <inputSofas>
-          <sofaName>iai_rs.pcl.PointCloud</sofaName>
-          <sofaName>iai_rs.pcl.NormalsCloud</sofaName>
+          <sofaName>rs.pcl.PointCloud</sofaName>
+          <sofaName>rs.pcl.NormalsCloud</sofaName>
         </inputSofas>
         <languagesSupported/>
       </capability>

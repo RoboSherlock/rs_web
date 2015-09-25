@@ -155,6 +155,7 @@
     <vendor/>
 
       <configurationParameters searchStrategy="none">
+
       <configurationParameter>
         <name>camera_config_files</name>
         <description>path to config file that holds info about camera topics and tf frame names</description>
@@ -165,6 +166,7 @@
           <parameter>CollectionReader/camera_config_files</parameter>
         </overrides>
       </configurationParameter>
+
       <configurationParameter>
         <name>wordnetGrounded</name>
         <description></description>
@@ -175,6 +177,7 @@
           <parameter>MLNAtomsGenerator/wordnetGrounded</parameter>
         </overrides>
       </configurationParameter>
+
       <configurationParameter>
         <name>query_mln</name>
         <description></description>
@@ -185,6 +188,7 @@
           <parameter>MLNAtomsGenerator/query_mln</parameter>
         </overrides>
       </configurationParameter>
+
       <configurationParameter>
         <name>clearStorageOnStart</name>
         <description/>
@@ -195,6 +199,7 @@
           <parameter>StorageWriter/clearStorageOnStart</parameter>
         </overrides>
       </configurationParameter>
+
       <configurationParameter>
         <name>filter_results</name>
         <description>Filter the results based on the request designator</description>
@@ -202,7 +207,18 @@
         <multiValued>false</multiValued>
         <mandatory>false</mandatory>
         <overrides>
-          <parameter>ResultAdvertiser/filter_results</parameter>
+          <parameter>ShoppingResultAdvertiser/filter_results</parameter>
+        </overrides>
+      </configurationParameter>
+
+      <configurationParameter>
+        <name>resultMode</name>
+        <description>Use "Cluster" or "Object".</description>
+        <type>String</type>
+        <multiValued>false</multiValued>
+        <mandatory>false</mandatory>
+        <overrides>
+          <parameter>ShoppingResultAdvertiser/resultMode</parameter>
         </overrides>
       </configurationParameter>
 
@@ -259,6 +275,14 @@
           <boolean>true</boolean>
         </value>
       </nameValuePair>
+
+      <nameValuePair>
+        <name>resultMode</name>
+        <value>
+          <string>Cluster</string>
+        </value>
+      </nameValuePair>
+
        <nameValuePair>
         <name>camera_config_files</name>
         <value>
@@ -300,6 +324,7 @@
         <fixedFlow>
       <node>CollectionReader</node>
       <node>ImagePreprocessor</node>
+      <node>HandleAnnotator</node>
       <node>RegionFilter</node>
       <node>NormalEstimator</node>
       <node>PlaneAnnotator</node>
@@ -313,14 +338,14 @@
       <node>PrimitiveShapeAnnotator</node>
       <node>SacModelAnnotator</node>
       <node>LinemodAnnotator</node>
-<!--      <node>HandleAnnotator</node>
-      <node>PancakeAnnotator</node>-->
+
+      <node>PancakeAnnotator</node>
 <!--      <node>ClusterTracker</node>-->
 <!--      <node>ClusterGogglesAnnotator</node>-->
 <!--      <node>GroundTruthAnnotator</node>-->
 <!--      <node>MLNAtomsGenerator</node>-->
       <node>StorageWriter</node>
-      <node>ResultAdvertiser</node>
+      <node>ShoppingResultAdvertiser</node>
 <!--      <node>VisualizerAnnotator</node>-->
       </fixedFlow>
     </flowConstraints>

@@ -33,7 +33,7 @@ public class RSClient extends AbstractNodeMain {
 	@Override
 	public void onStart(final ConnectedNode connectedNode) {
 		this.node = connectedNode;
-		mongoWrapper = new RSMongoWrapper("RSOpenEaseData");
+		mongoWrapper = new RSMongoWrapper("KBRExperiments");
 		globalTSIndex = 0;
 		// wait for node to be ready
 		try {

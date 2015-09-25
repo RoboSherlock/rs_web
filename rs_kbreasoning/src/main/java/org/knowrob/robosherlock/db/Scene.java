@@ -30,10 +30,10 @@ public class Scene {
 	static
 	{
 		typeToValueField = new HashMap <String,String> ();
-		typeToValueField.put ("iai_rs.annotation.Geometry","size");
-		typeToValueField.put ("iai_rs.annotation.Shape", "shape");
-		typeToValueField.put ("iai_rs.annotation.TFLocation","frame_id");
-		typeToValueField.put ("iai_rs.annotation.SemanticColor","color");
+		typeToValueField.put ("rs.annotation.Geometry","size");
+		typeToValueField.put ("rs.annotation.Shape", "shape");
+		typeToValueField.put ("rs.annotation.TFLocation","frame_id");
+		typeToValueField.put ("rs.annotation.SemanticColor","color");
 	}
 	
 	//todo: this is ugly...I mean...really..really...need to unify query terms for open-ease with query terms for RS
@@ -45,12 +45,12 @@ public class Scene {
 	static
 	{
 		termToType = new HashMap<String,String> ();
-		termToType.put ("size","iai_rs.annotation.Geometry");
-		termToType.put ("shape","iai_rs.annotation.Shape");
-		termToType.put ("location","iai_rs.annotation.TFLocation");
-		termToType.put ("color","iai_rs.annotation.SemanticColor");
-		termToType.put ("logo","iai_rs.annotation.Goggles");
-		termToType.put ("instance", "iai_rs.annnotation.Detection");
+		termToType.put ("size","rs.annotation.Geometry");
+		termToType.put ("shape","rs.annotation.Shape");
+		termToType.put ("location","rs.annotation.TFLocation");
+		termToType.put ("color","rs.annotation.SemanticColor");
+		termToType.put ("logo","rs.annotation.Goggles");
+		termToType.put ("instance", "rs.annnotation.Detection");
 	}
 
 	Scene(DBObject sceneD, String timestamp)
@@ -84,7 +84,7 @@ public class Scene {
 				if(annotation.containsField("_type")){
 					String type = (String)annotation.get("_type");
 					if(type.equals(key.name)){
-						if(!key.name.equals("iai_rs.annotation.SemanticColor")){
+						if(!key.name.equals("rs.annotation.SemanticColor")){
 							String value = (String)	annotation.get(typeToValueField.get(type));
 							if(value.equals(key.value)){
 								//System.out.println("Cluster " + index + " has " + key.name +" " +key.value);

@@ -1,16 +1,10 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(rs_kbreasoning)
 
-find_package(json_prolog QUIET)
- if(json_prolog_FOUND)
-    message("OPTIONAL MODULE json_prolog FOUND")
-    set(OPTIONAL_json json_prolog)
-    add_definitions( -DJSON_PROLOG_FOUND)
- endif(json_prolog_FOUND)
 
 find_package(catkin REQUIRED rosjava_build_tools rosprolog designator_integration_cpp
              designator_integration_msgs knowrob_common knowrob_actions knowrob_srdl
-             knowrob_vis robosherlock ${OPTIONAL_json} robosherlock_demos)
+             knowrob_vis robosherlock json_prolog robosherlock_demos)
 
 catkin_rosjava_setup(installApp publishMavenJavaPublicationToMavenRepository writeClasspath)
 
@@ -62,7 +56,7 @@ include_directories(
 update_analysis_engines(robosherlock robosherlock_demos)
 
 ## generate classes from the typesystem xml files
-generate_type_system(robosherlock)
+generate_type_system(robosherlock robosherlock_demos)
 
 #find all relevant files
 find_additional_files()
@@ -76,5 +70,4 @@ rs_add_library(rs_handleAnnotator src/annotators/HandleAnnotator.cpp src/annotat
 target_link_libraries(rs_handleAnnotator rs_core ${catkin_LIBRARIES})
 
 rs_add_executable(runAE src/runAECpp.cpp src/RSPipelineManager.cpp)
-#set_target_properties(rs_runAE PROPERTIES COMPILE_DEFINITIONS RS_PATH="${${RS_CMAKE_PROJECT_NAME}_SOURCE_DIR}")
 target_link_libraries(runAE rs_core rs_io rs_designator_wrapper ${catkin_LIBRARIES})

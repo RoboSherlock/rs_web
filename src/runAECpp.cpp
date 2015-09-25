@@ -59,10 +59,7 @@
 #include <ros/ros.h>
 #include <ros/package.h>
 
-#ifdef JSON_PROLOG_FOUND
 #include <json_prolog/prolog.h>
-#endif
-
 // TODO
 //  Allow the modifaction of multiple AEs
 
@@ -195,7 +192,7 @@ public:
     outInfo("*** Fetch the FlowConstraint nodes. Size is: "  << non_const_nodes.size());
     for(int i = 0; i < non_const_nodes.size(); i++)
     {
-//      outInfo(non_const_nodes.at(i));
+      //      outInfo(non_const_nodes.at(i));
     }
 
     rspm->aengine->getNbrOfAnnotators();
@@ -358,13 +355,12 @@ private:
   std::vector<RSAnalysisEngine> engines;
 
   const bool useVisualizer;
-  const bool usePipelineGeneration;
   const bool waitForServiceCall;
   rs::Visualizer visualizer;
 
 public:
-  RSAnalysisEngineManager(const bool useVisualizer, const std::string &savePath, const bool &usePipelineGeneration, const bool &waitForServiceCall) :
-    useVisualizer(useVisualizer), usePipelineGeneration(usePipelineGeneration), waitForServiceCall(waitForServiceCall), visualizer(savePath)
+  RSAnalysisEngineManager(const bool useVisualizer, const std::string &savePath, const bool &waitForServiceCall) :
+    useVisualizer(useVisualizer), waitForServiceCall(waitForServiceCall), visualizer(savePath)
   {
     // Create/link up to a UIMACPP resource manager instance (singleton)
     outInfo("Creating resource manager"); // TODO: DEBUG
@@ -514,8 +510,6 @@ public:
     return new_pipeline;
   }
 
-
-#ifdef JSON_PROLOG_FOUND
   bool designatorAllSolutionsCallback(designator_integration_msgs::DesignatorCommunication::Request &req,
                                       designator_integration_msgs::DesignatorCommunication::Response &res)
   {
@@ -535,25 +529,25 @@ public:
     designator_integration::Designator *desigRequest = new designator_integration::Designator(req.request.designator);
 
 
-//    if(desigRequest != NULL)
-//    {
-//      std::list<std::string> keys = desigRequest->keys();
-//      bool foundTS = false;
-//      for(std::list<std::string>::iterator it = keys.begin(); it != keys.end(); ++it)
-//      {
-//        if(*it == "TIMESTAMP")
-//        {
-//          foundTS = true;
-//        }
-//      }
-//      if(foundTS)
-//      {
-//        KeyValuePair *kvp = iai_rs::DesignatorWrapper::req_designator->childForKey("TIMESTAMP");
-//        std::string ts = kvp->stringValue();
-//        timestamp = convertToInt(ts);
-//        outInfo("received timestamp:" << timestamp);
-//      }
-//    }
+    //    if(desigRequest != NULL)
+    //    {
+    //      std::list<std::string> keys = desigRequest->keys();
+    //      bool foundTS = false;
+    //      for(std::list<std::string>::iterator it = keys.begin(); it != keys.end(); ++it)
+    //      {
+    //        if(*it == "TIMESTAMP")
+    //        {
+    //          foundTS = true;
+    //        }
+    //      }
+    //      if(foundTS)
+    //      {
+    //        KeyValuePair *kvp = iai_rs::DesignatorWrapper::req_designator->childForKey("TIMESTAMP");
+    //        std::string ts = kvp->stringValue();
+    //        timestamp = convertToInt(ts);
+    //        outInfo("received timestamp:" << timestamp);
+    //      }
+    //    }
 
     if(desigRequest->type() != designator_integration::Designator::OBJECT)
     {
@@ -616,6 +610,7 @@ public:
       // to a fixed set
       if(engines.size() > 0)
       {
+
         // This designator response will hold the OBJECT designators with the detected
         // annotations for every detected object
         designator_integration_msgs::DesignatorResponse designator_response;
@@ -666,7 +661,6 @@ public:
       {
         break;  // Only take the first solution if allSolutions == false
       }
-
       pipelineId++;
     }
 
@@ -681,10 +675,8 @@ public:
       outInfo("------------------");
       res.response.designators.push_back(d.serializeToMessage());
     }
-
     return true;
   }
-#endif // JSON_PROLOG_FOUND
 
 
   void init(const std::vector<std::string> &files)
@@ -714,15 +706,15 @@ public:
 
         for(size_t i = 0; i < engines.size(); ++i)
         {
-          if(usePipelineGeneration)
-          {
+//          if(usePipelineGeneration)
+//          {
             engines[i].process(true);
-          }
-          else if(!waitForServiceCall)
-          {
-            // Default behaviour. No locking required
-            engines[i].process();
-          }
+//          }
+//          else if(!waitForServiceCall)
+//          {
+//            // Default behaviour. No locking required
+//            engines[i].process();
+//          }
         }
       }
       processing_mutex.unlock();
@@ -752,9 +744,8 @@ public:
  */
 void help()
 {
-  std::cout << "Usage: runAECppLoop [options] analysisEngine.xml [...]" << std::endl
+  std::cout << "Usage: runAECpp [options] analysisEngine.xml [...]" << std::endl
             << "Options:" << std::endl
-            << "  -pipelinegen  Enable pipeline generation" << std::endl
             << "  -wait If using piepline set this to wait for a service call" << std::endl
             << "  -visualizer  Enable visualization" << std::endl
             << "  -save PATH   Path for storing images" << std::endl;
@@ -772,9 +763,6 @@ int main(int argc, char *argv[])
   ros::init(argc, argv, std::string("RoboSherlock_") + getenv("USER"));
 
   // Has JSON PROLOG been enabled at compile time?
-#ifndef JSON_PROLOG_FOUND
-  outInfo(FG_BLUE << "Running without json_prolog -  No pipeline generation is available. Please make sure that json_prolog can be found on your system when you compile RoboSherlock if you want to use this feature.");
-#endif
 
   std::vector<std::string> args;
   args.resize(argc - 1);
@@ -782,9 +770,7 @@ int main(int argc, char *argv[])
   {
     args[argI - 1] = argv[argI];
   }
-
   bool useVisualizer = false;
-  bool usePipelineGeneration = false;
   bool waitForServiceCall = false;
   std::string savePath = getenv("HOME");
 
@@ -796,10 +782,6 @@ int main(int argc, char *argv[])
     if(arg == "-visualizer")
     {
       useVisualizer = true;
-    }
-    else if(arg == "-pipelinegen")
-    {
-      usePipelineGeneration = true;
     }
     else if(arg == "-wait")
     {
@@ -883,23 +865,20 @@ int main(int argc, char *argv[])
   ros::NodeHandle n("~");
   try
   {
-    RSAnalysisEngineManager manager(useVisualizer, savePath, usePipelineGeneration, waitForServiceCall);
-    ros::ServiceServer service, single_service;
-#ifdef JSON_PROLOG_FOUND
-    if(usePipelineGeneration)
-    {
-      // Call this service, if RoboSherlock should try out every possible pipeline
-      // that has been generated by the pipeline planning
-      service = n.advertiseService("designator_request/all_solutions", &RSAnalysisEngineManager::designatorAllSolutionsCallback, &manager);
-      // Call this service, if RoboSherlock should try out only
-      // the pipeline with all Annotators, that provide the requested types (for example shape)
-      single_service = n.advertiseService("designator_request/single_solution", &RSAnalysisEngineManager::designatorSingleSolutionCallback, &manager);
-    }
-#endif
+    RSAnalysisEngineManager manager(useVisualizer, savePath, waitForServiceCall);
+    ros::ServiceServer service, singleService;
+
+    // Call this service, if RoboSherlock should try out every possible pipeline
+    // that has been generated by the pipeline planning
+    service = n.advertiseService("designator_request/all_solutions",
+                                 &RSAnalysisEngineManager::designatorAllSolutionsCallback, &manager);
+    // Call this service, if RoboSherlock should try out only
+    // the pipeline with all Annotators, that provide the requested types (for example shape)
+    singleService = n.advertiseService("designator_request/single_solution",
+                                        &RSAnalysisEngineManager::designatorSingleSolutionCallback, &manager);
 
     manager.init(analysisEngineFiles);
     manager.run();
-
     manager.stop();
   }
   catch(const rs::Exception &e)

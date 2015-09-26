@@ -75,6 +75,9 @@
     <delegateAnalysisEngine key="LinemodAnnotator">
       <import location="../../../rs_refactored/descriptors/annotators/recognition/LinemodAnnotator.xml"/>
     </delegateAnalysisEngine>
+    <delegateAnalysisEngine key="MLNInferencer">
+      <import location="../../../rs_refactored/descriptors/annotators/recognition/MLNInferencer.xml"/>
+    </delegateAnalysisEngine>
     <delegateAnalysisEngine key="NormalEstimator">
       <import location="../../../rs_refactored/descriptors/annotators/annotation/NormalEstimator.xml"/>
     </delegateAnalysisEngine>
@@ -266,7 +269,7 @@
       <nameValuePair>
         <name>query_mln</name>
         <value>
-          <boolean>false</boolean>
+          <boolean>true</boolean>
         </value>
       </nameValuePair>
       <nameValuePair>
@@ -315,13 +318,14 @@
       <nameValuePair>
         <name>cluster_min_size</name>
         <value>
-          <integer>3000</integer>
+          <integer>500</integer>
         </value>
       </nameValuePair>
 
     </configurationParameterSettings>
     <flowConstraints>
         <fixedFlow>
+      <node>Trigger</node>
       <node>CollectionReader</node>
       <node>ImagePreprocessor</node>
       <node>HandleAnnotator</node>
@@ -331,6 +335,7 @@
       <node>PointCloudClusterExtractor</node>
       <node>ImageSegmentationAnnotator</node>
       <node>ClusterMerger</node>
+      <node>ClusterToPartsSegmenter</node>
       <node>Cluster3DGeometryAnnotator</node>
       <node>FeatureAnnotator</node>
       <node>ClusterTFLocationAnnotator</node>
@@ -338,8 +343,9 @@
       <node>PrimitiveShapeAnnotator</node>
       <node>SacModelAnnotator</node>
       <node>LinemodAnnotator</node>
-
+      <node>MLNInferencer</node>
       <node>PancakeAnnotator</node>
+
 <!--      <node>ClusterTracker</node>-->
 <!--      <node>ClusterGogglesAnnotator</node>-->
 <!--      <node>GroundTruthAnnotator</node>-->

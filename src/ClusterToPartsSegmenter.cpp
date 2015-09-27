@@ -22,6 +22,11 @@
 #include <opencv2/gpu/gpu.hpp>
 #include <opencv2/ocl/ocl.hpp>
 
+//json_prolog
+#include<json_prolog/prolog.h>
+
+#include <algorithm>
+
 using namespace uima;
 
 class ClusterToPartsSegmenter : public DrawingAnnotator
@@ -57,6 +62,7 @@ private:
     cv::Rect clusterRoi;
     std::vector<cv::Vec3b> colorClusterLabels;
     std::map<int, std::vector<cv::Point>> colorClusters; //map label to points in the image
+
   };
 
 
@@ -93,7 +99,9 @@ public:
     colors[WHITE]   = cv::Vec3b(255, 255, 255);
     colors[BLACK]   = cv::Vec3b(0, 0, 0);
     colors[GREY]    = cv::Vec3b(127, 127, 127);
+
   }
+
 
   TyErrorId initialize(AnnotatorContext &ctx)
   {
@@ -138,10 +146,37 @@ private:
     std::string objToProcess;
     if(cas.get("QUERY", qs))
     {
-      outWarn("TIMESTAMP SET IN runAE: " << qs.timestamp());
       objToProcess = qs.inspect();
     }
     //todo if there is time...check if object can hold other objects
+
+    std::stringstream prologQuery;
+//    prologQuery<<"owl_subclass_of(Obj,rs_test_objects:'ObjectsToTest'),class_properties(Obj,"<<
+//                 "rs_components:'hasVisualProperty',rs_test_objects:'ObjectPart').";
+//        prologQuery<<"owl_subclass_of(Obj,rs_test_objects:'ObjectsToTest'),class_properties(Obj,"<<
+//                     "rs_components:'hasVisualProperty',rs_test_objects:'ObjectPart').";
+//    http://knowrob.org/kb/rs_test_objects.owl#Plate
+
+    std::transform(objToProcess.begin(), objToProcess.end(), objToProcess.begin(), (int(*)(int)) std::tolower);
+    if (!objToProcess.empty())
+        objToProcess[0] = std::toupper(objToProcess[0]);
+    outWarn("Object Queried for is: "<<objToProcess);
+
+
+    prologQuery<<"class_properties(rs_test_objects:'"<<objToProcess<<"',rs_components:'hasVisualProperty',rs_test_objects:'ObjectPart').";
+    json_prolog::Prolog pl;
+    json_prolog::PrologQueryProxy bdgs = pl.query(prologQuery.str());
+    if(bdgs.begin() == bdgs.end())
+    {
+      outInfo("Queried Object does not meet requirements of this annotator");
+      return UIMA_ERR_NONE; // Indicate failure
+    }
+//    for(json_prolog::PrologQueryProxy::iterator it = bdgs.begin();
+//        it != bdgs.end(); it++)
+//    {
+//      json_prolog::PrologBindings bdg = *it;
+//      outWarn("Result");
+//    }
 
     for(int i = 0; i < clusters.size(); ++i)
     {

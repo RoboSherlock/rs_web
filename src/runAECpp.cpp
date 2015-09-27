@@ -856,7 +856,7 @@ public:
                   designator_integration::KeyValuePair childrenPair = **iter;
                   if(childrenPair.key() == "TYPE")
                   {
-                    if(strcasecmp(childrenPair.stringValue().c_str(), req_kvp.stringValue().c_str()) == 0)
+                    if(strcasecmp(childrenPair.stringValue().c_str(), req_kvp.stringValue().c_str()) == 0 || req_kvp.stringValue() == "")
                     {
                       ok = true;
                     }

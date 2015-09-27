@@ -69,6 +69,9 @@
     <delegateAnalysisEngine key="JIRAnnotator">
       <import location="../../../robosherlock_demos/descriptors/annotators/shopping/JIRAnnotator.xml"/>
     </delegateAnalysisEngine>
+    <delegateAnalysisEngine key="KBResultAdvertiser">
+      <import location="../annotators/KBResultAdvertiser.xml"/>
+    </delegateAnalysisEngine>
     <delegateAnalysisEngine key="KNNClassifier">
       <import location="../../../rs_refactored/descriptors/annotators/recognition/KNNClassifier.xml"/>
     </delegateAnalysisEngine>

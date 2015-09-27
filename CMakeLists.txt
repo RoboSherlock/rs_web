@@ -71,3 +71,6 @@ target_link_libraries(rs_handleAnnotator rs_core ${catkin_LIBRARIES})
 
 rs_add_executable(runAE src/runAECpp.cpp src/RSPipelineManager.cpp)
 target_link_libraries(runAE rs_core rs_io rs_designator_wrapper ${catkin_LIBRARIES})
+
+rs_add_library(rs_kbResultAdvertiser src/ResultAdvertiser.cpp)
+target_link_libraries(rs_kbResultAdvertiser rs_core)

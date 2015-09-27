@@ -39,8 +39,7 @@
     </configurationParameterSettings>
     <typeSystemDescription>
       <imports>
-       <import location="../../typesystem/all_types.xml"/>
-       <import location="../../../../rs_refactored/descriptors/typesystem/all_types.xml"/>
+       <import location="../../../rs_refactored/descriptors/typesystem/all_types.xml"/>
       </imports>
     </typeSystemDescription>
     <typePriorities/>

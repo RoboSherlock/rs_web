@@ -222,7 +222,7 @@ public:
     default_pipeline.push_back("SacModelAnnotator");
     default_pipeline.push_back("PrimitiveShapeAnnotator");
     //    default_pipeline.push_back("VisualizerAnnotator");
-    default_pipeline.push_back("ShoppingResultAdvertiser");
+    default_pipeline.push_back("KBResultAdvertiser");
     default_pipeline.push_back("StorageWriter");
     // default_pipeline.push_back("ClusterColorHistogramCalculator");
     // removed color histogram for tests
@@ -670,7 +670,7 @@ public:
       if(waitForServiceCall && !new_pipeline_order.empty())
       {
         new_pipeline_order.push_back("StorageWriter");
-        new_pipeline_order.push_back("ShoppingResultAdvertiser");
+        new_pipeline_order.push_back("KBResultAdvertiser");
       }
       outInfo(FG_BLUE << "Executing Pipeline #" << pipelineId);
 

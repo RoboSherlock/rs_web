@@ -290,7 +290,7 @@ annotators_for_predicate(handle,A) :-
 annotators_for_predicate(cylindrical_shape,A) :- 
   annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsAnnotationCylindricalshape' ).
 annotators_for_predicate(parts,A) :-
-  annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsSceneClusterpart' ).
+  annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsAnnotationClusterpart' ).
 
 % Detection Clue Annotators. Pick specific Annotators, not based on their inputs/outputs
 annotators_for_predicate(blort,A) :- 

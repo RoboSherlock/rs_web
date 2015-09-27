@@ -79,9 +79,11 @@ std::mutex processing_mutex;
 /*       Implementation                                                    */
 /* ----------------------------------------------------------------------- */
 
-struct RSQuery{
-  uint64_t timestamp=0;
-  std::string location="";
+struct RSQuery
+{
+  uint64_t timestamp = 0;
+  std::string location = "";
+  std::string objToInspect = "";
 };
 
 
@@ -101,8 +103,8 @@ private:
 
   boost::shared_ptr<std::mutex> process_mutex;
 
-/**need a nicer solution for this so we can set annotation to the
-CAS based on the ROS message**/
+  /**need a nicer solution for this so we can set annotation to the
+  CAS based on the ROS message**/
 
 
 public:
@@ -258,7 +260,7 @@ public:
     process(d);
   }
 
-  void process(designator_integration_msgs::DesignatorResponse &designator_response, RSQuery *q=NULL)//uint64_t timestamp)
+  void process(designator_integration_msgs::DesignatorResponse &designator_response, RSQuery *q = NULL) //uint64_t timestamp)
   {
     outInfo("executing analisys engine: " << name);
     try
@@ -266,20 +268,23 @@ public:
       UnicodeString ustrInputText;
       ustrInputText.fromUTF8(name);
       cas->setDocumentText(uima::UnicodeStringRef(ustrInputText));
-      if(q!=NULL)
+      if(q != NULL)
       {
         rs::SceneCas sceneCas(*cas);
         rs::Query ts = rs::create<rs::Query>(*cas);
         if(q->timestamp != 0)
         {
           ts.timestamp.set(q->timestamp);
-
         }
         if(q->location != "")
         {
           ts.location.set(q->location);
         }
-        outInfo("setting in CAS: ts:"<<q->timestamp<< " location: "<<q->location);
+        if(q->objToInspect != "")
+        {
+          ts.inspect.set(q->objToInspect);
+        }
+        outInfo("setting in CAS: ts:" << q->timestamp << " location: " << q->location);
         sceneCas.set("QUERY", ts);
       }
 
@@ -329,7 +334,7 @@ public:
   {
     process_mutex->lock();
     outInfo(FG_CYAN << "process(bool,desig) - LOCK OBTAINED");
-    process(designator_response,0);
+    process(designator_response, 0);
     if(reset_pipeline_after_process)
     {
       resetPipelineOrdering();  // reset pipeline to default
@@ -348,7 +353,7 @@ public:
   // Define a pipeline that should be executed,
   // process(reset_pipeline_after_process) everything and
   // decide if the pipeline should be reset or not
-  void process(std::vector<std::string> annotators, bool reset_pipeline_after_process, designator_integration_msgs::DesignatorResponse &designator_response, RSQuery *query=NULL)
+  void process(std::vector<std::string> annotators, bool reset_pipeline_after_process, designator_integration_msgs::DesignatorResponse &designator_response, RSQuery *query = NULL)
   {
     process_mutex->lock();
     outInfo(FG_CYAN << "process(std::vector, bool) - LOCK OBTAINED");
@@ -386,9 +391,12 @@ private:
   const bool waitForServiceCall;
   rs::Visualizer visualizer;
 
+  ros::NodeHandle nh_;
+  ros::Publisher desig_pub;
+
 public:
-  RSAnalysisEngineManager(const bool useVisualizer, const std::string &savePath, const bool &waitForServiceCall) :
-    useVisualizer(useVisualizer), waitForServiceCall(waitForServiceCall), visualizer(savePath)
+  RSAnalysisEngineManager(const bool useVisualizer, const std::string &savePath, const bool &waitForServiceCall, ros::NodeHandle n) :
+    useVisualizer(useVisualizer), waitForServiceCall(waitForServiceCall), visualizer(savePath), nh_(n)
   {
     // Create/link up to a UIMACPP resource manager instance (singleton)
     outInfo("Creating resource manager"); // TODO: DEBUG
@@ -407,6 +415,8 @@ public:
       resourceManager.setLoggingLevel(uima::LogStream::EnMessage);
       break;
     }
+
+    desig_pub = nh_.advertise<designator_integration_msgs::DesignatorResponse>(std::string("result_advertiser"), 5);
   }
 
   ~RSAnalysisEngineManager()
@@ -569,6 +579,7 @@ public:
       std::list<std::string> keys = desigRequest->keys();
       bool foundTS = false;
       bool foundLocation = false;
+      bool foundInspect = false;
       for(std::list<std::string>::iterator it = keys.begin(); it != keys.end(); ++it)
       {
         if(*it == "TIMESTAMP")
@@ -579,19 +590,29 @@ public:
         {
           foundLocation = true;
         }
+        if(*it == "INSPECT")
+        {
+          foundInspect = true;
+        }
       }
       if(foundTS)
       {
         designator_integration::KeyValuePair *kvp = desigRequest->childForKey("TIMESTAMP");
         std::string ts = kvp->stringValue();
         query->timestamp = std::stoll(ts);
-        outInfo("received timestamp:" <<query->timestamp);
+        outInfo("received timestamp:" << query->timestamp);
       }
       if(foundLocation)
       {
         designator_integration::KeyValuePair *kvp = desigRequest->childForKey("LOCATION");
         query->location = kvp->stringValue();
-        outInfo("received location:" <<query->location);
+        outInfo("received location:" << query->location);
+      }
+      if(foundInspect)
+      {
+        designator_integration::KeyValuePair *kvp = desigRequest->childForKey("INSPECT");
+        query->objToInspect = kvp->stringValue();
+        outInfo("received Inspection request for object: " << query->objToInspect);
       }
     }
 
@@ -721,21 +742,23 @@ public:
     {
       // Convert the designator msg object to a normal Designator
       designator_integration::Designator d(designator);
-      // resultDesignators.push_back(d);
+      resultDesignators.push_back(d);
       d.printDesignator();
       outInfo("------------------");
       res.response.designators.push_back(d.serializeToMessage());
     }
 
-    //ENABLE THIS LATER
-    //    filterResults(*desigRequest, resultDesignators, filteredResponse);
-    //    outInfo("filteredResponse size:" <<filteredResponse.size());
-    //    for(auto & designator : filteredResponse)
-    //    {
-    //      designator.printDesignator();
-    //      outInfo("------------------");
-    //      res.response.designators.push_back(designator.serializeToMessage());
-    //    }
+    //    ENABLE THIS LATER
+    filterResults(*desigRequest, resultDesignators, filteredResponse);
+    outInfo("filteredResponse size:" << filteredResponse.size());
+    designator_integration_msgs::DesignatorResponse topicResponse;
+    for(auto & designator : filteredResponse)
+    {
+      designator.printDesignator();
+      outInfo("------------------");
+      topicResponse.designators.push_back(designator.serializeToMessage());
+    }
+    desig_pub.publish(topicResponse);
 
     delete query;
     outWarn("RS Query service call ended");
@@ -757,7 +780,7 @@ public:
     for(std::list<designator_integration::KeyValuePair *>::iterator it = requested_kvps.begin(); it != requested_kvps.end(); ++it)
     {
       designator_integration::KeyValuePair req_kvp = **it;
-      if(req_kvp.key() == "TIMESTAMP" || req_kvp.key()=="LOCATION")
+      if(req_kvp.key() == "TIMESTAMP" || req_kvp.key() == "LOCATION")
       {
         continue;
       }
@@ -1051,7 +1074,7 @@ int main(int argc, char *argv[])
   ros::NodeHandle n("~");
   try
   {
-    RSAnalysisEngineManager manager(useVisualizer, savePath, waitForServiceCall);
+    RSAnalysisEngineManager manager(useVisualizer, savePath, waitForServiceCall, n);
     ros::ServiceServer service, singleService;
 
     // Call this service, if RoboSherlock should try out every possible pipeline

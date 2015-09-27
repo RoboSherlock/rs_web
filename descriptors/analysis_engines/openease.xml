@@ -335,7 +335,7 @@
       <node>PointCloudClusterExtractor</node>
       <node>ImageSegmentationAnnotator</node>
       <node>ClusterMerger</node>
-      <node>ClusterToPartsSegmenter</node>
+
       <node>Cluster3DGeometryAnnotator</node>
       <node>FeatureAnnotator</node>
       <node>ClusterTFLocationAnnotator</node>
@@ -345,7 +345,7 @@
       <node>LinemodAnnotator</node>
       <node>MLNInferencer</node>
       <node>PancakeAnnotator</node>
-
+<node>ClusterToPartsSegmenter</node>
 <!--      <node>ClusterTracker</node>-->
 <!--      <node>ClusterGogglesAnnotator</node>-->
 <!--      <node>GroundTruthAnnotator</node>-->

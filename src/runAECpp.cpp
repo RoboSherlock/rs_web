@@ -629,8 +629,9 @@ public:
     designator_integration_msgs::DesignatorResponse full_designator_response;
 
     // Block the RSAnalysisEngineManager  - We need the engines now
+    outInfo("acquiring lock");
     processing_mutex.lock();
-
+    outInfo("lock acquired");
     for(json_prolog::PrologQueryProxy::iterator it = bdgs.begin();
         it != bdgs.end(); it++)
     {
@@ -881,20 +882,22 @@ public:
   {
     for(; ros::ok();)
     {
-      processing_mutex.lock();
+
       if(waitForServiceCall)
       {
         usleep(100000);
       }
       else
       {
+        processing_mutex.lock();
 
         for(size_t i = 0; i < engines.size(); ++i)
         {
           engines[i].process(true);
         }
+        processing_mutex.unlock();
       }
-      processing_mutex.unlock();
+
       ros::spinOnce();
     }
   }

@@ -917,23 +917,6 @@
     <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_components.owl#SegmentationComponent"/>
 </owl:Class>
 
-<!-- http://knowrob.org/kb/rs_components.owl#ClusterToPartsSegmenter -->
-<owl:Class rdf:about="http://knowrob.org/kb/rs_components.owl#ClusterToPartsSegmenter">
-    <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_components.owl#SegmentationComponent"/>
-    <rdfs:subClassOf>
-        <owl:Restriction>
-            <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#perceptualInputRequired"/>
-            <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#RsAnnotationDetection"/>
-        </owl:Restriction>
-    </rdfs:subClassOf>
-    <rdfs:subClassOf>
-        <owl:Restriction>
-            <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#perceptualOutput"/>
-            <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#RsAnnotationClusterpart"/>
-        </owl:Restriction>
-    </rdfs:subClassOf>
-</owl:Class>
-
 <!-- http://knowrob.org/kb/rs_components.owl#PointCloudClusterExtractor -->
 <owl:Class rdf:about="http://knowrob.org/kb/rs_components.owl#PointCloudClusterExtractor">
     <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_components.owl#SegmentationComponent"/>
@@ -1083,6 +1066,28 @@
 <!-- http://knowrob.org/kb/rs_components.owl#PointCloudDownsampler -->
 <owl:Class rdf:about="http://knowrob.org/kb/rs_components.owl#PointCloudDownsampler">
     <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_components.owl#UtilsComponent"/>
+</owl:Class>
+
+<!-- http://knowrob.org/kb/rs_components.owl#ClusterToPartsSegmenter -->
+<owl:Class rdf:about="http://knowrob.org/kb/rs_components.owl#ClusterToPartsSegmenter">
+    <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_components.owl#RoboSherlockComponent"/>
+    <rdfs:subClassOf>
+        <owl:Restriction>
+            <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#perceptualInputRequired"/>
+            <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#RsAnnotationDetection"/>
+        </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+        <owl:Restriction>
+            <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#perceptualOutput"/>
+            <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#RsAnnotationClusterpart"/>
+        </owl:Restriction>
+    </rdfs:subClassOf>
+</owl:Class>
+
+<!-- http://knowrob.org/kb/rs_components.owl#KBResultAdvertiser -->
+<owl:Class rdf:about="http://knowrob.org/kb/rs_components.owl#KBResultAdvertiser">
+    <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_components.owl#RoboSherlockComponent"/>
 </owl:Class>
 
 <!-- http://knowrob.org/kb/rs_components.owl#HandleAnnotator -->
@@ -2043,14 +2048,6 @@
     <rdf:type rdf:resource="http://knowrob.org/kb/rs_components.owl#PointCloudColorSegmentation"/>
 </owl:NamedIndividual>
 
-<!-- http://knowrob.org/kb/rs_components.owl#InstanceClusterToPartsSegmenter -->
-
-<owl:NamedIndividual rdf:about="http://knowrob.org/kb/rs_components.owl#InstanceClusterToPartsSegmenter">
-    <rdf:type rdf:resource="http://knowrob.org/kb/rs_components.owl#ClusterToPartsSegmenter"/>
-    <requiresInput rdf:resource="http://knowrob.org/kb/rs_components.owl#RsAnnotationDetection"/>
-    <factResult rdf:resource="http://knowrob.org/kb/rs_components.owl#RsAnnotationClusterpart"/>
-</owl:NamedIndividual>
-
 <!-- http://knowrob.org/kb/rs_components.owl#InstancePointCloudClusterExtractor -->
 
 <owl:NamedIndividual rdf:about="http://knowrob.org/kb/rs_components.owl#InstancePointCloudClusterExtractor">
@@ -2131,6 +2128,20 @@
 
 <owl:NamedIndividual rdf:about="http://knowrob.org/kb/rs_components.owl#InstancePointCloudDownsampler">
     <rdf:type rdf:resource="http://knowrob.org/kb/rs_components.owl#PointCloudDownsampler"/>
+</owl:NamedIndividual>
+
+<!-- http://knowrob.org/kb/rs_components.owl#InstanceClusterToPartsSegmenter -->
+
+<owl:NamedIndividual rdf:about="http://knowrob.org/kb/rs_components.owl#InstanceClusterToPartsSegmenter">
+    <rdf:type rdf:resource="http://knowrob.org/kb/rs_components.owl#ClusterToPartsSegmenter"/>
+    <requiresInput rdf:resource="http://knowrob.org/kb/rs_components.owl#RsAnnotationDetection"/>
+    <factResult rdf:resource="http://knowrob.org/kb/rs_components.owl#RsAnnotationClusterpart"/>
+</owl:NamedIndividual>
+
+<!-- http://knowrob.org/kb/rs_components.owl#InstanceKBResultAdvertiser -->
+
+<owl:NamedIndividual rdf:about="http://knowrob.org/kb/rs_components.owl#InstanceKBResultAdvertiser">
+    <rdf:type rdf:resource="http://knowrob.org/kb/rs_components.owl#KBResultAdvertiser"/>
 </owl:NamedIndividual>
 
 <!-- http://knowrob.org/kb/rs_components.owl#InstanceHandleAnnotator -->

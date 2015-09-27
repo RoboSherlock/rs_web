@@ -124,13 +124,7 @@
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#hasVisualProperty"/>
-                <owl:someValuesFrom rdf:resource="&knowrob;YellowColor"/>
-            </owl:Restriction>
-        </rdfs:subClassOf>
-        <rdfs:subClassOf>
-            <owl:Restriction>
-                <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#hasVisualProperty"/>
-                <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#BoxShape"/>
+                <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#MediumSize"/>
             </owl:Restriction>
         </rdfs:subClassOf>
         <rdfs:subClassOf>
@@ -142,7 +136,13 @@
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#hasVisualProperty"/>
-                <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#MediumSize"/>
+                <owl:someValuesFrom rdf:resource="&knowrob;YellowColor"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#hasVisualProperty"/>
+                <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#BoxShape"/>
             </owl:Restriction>
         </rdfs:subClassOf>
     </owl:Class>
@@ -195,7 +195,7 @@
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#hasVisualProperty"/>
-                <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#BoxShape"/>
+                <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#MediumSize"/>
             </owl:Restriction>
         </rdfs:subClassOf>
         <rdfs:subClassOf>
@@ -207,13 +207,13 @@
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#hasVisualProperty"/>
-                <owl:someValuesFrom rdf:resource="&knowrob;WhiteColor"/>
+                <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#BoxShape"/>
             </owl:Restriction>
         </rdfs:subClassOf>
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#hasVisualProperty"/>
-                <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#MediumSize"/>
+                <owl:someValuesFrom rdf:resource="&knowrob;WhiteColor"/>
             </owl:Restriction>
         </rdfs:subClassOf>
     </owl:Class>
@@ -236,13 +236,7 @@
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#hasVisualProperty"/>
-                <owl:someValuesFrom rdf:resource="&knowrob;YellowColor"/>
-            </owl:Restriction>
-        </rdfs:subClassOf>
-        <rdfs:subClassOf>
-            <owl:Restriction>
-                <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#hasVisualProperty"/>
-                <owl:someValuesFrom rdf:resource="&rs_test_objects;MondaminLogo"/>
+                <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#MediumSize"/>
             </owl:Restriction>
         </rdfs:subClassOf>
         <rdfs:subClassOf>
@@ -254,7 +248,7 @@
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#hasVisualProperty"/>
-                <owl:someValuesFrom rdf:resource="&rs_test_objects;ObjectPartLid"/>
+                <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#RoundShape"/>
             </owl:Restriction>
         </rdfs:subClassOf>
         <rdfs:subClassOf>
@@ -266,25 +260,31 @@
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#hasVisualProperty"/>
-                <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#RoundShape"/>
-            </owl:Restriction>
-        </rdfs:subClassOf>
-        <rdfs:subClassOf>
-            <owl:Restriction>
-                <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#hasVisualProperty"/>
                 <owl:someValuesFrom rdf:resource="&rs_test_objects;TextPfannkuchenmix"/>
             </owl:Restriction>
         </rdfs:subClassOf>
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#hasVisualProperty"/>
-                <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#MediumSize"/>
+                <owl:someValuesFrom rdf:resource="&rs_test_objects;ObjectPartLid"/>
             </owl:Restriction>
         </rdfs:subClassOf>
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#hasVisualProperty"/>
                 <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#SmallSize"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#hasVisualProperty"/>
+                <owl:someValuesFrom rdf:resource="&rs_test_objects;MondaminLogo"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#hasVisualProperty"/>
+                <owl:someValuesFrom rdf:resource="&knowrob;YellowColor"/>
             </owl:Restriction>
         </rdfs:subClassOf>
     </owl:Class>
@@ -345,14 +345,14 @@
         <rdfs:subClassOf rdf:resource="&rs_test_objects;KitchenUtensil"/>
         <rdfs:subClassOf>
             <owl:Restriction>
-                <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#hasVisualProperty"/>
-                <owl:someValuesFrom rdf:resource="&rs_test_objects;ObjectPart"/>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#hasDetectionClue"/>
+                <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#LinemodModel"/>
             </owl:Restriction>
         </rdfs:subClassOf>
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#hasVisualProperty"/>
-                <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#BigSize"/>
+                <owl:someValuesFrom rdf:resource="&rs_test_objects;ObjectPart"/>
             </owl:Restriction>
         </rdfs:subClassOf>
         <rdfs:subClassOf>
@@ -369,8 +369,8 @@
         </rdfs:subClassOf>
         <rdfs:subClassOf>
             <owl:Restriction>
-                <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#hasDetectionClue"/>
-                <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#LinemodModel"/>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#hasVisualProperty"/>
+                <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#BigSize"/>
             </owl:Restriction>
         </rdfs:subClassOf>
         <rdfs:subClassOf>
@@ -391,7 +391,7 @@
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#hasVisualProperty"/>
-                <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#BoxShape"/>
+                <owl:someValuesFrom rdf:resource="&knowrob;BlueColor"/>
             </owl:Restriction>
         </rdfs:subClassOf>
         <rdfs:subClassOf>
@@ -403,7 +403,7 @@
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#hasVisualProperty"/>
-                <owl:someValuesFrom rdf:resource="&knowrob;BlueColor"/>
+                <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#BoxShape"/>
             </owl:Restriction>
         </rdfs:subClassOf>
     </owl:Class>
@@ -432,13 +432,19 @@
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#hasVisualProperty"/>
-                <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#RoundShape"/>
+                <owl:someValuesFrom rdf:resource="&rs_test_objects;ObjectPart"/>
             </owl:Restriction>
         </rdfs:subClassOf>
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#hasVisualProperty"/>
                 <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#MediumSize"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#hasVisualProperty"/>
+                <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#RoundShape"/>
             </owl:Restriction>
         </rdfs:subClassOf>
     </owl:Class>
@@ -453,12 +459,6 @@
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#hasVisualProperty"/>
-                <owl:someValuesFrom rdf:resource="&rs_test_objects;FlatShape"/>
-            </owl:Restriction>
-        </rdfs:subClassOf>
-        <rdfs:subClassOf>
-            <owl:Restriction>
-                <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#hasVisualProperty"/>
                 <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#RoundShape"/>
             </owl:Restriction>
         </rdfs:subClassOf>
@@ -466,6 +466,12 @@
             <owl:Restriction>
                 <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#hasVisualProperty"/>
                 <owl:someValuesFrom rdf:resource="&rs_test_objects;ObjectPart"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#hasVisualProperty"/>
+                <owl:someValuesFrom rdf:resource="&rs_test_objects;FlatShape"/>
             </owl:Restriction>
         </rdfs:subClassOf>
     </owl:Class>
@@ -486,7 +492,7 @@
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#hasVisualProperty"/>
-                <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#MediumSize"/>
+                <owl:someValuesFrom rdf:resource="&rs_test_objects;ObjectPartHandle"/>
             </owl:Restriction>
         </rdfs:subClassOf>
         <rdfs:subClassOf>
@@ -498,7 +504,7 @@
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#hasVisualProperty"/>
-                <owl:someValuesFrom rdf:resource="&rs_test_objects;ObjectPartHandle"/>
+                <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#MediumSize"/>
             </owl:Restriction>
         </rdfs:subClassOf>
     </owl:Class>

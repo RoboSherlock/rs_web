@@ -70,6 +70,8 @@
 #include <atomic>
 #include <mutex>
 
+#include <json_prolog/prolog.h>
+
 //#undef OUT_LEVEL
 //#define OUT_LEVEL OUT_LEVEL_DEBUG
 
@@ -107,6 +109,8 @@ private:
   std::vector<cv::Vec3b> colorsVec;
   uint64_t now;
 
+  std::map<std::string,std::string> krNameMapping;
+
 public:
   ResultAdvertiser() : nh_("~"), it_(nh_), filter_results_(false)
   {
@@ -138,6 +142,26 @@ public:
     colorsVec[WHITE]   = cv::Vec3b(255, 255, 255);
     colorsVec[BLACK]   = cv::Vec3b(0, 0, 0);
     colorsVec[GREY]    = cv::Vec3b(127, 127, 127);
+
+
+
+    //superclasses
+    krNameMapping["DRINK"]="knowrob:'Drink'";
+    krNameMapping["FOODORDRINKORINGREDIENT"]="knowrob:'FoodOrDrinkOrIngredient'";
+    krNameMapping["CONTAINER"] = "knowrob:'Container'";
+    krNameMapping["COOKING UTENSIL"] = "knowrob:'CookingUtensil'";
+    krNameMapping["ELECTRICAL DEVICE"] = "knowrob:'ElectricalDevice'";
+
+    //objects
+    krNameMapping["icetea"]="rs_test_objects:'PfannerIceTea'";
+    krNameMapping["mondamin"]="rs_test_objects:'MondaminPancakeMix'";
+    krNameMapping["cereal"]="rs_test_objects:'KellogsCornFlakes'";
+    krNameMapping["plate"]="rs_test_objects:'Plate'";
+    krNameMapping["pancake_maker"]="rs_test_objects:'PancakeMaker'";
+    krNameMapping["spatula"]="rs_test_objects:'Spatula'";
+    krNameMapping["pitcher"]="rs_test_objects:'Pitcher'";
+    krNameMapping["milk"]="rs_test_objects:'Milk'";
+    krNameMapping["cup"]="rs_test_objects:'Cup'";
   }
 
   TyErrorId initialize(AnnotatorContext &ctx)
@@ -205,6 +229,7 @@ public:
     //      requestDesignator.printDesignator();
     std::list<KeyValuePair *> requested_kvps = requestDesignator.description();
 
+    std::string superClass = "";
 
     for(std::list<KeyValuePair *>::iterator it = requested_kvps.begin(); it != requested_kvps.end(); ++it)
     {
@@ -218,7 +243,11 @@ public:
         outInfo("Handle requested, nothing to do here");
         continue;
       }
-
+      if(req_kvp.key() == "ALL")
+      {
+         superClass = req_kvp.stringValue();
+      }
+      outWarn("superclass is "<<superClass);
       outInfo("No. of result Designators: " << resultDesignators.size());
       for(size_t i = 0; i < resultDesignators.size(); ++i)
       {
@@ -245,6 +274,10 @@ public:
                 resultsForRequestedKey.push_back(*it2);
               }
             }
+          }
+          else if(req_kvp.key() == "ALL")//this shit needed so we don't loose al of our stuff just because all was sent instead of detection
+          {
+            resultsForRequestedKey.push_back(resDesig.childForKey("DETECTION"));
           }
           else
           {
@@ -286,7 +319,30 @@ public:
                   KeyValuePair childrenPair = **iter;
                   if(childrenPair.key() == "TYPE")
                   {
-                    if(strcasecmp(childrenPair.stringValue().c_str(), req_kvp.stringValue().c_str()) == 0 || req_kvp.stringValue() == "")
+
+                    if(superClass!="")
+                    {
+                      outWarn("filtering based on JSON required");
+                      outWarn("Object looked at: "<<childrenPair.stringValue());
+                      std::stringstream prologQuery;
+                      outWarn("Object should be subclass of: "<<superClass);
+
+                      prologQuery<<"owl_subclass_of("<<krNameMapping[childrenPair.stringValue()]<<","<<krNameMapping[superClass]<<").";
+                      outWarn(prologQuery.str());
+                      json_prolog::Prolog pl;
+                      json_prolog::PrologQueryProxy bdgs = pl.query(prologQuery.str());
+                      if(bdgs.begin() == bdgs.end())
+                      {
+                        outInfo(krNameMapping[childrenPair.stringValue()]<<" IS NOT "<<krNameMapping[superClass]);
+                        ok = false;
+                      }
+                      else
+                      {
+                        ok=true;
+                      }
+                    }
+
+                    else if(strcasecmp(childrenPair.stringValue().c_str(), req_kvp.stringValue().c_str()) == 0 || req_kvp.stringValue() == "")
                     {
                       ok = true;
                     }

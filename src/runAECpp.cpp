@@ -394,6 +394,8 @@ private:
   ros::NodeHandle nh_;
   ros::Publisher desig_pub;
 
+
+  std::map<std::string,std::string> krNameMapping;
 public:
   RSAnalysisEngineManager(const bool useVisualizer, const std::string &savePath, const bool &waitForServiceCall, ros::NodeHandle n) :
     useVisualizer(useVisualizer), waitForServiceCall(waitForServiceCall), visualizer(savePath), nh_(n)
@@ -417,6 +419,24 @@ public:
     }
 
     desig_pub = nh_.advertise<designator_integration_msgs::DesignatorResponse>(std::string("result_advertiser"), 5);
+
+    //superclasses
+    krNameMapping["DRINK"]="knowrob:'Drink'";
+    krNameMapping["FOODORDRINKORINGREDIENT"]="knowrob:'FoodOrDrinkOrIngredient'";
+    krNameMapping["CONTAINER"] = "knowrob:'Container'";
+    krNameMapping["COOKING UTENSIL"] = "knowrob:'CookingUtensil'";
+    krNameMapping["ELECTRICAL DEVICE"] = "knowrob:'ElectricalDevice'";
+
+    //objects
+    krNameMapping["icetea"]="rs_test_objects:'PfannerIceTea'";
+    krNameMapping["mondamin"]="rs_test_objects:'MondaminPancakeMix'";
+    krNameMapping["cereal"]="rs_test_objects:'KellogsCornFlakes'";
+    krNameMapping["plate"]="rs_test_objects:'Plate'";
+    krNameMapping["pancake_maker"]="rs_test_objects:'PancakeMaker'";
+    krNameMapping["spatula"]="rs_test_objects:'Spatula'";
+    krNameMapping["pitcher"]="rs_test_objects:'Pitcher'";
+    krNameMapping["milk"]="rs_test_objects:'Milk'";
+    krNameMapping["cup"]="rs_test_objects:'Cup'";
   }
 
   ~RSAnalysisEngineManager()
@@ -493,6 +513,10 @@ public:
           listOfAllPredicates.push_back("pancakedetector");
         }
 
+      }
+      if(desig->childForKey("ALL"))
+      {
+        listOfAllPredicates.push_back("detection");
       }
       if(desig->childForKey("HANDLE"))
       {
@@ -574,12 +598,14 @@ public:
     outInfo("RS Query service called");
 
     RSQuery *query = new RSQuery();
+    std::string superClass="";
     if(desigRequest != NULL)
     {
       std::list<std::string> keys = desigRequest->keys();
       bool foundTS = false;
       bool foundLocation = false;
       bool foundInspect = false;
+      bool foundDirectiveAll = false;
       for(std::list<std::string>::iterator it = keys.begin(); it != keys.end(); ++it)
       {
         if(*it == "TIMESTAMP")
@@ -593,6 +619,10 @@ public:
         if(*it == "INSPECT")
         {
           foundInspect = true;
+        }
+        if(*it == "ALL")
+        {
+          foundDirectiveAll = true;
         }
       }
       if(foundTS)
@@ -613,6 +643,11 @@ public:
         designator_integration::KeyValuePair *kvp = desigRequest->childForKey("INSPECT");
         query->objToInspect = kvp->stringValue();
         outInfo("received Inspection request for object: " << query->objToInspect);
+      }
+      if(foundDirectiveAll)
+      {
+        designator_integration::KeyValuePair *kvp = desigRequest->childForKey("ALL");
+        superClass = kvp->stringValue();
       }
     }
 
@@ -749,7 +784,7 @@ public:
     }
 
     //    ENABLE THIS LATER
-    filterResults(*desigRequest, resultDesignators, filteredResponse);
+    filterResults(*desigRequest, resultDesignators, filteredResponse,superClass);
     outInfo("filteredResponse size:" << filteredResponse.size());
     designator_integration_msgs::DesignatorResponse topicResponse;
     for(auto & designator : filteredResponse)
@@ -767,7 +802,8 @@ public:
 
   void filterResults(designator_integration::Designator &requestDesignator,
                      const std::vector<designator_integration::Designator> &resultDesignators,
-                     std::vector<designator_integration::Designator> &filteredResponse)
+                     std::vector<designator_integration::Designator> &filteredResponse,
+                     std::string superclass)
   {
     outInfo("filtering the results based on the designator request");
 
@@ -789,6 +825,7 @@ public:
         outInfo("Handle requested, nothing to do here");
         continue;
       }
+
       outInfo("No. of result Designators: " << resultDesignators.size());
       for(size_t i = 0; i < resultDesignators.size(); ++i)
       {
@@ -816,11 +853,16 @@ public:
               }
             }
           }
+          else if(req_kvp.key() == "ALL")//this shit needed so we don't loose al of our stuff just because all was sent instead of detection
+          {
+            resultsForRequestedKey.push_back(resDesig.childForKey("DETECTION"));
+          }
           else
           {
             resultsForRequestedKey.push_back(resDesig.childForKey(req_kvp.key()));
           }
         }
+
 
         if(!resultsForRequestedKey.empty())
         {
@@ -856,7 +898,29 @@ public:
                   designator_integration::KeyValuePair childrenPair = **iter;
                   if(childrenPair.key() == "TYPE")
                   {
-                    if(strcasecmp(childrenPair.stringValue().c_str(), req_kvp.stringValue().c_str()) == 0 || req_kvp.stringValue() == "")
+                    if(superclass!="")
+                    {
+                      outWarn("filtering based on JSON required");
+                      outWarn("Object looked at: "<<childrenPair.stringValue());
+                      std::stringstream prologQuery;
+                      outWarn("Object should be subclass of: "<<superclass);
+
+
+                      prologQuery<<"owl_subclass_of("<<krNameMapping[childrenPair.stringValue()]<<","<<krNameMapping[superclass]<<").";
+                      outWarn(prologQuery.str());
+                      json_prolog::Prolog pl;
+                      json_prolog::PrologQueryProxy bdgs = pl.query(prologQuery.str());
+                      if(bdgs.begin() == bdgs.end())
+                      {
+                        outInfo(krNameMapping[childrenPair.stringValue()]<<" IS NOT "<<krNameMapping[superclass]);
+                        ok = false;
+                      }
+                      else
+                      {
+                        ok=true;
+                      }
+                    }
+                    else if(strcasecmp(childrenPair.stringValue().c_str(), req_kvp.stringValue().c_str()) == 0 || req_kvp.stringValue() == "")
                     {
                       ok = true;
                     }

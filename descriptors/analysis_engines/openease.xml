@@ -40,7 +40,7 @@
       <import location="../../../rs_refactored/descriptors/annotators/annotation/ClusterTFLocationAnnotator.xml"/>
     </delegateAnalysisEngine>
     <delegateAnalysisEngine key="ClusterToPartsSegmenter">
-      <import location="../../../rs_refactored/descriptors/annotators/segmentation/ClusterToPartsSegmenter.xml"/>
+      <import location="../annotators/ClusterToPartsSegmenter.xml"/>
     </delegateAnalysisEngine>
     <delegateAnalysisEngine key="ClusterTracker">
       <import location="../../../rs_refactored/descriptors/annotators/tracker/ClusterTracker.xml"/>

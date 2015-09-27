@@ -74,3 +74,7 @@ target_link_libraries(runAE rs_core rs_io rs_designator_wrapper ${catkin_LIBRARI
 
 rs_add_library(rs_kbResultAdvertiser src/ResultAdvertiser.cpp)
 target_link_libraries(rs_kbResultAdvertiser rs_core)
+
+rs_add_library(rs_clusterToPartsSegmenter src/ClusterToPartsSegmenter.cpp)
+target_link_libraries(rs_clusterToPartsSegmenter rs_core)
+

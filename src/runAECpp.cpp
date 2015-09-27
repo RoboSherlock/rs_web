@@ -468,6 +468,12 @@ public:
       {
         listOfAllPredicates.push_back("product");
       }
+      //todo: this will be a bit of a hack to get the web stuff running, let's see how this works out:)
+      if(desig->childForKey("INSPECT"))
+      {
+        listOfAllPredicates.push_back("parts");
+      }
+
       if(desig->childForKey("DETECTION"))
       {
         listOfAllPredicates.push_back("detection");
@@ -751,7 +757,7 @@ public:
     for(std::list<designator_integration::KeyValuePair *>::iterator it = requested_kvps.begin(); it != requested_kvps.end(); ++it)
     {
       designator_integration::KeyValuePair req_kvp = **it;
-      if(req_kvp.key() == "TIMESTAMP")
+      if(req_kvp.key() == "TIMESTAMP" || req_kvp.key()=="LOCATION")
       {
         continue;
       }

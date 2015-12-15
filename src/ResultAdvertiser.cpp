@@ -73,6 +73,7 @@
 #include <mutex>
 
 #include <json_prolog/prolog.h>
+#include <rs_kbreasoning/KRDefinitions.h>
 
 //#undef OUT_LEVEL
 //#define OUT_LEVEL OUT_LEVEL_DEBUG
@@ -120,8 +121,6 @@ private:
   std::vector<cv::Vec3b> colorsVec;
   uint64_t now;
 
-  std::map<std::string, std::string> krNameMapping;
-
 public:
   ResultAdvertiser() : nh_("~"), it_(nh_), filter_results_(false)
   {
@@ -154,32 +153,6 @@ public:
     colorsVec[BLACK]   = cv::Vec3b(0, 0, 0);
     colorsVec[GREY]    = cv::Vec3b(127, 127, 127);
 
-
-
-    //superclasses
-    krNameMapping["DRINK"] = "knowrob:'Drink'";
-    krNameMapping["FOODORDRINKORINGREDIENT"] = "knowrob:'FoodOrDrinkOrIngredient'";
-    krNameMapping["CONTAINER"] = "knowrob:'Container'";
-    krNameMapping["COOKING UTENSIL"] = "knowrob:'CookingUtensil'";
-    krNameMapping["ELECTRICAL DEVICE"] = "knowrob:'ElectricalDevice'";
-
-    //objects
-    krNameMapping["icetea"] = "rs_test_objects:'PfannerIceTea'";
-    krNameMapping["mondamin"] = "rs_test_objects:'MondaminPancakeMix'";
-    krNameMapping["cereal"] = "rs_test_objects:'KellogsCornFlakes'";
-    krNameMapping["plate"] = "rs_test_objects:'Plate'";
-    krNameMapping["pancake_maker"] = "rs_test_objects:'PancakeMaker'";
-    krNameMapping["spatula"] = "rs_test_objects:'Spatula'";
-    krNameMapping["pitcher"] = "rs_test_objects:'Pitcher'";
-    krNameMapping["milk"] = "rs_test_objects:'Milk'";
-    krNameMapping["cup"] = "rs_test_objects:'Cup'";
-    krNameMapping["bottle"] = "rs_test_objects:'KimaxBottle'";
-    krNameMapping["bottle_acid"] = "rs_test_objects:'KimaxBottle'";
-    krNameMapping["bottle_base"] = "rs_test_objects:'KimaxBottle'";
-    krNameMapping["flask_250ml"] = "rs_test_objects:'Flask'";
-    krNameMapping["flask_400ml"] = "rs_test_objects:'Flask'";
-    krNameMapping["pipette"]  = "rs_test_objects:'Pipette'";
-    krNameMapping["mixer_ikamag"] = "rs_test_objects:'MixerIkaMag'";
   }
 
 
@@ -235,7 +208,6 @@ public:
     }
 
     return ret;
-
   }
 
   TyErrorId initialize(AnnotatorContext &ctx)
@@ -354,6 +326,7 @@ public:
               }
             }
           }
+
           else if(req_kvp.key() == "VOLUME")
           {
             childRequestedKey = resDesig.childForKey("VOLUME");
@@ -465,14 +438,13 @@ public:
                       outWarn("Object looked at: " << childrenPair.stringValue());
                       std::stringstream prologQuery;
                       outWarn("Object should be subclass of: " << superClass);
-
-                      prologQuery << "owl_subclass_of(" << krNameMapping[childrenPair.stringValue()] << "," << krNameMapping[superClass] << ").";
+                      prologQuery<<"owl_subclass_of("<<rs_kbreasoning::krNameMapping[childrenPair.stringValue()]<<",knowrob:'"<<superClass<<"').";
                       outWarn(prologQuery.str());
                       json_prolog::Prolog pl;
                       json_prolog::PrologQueryProxy bdgs = pl.query(prologQuery.str());
                       if(bdgs.begin() == bdgs.end())
                       {
-                        outInfo(krNameMapping[childrenPair.stringValue()] << " IS NOT " << krNameMapping[superClass]);
+                        outInfo(rs_kbreasoning::krNameMapping[childrenPair.stringValue()]<<" IS NOT "<<superClass);
                         ok = false;
                       }
                       else

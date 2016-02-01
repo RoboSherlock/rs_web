@@ -11,6 +11,11 @@ catkin_rosjava_setup(installApp publishMavenJavaPublicationToMavenRepository wri
 install(DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_MAVEN_DESTINATION}/org/knowrob/${PROJECT_NAME}/ 
         DESTINATION ${CATKIN_GLOBAL_MAVEN_DESTINATION}/org/knowrob/${PROJECT_NAME})
 
+find_package(PkgConfig)
+pkg_check_modules(SWIPL REQUIRED swipl)
+include_directories(${SWIPL_INCLUDE_DIRS})
+link_directories(${SWIPL_LIBRARY_DIRS})
+message("SWIPL" ${SWIPL_LIBRARIES})
 ################################################################################
 ## Constants for project                                                      ##
 ################################################################################
@@ -79,3 +84,5 @@ target_link_libraries(rs_kbResultAdvertiser rs_designator_wrapper ${catkin_LIBRA
 rs_add_library(rs_clusterToPartsSegmenter src/ClusterToPartsSegmenter.cpp)
 target_link_libraries(rs_clusterToPartsSegmenter ${catkin_LIBRARIES})
 
+rs_add_library(rs_prologrulescpp src/PrologQueries.cpp)
+target_link_libraries(rs_prologrulescpp rs_core ${SWIPL_LIBRARIES} )

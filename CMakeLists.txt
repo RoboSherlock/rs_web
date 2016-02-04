@@ -74,8 +74,8 @@ target_link_libraries(rs_designator_wrapper ${catkin_LIBRARIES})
 rs_add_library(rs_handleAnnotator src/annotators/HandleAnnotator.cpp src/annotators/handle_extractor.cpp)
 target_link_libraries(rs_handleAnnotator ${catkin_LIBRARIES})
 
-rs_add_executable(runAE src/runAECpp.cpp src/RSPipelineManager.cpp)
-add_dependencies(runAE iai_robosherloc_msgs_gencpp)
+rs_add_executable(runAE src/runAECpp.cpp)
+add_dependencies(runAE iai_robosherlock_msgs_gencpp)
 target_link_libraries(runAE rs_designator_wrapper ${catkin_LIBRARIES})
 
 rs_add_library(rs_kbResultAdvertiser src/ResultAdvertiser.cpp)

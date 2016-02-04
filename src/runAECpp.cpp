@@ -50,7 +50,7 @@
 #include <designator_integration_msgs/DesignatorCommunication.h>
 #include <iai_robosherlock_msgs/SetRSContext.h>
 
-#include <rs_kbreasoning/RSPipelineManager.h>
+#include <rs/utils/RSPipelineManager.h>
 #include <rs_kbreasoning/DesignatorWrapper.h>
 #include <rs_kbreasoning/KRDefinitions.h>
 
@@ -205,7 +205,7 @@ public:
     outInfo("*** Fetch the FlowConstraint nodes. Size is: "  << non_const_nodes.size());
     for(int i = 0; i < non_const_nodes.size(); i++)
     {
-      //      outInfo(non_const_nodes.at(i));
+//       outInfo(non_const_nodes.at(i));
     }
 
     rspm->aengine->getNbrOfAnnotators();
@@ -224,8 +224,9 @@ public:
     default_pipeline.push_back("SacModelAnnotator");
     default_pipeline.push_back("PrimitiveShapeAnnotator");
     default_pipeline.push_back("KBResultAdvertiser");
-    //    default_pipeline.push_back("StorageWriter");
+    // default_pipeline.push_back("StorageWriter");
     // default_pipeline.push_back("ClusterColorHistogramCalculator");
+
     // removed color histogram for tests
     rspm->setDefaultPipelineOrdering(default_pipeline);
 
@@ -801,6 +802,7 @@ public:
 
     filterResults(*desigRequest, resultDesignators, filteredResponse, superClass);
     outInfo("The filteredResponse size:" << filteredResponse.size());
+
     designator_integration_msgs::DesignatorResponse topicResponse;
     for(auto & designator : filteredResponse)
     {
@@ -999,6 +1001,7 @@ public:
                       std::stringstream prologQuery;
                       outWarn("Object should be subclass of: " << rs_kbreasoning::krNameMapping[superclass]);
                       prologQuery<<"owl_subclass_of("<<rs_kbreasoning::krNameMapping[childrenPair.stringValue()]<<","<<rs_kbreasoning::krNameMapping[superclass]<<").";
+
 
                       outWarn(prologQuery.str());
                       json_prolog::Prolog pl;

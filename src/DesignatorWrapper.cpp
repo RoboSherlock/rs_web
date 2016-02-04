@@ -130,12 +130,6 @@ void DesignatorWrapper::filterClusters(const std::vector<rs::Cluster> input, con
 
 void DesignatorWrapper::convert(rs::Cluster &input, const size_t id, designator_integration::KeyValuePair *object)
 {
-
-  //  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("RESOLUTION");
-  //  valuePair->setValue("OBJECTID", id + 1000);
-  //  valuePair->setValue("LASTSEEN", 0);
-  //  object->addChild(valuePair);
-
   object->setValue("CLUSTERID", id);
 }
 
@@ -146,15 +140,6 @@ void DesignatorWrapper::convert(rs::Object &input, const size_t id, designator_i
   valuePair->setValue("LASTSEEN", now - input.lastSeen());
   object->addChild(valuePair);
 }
-
-// template<class T>
-// void DesignatorWrapper::convertAll(std::vector<T> &all, designator_integration::KeyValuePair *object)
-// {
-//   for(T input : all)
-//   {
-//     convert(input, object);
-//   }
-// }
 
 void DesignatorWrapper::convert(rs::Detection &input, designator_integration::KeyValuePair *object)
 {

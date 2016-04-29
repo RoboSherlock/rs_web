@@ -85,6 +85,7 @@ target_link_libraries(rs_kbResultAdvertiser rs_designator_wrapper ${catkin_LIBRA
 rs_add_library(rs_clusterToPartsSegmenter src/ClusterToPartsSegmenter.cpp)
 target_link_libraries(rs_clusterToPartsSegmenter ${catkin_LIBRARIES})
 
+
 add_library(rs_prologrulescpp src/PrologQueries.cpp)
 target_link_libraries(rs_prologrulescpp
   ${SWIPL_LIBRARIES}

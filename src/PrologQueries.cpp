@@ -1,5 +1,4 @@
 #include <designators/Designator.h>
-#include <rs_kbreasoning/RSAnalysisEngineProxy.h>
 #include <rs_kbreasoning/RSControledAnalysisEngine.h>
 #include <rs/utils/RSAnalysisEngine.h>
 #include <uima/api.hpp>

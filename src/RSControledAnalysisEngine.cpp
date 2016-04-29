@@ -1,9 +1,9 @@
 #include <rs_kbreasoning/RSControledAnalysisEngine.h>
 
+
 void RSControledAnalysisEngine::setNextPipeline(std::vector<std::string> l)
 {
   next_pipeline_order = l;
-//  setPipelineOrderChange(true);
 }
 
 std::vector<std::string> &RSControledAnalysisEngine::getNextPipeline()
@@ -17,13 +17,14 @@ void RSControledAnalysisEngine::applyNextPipeline()
   {
     rspm->setPipelineOrdering(next_pipeline_order);
   }
-//  setPipelineOrderChange(false);
 }
 
 RSControledAnalysisEngine::RSControledAnalysisEngine() : RSAnalysisEngine(),
   rspm(NULL)
 {
+  outWarn("");
   process_mutex = boost::shared_ptr<std::mutex>(new std::mutex);
+  outWarn("");
 }
 
 RSControledAnalysisEngine::~RSControledAnalysisEngine()
@@ -58,7 +59,7 @@ void RSControledAnalysisEngine::init(const std::string &file)
 
   if(errorInfo.getErrorId() != UIMA_ERR_NONE)
   {
-    outError("createAnalysisEngine failed.");
+    outError("createAnalysisEngine failed."<<errorInfo.asString());
     throw uima::Exception(errorInfo);
   }
   // RSPipelineManager rspm(engine);

@@ -125,7 +125,8 @@ public:
   }
 
   // Returns a string with the prolog query to execute, based on the informations in the designator
-  std::string buildPrologQueryFromDesignator(designator_integration::Designator *desig, bool &success)
+  std::string buildPrologQueryFromDesignator(designator_integration::Designator *desig,
+                                             bool &success)
   {
     success = false;
     if(!desig)

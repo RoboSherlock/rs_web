@@ -10,7 +10,7 @@ catkin_rosjava_setup(installApp publishMavenJavaPublicationToMavenRepository wri
 
 install(DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_MAVEN_DESTINATION}/org/knowrob/${PROJECT_NAME}/ 
         DESTINATION ${CATKIN_GLOBAL_MAVEN_DESTINATION}/org/knowrob/${PROJECT_NAME})
-
+install(DIRECTORY prolog/ DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/prolog})
 find_package(PkgConfig)
 pkg_check_modules(SWIPL REQUIRED swipl)
 include_directories(${SWIPL_INCLUDE_DIRS})
@@ -49,6 +49,7 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
+        include
         ${RS_INCLUDE_DIRS_LIST}
         ${catkin_INCLUDE_DIRS}
         )
@@ -84,5 +85,8 @@ target_link_libraries(rs_kbResultAdvertiser rs_designator_wrapper ${catkin_LIBRA
 rs_add_library(rs_clusterToPartsSegmenter src/ClusterToPartsSegmenter.cpp)
 target_link_libraries(rs_clusterToPartsSegmenter ${catkin_LIBRARIES})
 
-rs_add_library(rs_prologrulescpp src/PrologQueries.cpp)
-target_link_libraries(rs_prologrulescpp rs_core ${SWIPL_LIBRARIES} )
+add_library(rs_prologrulescpp src/PrologQueries.cpp)
+target_link_libraries(rs_prologrulescpp
+  ${SWIPL_LIBRARIES}
+  ${catkin_LIBRARIES}
+)

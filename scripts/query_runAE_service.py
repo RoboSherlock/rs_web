@@ -17,9 +17,9 @@ class RSQuery(cmd.Cmd):
 
     def map_solution_mode_to_service_name(self):
       if self.solution_mode == 'all':
-        return "/robosherlock/designator_request/all_solutions"
+        return "/RoboSherlock_robosherlock/designator_request/all_solutions"
       elif self.solution_mode == 'single':
-        return "/robosherlock/designator_request/single_solution"
+        return "/RoboSherlock_robosherlock/designator_request/single_solution"
 
       return "FAIL"
 

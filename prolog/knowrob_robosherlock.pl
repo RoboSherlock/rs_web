@@ -1,6 +1,6 @@
 :- module(knowrob_robosherlock,
     [
-  call_robosherlock/2,
+  detect/2,
   scene_clusters_count/3,
   current_robot/1,
   set_current_robot/1,
@@ -40,7 +40,7 @@
   build_pipeline_for_subclass_leafs/3,
   build_pipeline_for_subclasses/3,
   leaf_subclasses/2,
-  detect/2,
+%  detect/2,
   query_result/5,
   detect_if_individual_present/3
 ]).
@@ -83,7 +83,7 @@ client_interface(Client) :-
 client_interface(Client) :-
 	rs_interface(Client).
 
-call_robosherlock(Query,FrameID):-
+detect(Query,FrameID):-
     client_interface(Cl),
     jpl_list_to_array(Query,QueryArray),
     jpl_call(Cl,'callService',[QueryArray,FrameID],_),!.
@@ -291,6 +291,10 @@ annotators_for_predicate(cylindrical_shape,A) :-
   annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsAnnotationCylindricalshape' ).
 annotators_for_predicate(parts,A) :-
   annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsAnnotationClusterpart' ).
+annotators_for_predicate(contains,A) :-
+  annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsdemosAcatSubstance' ).
+annotators_for_predicate(volume,A) :-
+  annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsdemosAcatVolume' ).
 
 % Detection Clue Annotators. Pick specific Annotators, not based on their inputs/outputs
 annotators_for_predicate(blort,A) :- 
@@ -302,7 +306,7 @@ annotators_for_predicate(linemod,A) :-
 annotators_for_predicate(pancakedetector,A) :- 
   annotators(A), A = 'http://knowrob.org/kb/rs_components.owl#PancakeAnnotator'.
 
-detect(Type,Annotator):- annotators_for_predicate(Type,Annotator).
+% detect(Type,Annotator):- annotators_for_predicate(Type,Annotator).
 
 annotators_for_predicates(Predicates, A):-
   member(P,Predicates), annotators_for_predicate(P, A).

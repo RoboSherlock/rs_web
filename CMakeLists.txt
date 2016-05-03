@@ -4,7 +4,7 @@ project(rs_kbreasoning)
 
 find_package(catkin REQUIRED rosjava_build_tools rosprolog designator_integration_cpp
              designator_integration_msgs knowrob_common knowrob_actions knowrob_srdl
-             knowrob_vis robosherlock json_prolog robosherlock_demos)
+             knowrob_vis robosherlock json_prolog robosherlock_demos rs_addons)
 
 catkin_rosjava_setup(installApp publishMavenJavaPublicationToMavenRepository writeClasspath)
 
@@ -53,10 +53,10 @@ include_directories(
 ################################################################################
 
 ##Update xml list of annotators inside analysis engines
-update_analysis_engines(robosherlock robosherlock_demos)
+update_analysis_engines(robosherlock robosherlock_demos rs_addons)
 
 ## generate classes from the typesystem xml files
-generate_type_system(robosherlock robosherlock_demos)
+generate_type_system(robosherlock robosherlock_demos rs_addons)
 
 #find all relevant files
 find_additional_files()
@@ -64,17 +64,17 @@ find_additional_files()
 
 add_library(rs_designator_wrapper SHARED src/DesignatorWrapper.cpp)
 add_dependencies(rs_designator_wrapper designator_integration_msgs_gencpp)
-target_link_libraries(rs_designator_wrapper designator_integration rs_core)
+target_link_libraries(rs_designator_wrapper ${catkin_LIBRARIES})
 
 rs_add_library(rs_handleAnnotator src/annotators/HandleAnnotator.cpp src/annotators/handle_extractor.cpp)
-target_link_libraries(rs_handleAnnotator rs_core ${catkin_LIBRARIES})
+target_link_libraries(rs_handleAnnotator ${catkin_LIBRARIES})
 
 rs_add_executable(runAE src/runAECpp.cpp src/RSPipelineManager.cpp)
-target_link_libraries(runAE rs_core rs_io rs_designator_wrapper ${catkin_LIBRARIES})
+target_link_libraries(runAE rs_designator_wrapper ${catkin_LIBRARIES})
 
 rs_add_library(rs_kbResultAdvertiser src/ResultAdvertiser.cpp)
-target_link_libraries(rs_kbResultAdvertiser rs_core)
+target_link_libraries(rs_kbResultAdvertiser rs_designator_wrapper ${catkin_LIBRARIES})
 
 rs_add_library(rs_clusterToPartsSegmenter src/ClusterToPartsSegmenter.cpp)
-target_link_libraries(rs_clusterToPartsSegmenter rs_core)
+target_link_libraries(rs_clusterToPartsSegmenter ${catkin_LIBRARIES})
 

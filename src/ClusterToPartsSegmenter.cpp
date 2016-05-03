@@ -144,7 +144,7 @@ private:
 
     rs::Query qs = rs::create<rs::Query>(tcas);
     std::string objToProcess;
-    if(cas.get("QUERY", qs))
+    if(cas.getFS("QUERY", qs))
     {
       objToProcess = qs.inspect();
     }

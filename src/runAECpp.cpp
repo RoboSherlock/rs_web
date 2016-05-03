@@ -67,7 +67,7 @@
 #define OUT_LEVEL OUT_LEVEL_DEBUG
 
 #define SEARCHPATH "/descriptors/analysis_engines/"
-
+#define QUERY "QUERY"
 // This mutex will be locked, if:
 //   1) The RSAnalysisEngineManager wants to execute pipelines
 //   or
@@ -221,9 +221,8 @@ public:
     default_pipeline.push_back("ClusterTFLocationAnnotator");
     default_pipeline.push_back("SacModelAnnotator");
     default_pipeline.push_back("PrimitiveShapeAnnotator");
-    //    default_pipeline.push_back("VisualizerAnnotator");
     default_pipeline.push_back("KBResultAdvertiser");
-    default_pipeline.push_back("StorageWriter");
+    //    default_pipeline.push_back("StorageWriter");
     // default_pipeline.push_back("ClusterColorHistogramCalculator");
     // removed color histogram for tests
     rspm->setDefaultPipelineOrdering(default_pipeline);
@@ -285,7 +284,7 @@ public:
           ts.inspect.set(q->objToInspect);
         }
         outInfo("setting in CAS: ts:" << q->timestamp << " location: " << q->location);
-        sceneCas.set("QUERY", ts);
+        sceneCas.setFS(QUERY, ts);
       }
 
 
@@ -395,7 +394,7 @@ private:
   ros::Publisher desig_pub;
 
 
-  std::map<std::string,std::string> krNameMapping;
+  std::map<std::string, std::string> krNameMapping;
 public:
   RSAnalysisEngineManager(const bool useVisualizer, const std::string &savePath, const bool &waitForServiceCall, ros::NodeHandle n) :
     useVisualizer(useVisualizer), waitForServiceCall(waitForServiceCall), visualizer(savePath), nh_(n)
@@ -421,22 +420,30 @@ public:
     desig_pub = nh_.advertise<designator_integration_msgs::DesignatorResponse>(std::string("result_advertiser"), 5);
 
     //superclasses
-    krNameMapping["DRINK"]="knowrob:'Drink'";
-    krNameMapping["FOODORDRINKORINGREDIENT"]="knowrob:'FoodOrDrinkOrIngredient'";
+    krNameMapping["DRINK"] = "knowrob:'Drink'";
+    krNameMapping["FOODORDRINKORINGREDIENT"] = "knowrob:'FoodOrDrinkOrIngredient'";
     krNameMapping["CONTAINER"] = "knowrob:'Container'";
     krNameMapping["COOKING UTENSIL"] = "knowrob:'CookingUtensil'";
     krNameMapping["ELECTRICAL DEVICE"] = "knowrob:'ElectricalDevice'";
 
     //objects
-    krNameMapping["icetea"]="rs_test_objects:'PfannerIceTea'";
-    krNameMapping["mondamin"]="rs_test_objects:'MondaminPancakeMix'";
-    krNameMapping["cereal"]="rs_test_objects:'KellogsCornFlakes'";
-    krNameMapping["plate"]="rs_test_objects:'Plate'";
-    krNameMapping["pancake_maker"]="rs_test_objects:'PancakeMaker'";
-    krNameMapping["spatula"]="rs_test_objects:'Spatula'";
-    krNameMapping["pitcher"]="rs_test_objects:'Pitcher'";
-    krNameMapping["milk"]="rs_test_objects:'Milk'";
-    krNameMapping["cup"]="rs_test_objects:'Cup'";
+    krNameMapping["icetea"] = "rs_test_objects:'PfannerIceTea'";
+    krNameMapping["mondamin"] = "rs_test_objects:'MondaminPancakeMix'";
+    krNameMapping["cereal"] = "rs_test_objects:'KellogsCornFlakes'";
+    krNameMapping["plate"] = "rs_test_objects:'Plate'";
+    krNameMapping["pancake_maker"] = "rs_test_objects:'PancakeMaker'";
+    krNameMapping["spatula"] = "rs_test_objects:'Spatula'";
+    krNameMapping["pitcher"] = "rs_test_objects:'Pitcher'";
+    krNameMapping["milk"] = "rs_test_objects:'Milk'";
+    krNameMapping["cup"] = "rs_test_objects:'Cup'";
+    krNameMapping["bottle"] = "rs_test_objects:'KimaxBottle'";
+    krNameMapping["bottle_acid"] = "rs_test_objects:'KimaxBottle'";
+    krNameMapping["bottle_base"] = "rs_test_objects:'KimaxBottle'";
+    krNameMapping["flask_250ml"] = "rs_test_objects:'Flask'";
+    krNameMapping["flask_400ml"] = "rs_test_objects:'Flask'";
+    krNameMapping["pipette"]  = "rs_test_objects:'Pipette'";
+    krNameMapping["mixer_ikamag"] = "rs_test_objects:'MixerIkaMag'";
+
   }
 
   ~RSAnalysisEngineManager()
@@ -454,14 +461,14 @@ public:
     }
 
     std::string ret = "";
-    if(desig->childForKey("TYPE"))
+    if(desig->childForKey("OBJECT"))
     {
       // If the designator contains a "type" key, the highlevel is looking for a specific object of Type XY.
       // Use the corresponding Prolog Rule for object pipeline generation
 
       ret = "build_pipeline_for_object('";
       // Fetch the accepted predicates from the Designator
-      ret += desig->childForKey("TYPE")->stringValue();
+      ret += desig->childForKey("OBJECT")->stringValue();
       ret += "', A)";
     }
     else
@@ -470,9 +477,18 @@ public:
       std::vector<std::string> listOfAllPredicates;
 
       // Fetch the accepted predicates from the Designator
+      //this would not be needed given a proper function and a clean interface and no hacks
       if(desig->childForKey("SHAPE"))
       {
         listOfAllPredicates.push_back("shape");
+      }
+      if(desig->childForKey("VOLUME"))
+      {
+        listOfAllPredicates.push_back("volume");
+      }
+      if(desig->childForKey("CONTAINS"))
+      {
+        listOfAllPredicates.push_back("contains");
       }
       if(desig->childForKey("COLOR"))
       {
@@ -503,7 +519,6 @@ public:
       {
         listOfAllPredicates.push_back("parts");
       }
-
       if(desig->childForKey("DETECTION"))
       {
         listOfAllPredicates.push_back("detection");
@@ -514,7 +529,7 @@ public:
         }
 
       }
-      if(desig->childForKey("ALL"))
+      if(desig->childForKey("TYPE"))
       {
         listOfAllPredicates.push_back("detection");
       }
@@ -598,7 +613,7 @@ public:
     outInfo("RS Query service called");
 
     RSQuery *query = new RSQuery();
-    std::string superClass="";
+    std::string superClass = "";
     if(desigRequest != NULL)
     {
       std::list<std::string> keys = desigRequest->keys();
@@ -620,7 +635,7 @@ public:
         {
           foundInspect = true;
         }
-        if(*it == "ALL")
+        if(*it == "TYPE")
         {
           foundDirectiveAll = true;
         }
@@ -646,7 +661,7 @@ public:
       }
       if(foundDirectiveAll)
       {
-        designator_integration::KeyValuePair *kvp = desigRequest->childForKey("ALL");
+        designator_integration::KeyValuePair *kvp = desigRequest->childForKey("TYPE");
         superClass = kvp->stringValue();
       }
     }
@@ -704,7 +719,6 @@ public:
       //needed for saving results and returning them on a ros topic
       if(waitForServiceCall && !new_pipeline_order.empty())
       {
-        new_pipeline_order.push_back("StorageWriter");
         new_pipeline_order.push_back("KBResultAdvertiser");
       }
       outInfo(FG_BLUE << "Executing Pipeline #" << pipelineId);
@@ -783,14 +797,13 @@ public:
       res.response.designators.push_back(d.serializeToMessage());
     }
 
-    //    ENABLE THIS LATER
-    filterResults(*desigRequest, resultDesignators, filteredResponse,superClass);
+    filterResults(*desigRequest, resultDesignators, filteredResponse, superClass);
     outInfo("filteredResponse size:" << filteredResponse.size());
     designator_integration_msgs::DesignatorResponse topicResponse;
     for(auto & designator : filteredResponse)
     {
-      designator.printDesignator();
-      outInfo("------------------");
+      //      designator.printDesignator();
+      //      outInfo("------------------");
       topicResponse.designators.push_back(designator.serializeToMessage());
     }
     desig_pub.publish(topicResponse);
@@ -841,6 +854,31 @@ public:
             childRequestedKey = resDesig.childForKey("BOUNDINGBOX")->childForKey("SIZE");
             resultsForRequestedKey.push_back(childRequestedKey);
           }
+          else if(req_kvp.key() == "VOLUME")
+          {
+            childRequestedKey = resDesig.childForKey("VOLUME");
+            if(childRequestedKey != NULL)
+            {
+              resultsForRequestedKey.push_back(childRequestedKey);
+            }
+            else
+            {
+              keep_designator[i] = false;
+            }
+          }
+
+          else if(req_kvp.key() == "CONTAINS")
+          {
+            childRequestedKey = resDesig.childForKey("CONTAINS");
+            if(childRequestedKey != NULL)
+            {
+              resultsForRequestedKey.push_back(childRequestedKey);
+            }
+            else
+            {
+              keep_designator[i] = false;
+            }
+          }
           else if(req_kvp.key() == "SHAPE") //there can be multiple shapes and these are not nested
           {
             std::list<designator_integration::KeyValuePair *> resKvPs = resDesig.description();
@@ -853,7 +891,7 @@ public:
               }
             }
           }
-          else if(req_kvp.key() == "ALL")//this shit needed so we don't loose al of our stuff just because all was sent instead of detection
+          else if(req_kvp.key() == "TYPE")//this shit needed so we don't loose al of our stuff just because all was sent instead of detection
           {
             resultsForRequestedKey.push_back(resDesig.childForKey("DETECTION"));
           }
@@ -861,6 +899,10 @@ public:
           {
             resultsForRequestedKey.push_back(resDesig.childForKey(req_kvp.key()));
           }
+        }
+        else
+        {
+          outWarn("No CLUSTER ID");
         }
 
 
@@ -889,6 +931,43 @@ public:
                   }
                 }
               }
+              if(resultsForRequestedKey[j]->key() == "VOLUME")
+              {
+                float volumeofCurrentObj = resultsForRequestedKey[j]->floatValue();
+                outWarn("Volume as a float: " << volumeofCurrentObj);
+                if(req_kvp.stringValue() == "")
+                {
+                  ok = true;
+                }
+                else
+                {
+                  float volumeAsked = atof(req_kvp.stringValue().c_str());
+                  outWarn("Volume asked as float: " << volumeAsked);
+                  if(volumeAsked <= volumeofCurrentObj)
+                  {
+                    ok = true;
+                  }
+                }
+              }
+              if(resultsForRequestedKey[j]->key() == "CONTAINS")
+              {
+                if(req_kvp.stringValue() == "")
+                {
+                  ok = true;
+                }
+                else
+                {
+                  std::string substanceName = resultsForRequestedKey[j]->childForKey("SUBSTANCE")->stringValue();
+                  std::string substanceAsked = req_kvp.stringValue();
+                  outWarn("Substance asked : " << substanceAsked);
+                  if(strcasecmp(substanceName.c_str(), substanceAsked.c_str()) == 0)
+                  {
+                    ok = true;
+                  }
+                }
+              }
+
+
               //another nested kv-p...we need a new interface...this one sux
               if(resultsForRequestedKey[j]->key() == "DETECTION")
               {
@@ -898,31 +977,43 @@ public:
                   designator_integration::KeyValuePair childrenPair = **iter;
                   if(childrenPair.key() == "TYPE")
                   {
-                    if(superclass!="")
+                    if(superclass != "")
                     {
                       outWarn("filtering based on JSON required");
-                      outWarn("Object looked at: "<<childrenPair.stringValue());
+                      outWarn("Object looked at: " << childrenPair.stringValue());
                       std::stringstream prologQuery;
-                      outWarn("Object should be subclass of: "<<superclass);
+                      outWarn("Object should be subclass of: " << superclass);
 
 
-                      prologQuery<<"owl_subclass_of("<<krNameMapping[childrenPair.stringValue()]<<","<<krNameMapping[superclass]<<").";
+                      prologQuery << "owl_subclass_of(" << krNameMapping[childrenPair.stringValue()] << "," << krNameMapping[superclass] << ").";
                       outWarn(prologQuery.str());
                       json_prolog::Prolog pl;
+                      std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
                       json_prolog::PrologQueryProxy bdgs = pl.query(prologQuery.str());
+                      std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+                      auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
+                      outInfo("Querying through json_prolog took: " << duration << " ms");
                       if(bdgs.begin() == bdgs.end())
                       {
-                        outInfo(krNameMapping[childrenPair.stringValue()]<<" IS NOT "<<krNameMapping[superclass]);
+                        outInfo(krNameMapping[childrenPair.stringValue()] << " IS NOT " << krNameMapping[superclass]);
                         ok = false;
                       }
                       else
                       {
-                        ok=true;
+                        ok = true;
                       }
                     }
                     else if(strcasecmp(childrenPair.stringValue().c_str(), req_kvp.stringValue().c_str()) == 0 || req_kvp.stringValue() == "")
                     {
                       ok = true;
+                    }
+                    else if(childrenPair.stringValue() == "bottle_acid" || childrenPair.stringValue() == "bottle_base")
+                    {
+                      std::string new_name = "bottle";
+                      if(strcasecmp(new_name.c_str(), req_kvp.stringValue().c_str()) == 0)
+                      {
+                        ok = true;
+                      }
                     }
                   }
                 }
@@ -947,15 +1038,8 @@ public:
       {
         outInfo("Designator: " << i << " is a match");
         filteredResponse.push_back(resultDesignators[i]);
-        //        res.designators.push_back(resultDesignators[i].serializeToMessage());
       }
     }
-
-    //    drawResulstOnImage(rgb, keep_designator, scene, resultDesignators);
-    //    outImgMsgs.header = cam_info.header;
-    //    outImgMsgs.encoding = sensor_msgs::image_encodings::BGR8;
-    //    outImgMsgs.image = rgb;
-
   }
 
   void init(const std::vector<std::string> &files)

@@ -9,6 +9,7 @@
 #include <rs/utils/output.h>
 #include <designators/Designator.h>
 #include <rs/types/all_types.h>
+#include <rs_demos/types/acat_types.h>
 #include <designators/Designator.h>
 #include <designator_integration_msgs/DesignatorCommunication.h>
 #include <rs/scene_cas.h>
@@ -88,11 +89,11 @@ public:
       double seconds = now / 1000000000;
       double nsec = (now % 1000000000) / 1000000000.0;
 
-      outInfo("Seconds: " << std::setprecision(12) << seconds);
-      outInfo("NanoSecs: " << std::setprecision(12) << nsec);
+      outDebug("Seconds: " << std::setprecision(12) << seconds);
+      outDebug("NanoSecs: " << std::setprecision(12) << nsec);
       double time = seconds + nsec;
 
-      outInfo("time: " << std::setprecision(20) << time);
+      outDebug("time: " << std::setprecision(20) << time);
       objectDesignator.setValue("TIMESTAMP", time);
 
       convert(element, i, &objectDesignator);
@@ -107,8 +108,8 @@ public:
       std::vector<rs::MLNAtoms> atoms;
       std::vector<rs::Goggles> goggles;
       std::vector<rs::Features> features;
-//      std::vector<rs::Pizza> pizzas;
-//      std::vector<rs::Dough> doughs;
+      std::vector<rs_demos::Volume> volume;
+      std::vector<rs_demos::Substance> substance;
 
       element.annotations.filter(geometry);
       element.annotations.filter(poses);
@@ -120,8 +121,11 @@ public:
       element.annotations.filter(atoms);
       element.annotations.filter(goggles);
       element.annotations.filter(features);
-//      element.annotations.filter(pizzas);
-//      element.annotations.filter(doughs);
+      element.annotations.filter(volume);
+      element.annotations.filter(substance);
+
+      outDebug("Number of volume annotations: "<<volume.size());
+      outDebug("Number of substance annotations: "<<substance.size());
 
       convertAll(geometry, &objectDesignator);
       convertAll(detections, &objectDesignator);
@@ -133,8 +137,8 @@ public:
       convertAll(atoms, &objectDesignator);
       convertAll(goggles, &objectDesignator);
       convertAll(features, &objectDesignator);
-//      convertAll(pizzas, &objectDesignator);
-//      convertAll(doughs, &objectDesignator);
+      convertAll(volume, &objectDesignator);
+      convertAll(substance, &objectDesignator);
 
       iai_robosherlock_actions::PerceivedObject object;
       if(!detections.empty() && !poses.empty())
@@ -185,8 +189,8 @@ public:
   void convert(rs::NamedLink &input, designator_integration::KeyValuePair *object);
   void convert(rs::Goggles &input, designator_integration::KeyValuePair *object);
   void convert(rs::Features &input, designator_integration::KeyValuePair *object);
-//  void convert(rs::Pizza &input, designator_integration::KeyValuePair *object);
-//  void convert(rs::Dough &input, designator_integration::KeyValuePair *object);
+  void convert(rs_demos::Volume &input, designator_integration::KeyValuePair *object);
+  void convert(rs_demos::Substance &input, designator_integration::KeyValuePair *object);
 
   void convertAR(rs::ARMarker &input, designator_integration::Designator &res);
   void convertHandleAnnotation(rs::HandleAnnotation &input,int id, designator_integration::Designator &res);

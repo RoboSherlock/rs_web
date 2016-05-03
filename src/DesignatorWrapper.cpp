@@ -95,10 +95,12 @@ bool DesignatorWrapper::getObjectDesignators(std::vector<designator_integration:
     objectDesignators.push_back(res);
     res.clear();
   }
+  outWarn("");
   if(mode == CLUSTER)
   {
     std::vector<rs::Cluster> clusters;
     scene.identifiables.filter(clusters);
+    outWarn("Processing Clusters in the designator wrapper");
     process(clusters, objectDesignators);
   }
   else
@@ -117,7 +119,8 @@ bool DesignatorWrapper::getObjectDesignators(std::vector<designator_integration:
     }
     process(objects, objectDesignators);
   }
-  return true;
+  outWarn("here");
+   true;
 }
 
 void DesignatorWrapper::filterClusters(const std::vector<rs::Cluster> input, const designator_integration::Designator *output) const
@@ -128,10 +131,10 @@ void DesignatorWrapper::filterClusters(const std::vector<rs::Cluster> input, con
 void DesignatorWrapper::convert(rs::Cluster &input, const size_t id, designator_integration::KeyValuePair *object)
 {
 
-//  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("RESOLUTION");
-//  valuePair->setValue("OBJECTID", id + 1000);
-//  valuePair->setValue("LASTSEEN", 0);
-//  object->addChild(valuePair);
+  //  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("RESOLUTION");
+  //  valuePair->setValue("OBJECTID", id + 1000);
+  //  valuePair->setValue("LASTSEEN", 0);
+  //  object->addChild(valuePair);
 
   object->setValue("CLUSTERID", id);
 }
@@ -298,55 +301,20 @@ void DesignatorWrapper::convert(rs::Features &input, designator_integration::Key
   object->addChild(valuePair);
 }
 
-//void DesignatorWrapper::convert(rs::Pizza &input, designator_integration::KeyValuePair *object)
-//{
-//  designator_integration::KeyValuePair *pizza = new designator_integration::KeyValuePair("PIZZA");
+void DesignatorWrapper::convert(rs_demos::Volume &input, designator_integration::KeyValuePair *object)
+{
+  designator_integration::KeyValuePair *volume = new designator_integration::KeyValuePair("VOLUME");
+  volume->setValue(input.volume());
+  object->addChild(volume);
+}
 
-//  rs::PoseAnnotation pose = input.pose();
-//  convert(pose, pizza);
+void DesignatorWrapper::convert(rs_demos::Substance &input, designator_integration::KeyValuePair *object)
+{
+  designator_integration::KeyValuePair *substance = new designator_integration::KeyValuePair("CONTAINS");
+  substance->setValue("SUBSTANCE", input.substanceName());
+  object->addChild(substance);
+}
 
-//  designator_integration::KeyValuePair *size = new designator_integration::KeyValuePair("SIZE");
-//  size->setValue("WIDTH", input.size().width());
-//  size->setValue("HEIGHT", input.size().height());
-//  pizza->addChild(size);
-
-//  designator_integration::KeyValuePair *gridSize = new designator_integration::KeyValuePair("DIMENSIONS");
-//  gridSize->setValue("WIDTH", input.dimensions().width());
-//  gridSize->setValue("HEIGHT", input.dimensions().height());
-//  pizza->addChild(gridSize);
-
-//  designator_integration::KeyValuePair *fieldSize = new designator_integration::KeyValuePair("FIELD_SIZE");
-//  fieldSize->setValue("WIDTH", input.fieldSize().width());
-//  fieldSize->setValue("HEIGHT", input.fieldSize().height());
-//  pizza->addChild(fieldSize);
-
-//  designator_integration::KeyValuePair *fields = new designator_integration::KeyValuePair("FIELDS");
-//  std::vector<rs::PizzaField> fieldsVec = input.fields();
-//  for(size_t i = 0; i < fieldsVec.size(); ++i)
-//  {
-//    rs::PizzaField &inputF = fieldsVec[i];
-//    designator_integration::KeyValuePair *field = new designator_integration::KeyValuePair(std::to_string(i));
-
-//    rs::PoseAnnotation pose = inputF.pose();
-//    convert(pose, field);
-
-//    field->setValue("X", inputF.position().x());
-//    field->setValue("Y", inputF.position().y());
-
-//    designator_integration::KeyValuePair *ingredients = new designator_integration::KeyValuePair("INGREDIENTS");
-//    std::vector<std::string> ingredientsVec = inputF.ingredients();
-//    for(size_t j = 0; j < ingredientsVec.size(); ++j)
-//    {
-//      ingredients->setValue(std::to_string(j), ingredientsVec[j]);
-//    }
-//    field->addChild(ingredients);
-
-//    fields->addChild(field);
-//  }
-//  pizza->addChild(fields);
-
-//  object->addChild(pizza);
-//}
 
 iai_robosherlock_actions::PerceivedObjects DesignatorWrapper::getObjectsMsgs()
 {

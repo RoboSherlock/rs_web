@@ -59,7 +59,7 @@
 #include <pcl/filters/extract_indices.h>
 #include <pcl/common/centroid.h>
 
-#include <rs_demos/utils/DesignatorWrapper.h>
+#include <rs_kbreasoning/DesignatorWrapper.h>
 #include <rs/scene_cas.h>
 #include <rs/utils/time.h>
 
@@ -162,6 +162,13 @@ public:
     krNameMapping["pitcher"]="rs_test_objects:'Pitcher'";
     krNameMapping["milk"]="rs_test_objects:'Milk'";
     krNameMapping["cup"]="rs_test_objects:'Cup'";
+    krNameMapping["bottle"] = "rs_test_objects:'KimaxBottle'";
+    krNameMapping["bottle_acid"] = "rs_test_objects:'KimaxBottle'";
+    krNameMapping["bottle_base"] = "rs_test_objects:'KimaxBottle'";
+    krNameMapping["flask_250ml"] = "rs_test_objects:'Flask'";
+    krNameMapping["flask_400ml"] = "rs_test_objects:'Flask'";
+    krNameMapping["pipette"]  = "rs_test_objects:'Pipette'";
+    krNameMapping["mixer_ikamag"] = "rs_test_objects:'MixerIkaMag'";
   }
 
   TyErrorId initialize(AnnotatorContext &ctx)
@@ -243,7 +250,7 @@ public:
         outInfo("Handle requested, nothing to do here");
         continue;
       }
-      if(req_kvp.key() == "ALL")
+      if(req_kvp.key() == "TYPE")
       {
          superClass = req_kvp.stringValue();
       }
@@ -256,11 +263,17 @@ public:
         //and here come the hacks
         std::vector<KeyValuePair *> resultsForRequestedKey;
         KeyValuePair *childRequestedKey = NULL;
+
         if(resDesig.childForKey("CLUSTERID") != NULL)
         {
           if(req_kvp.key() == "SIZE") //size is nested get it from the bounding box..bad design
           {
             childRequestedKey = resDesig.childForKey("BOUNDINGBOX")->childForKey("SIZE");
+            resultsForRequestedKey.push_back(childRequestedKey);
+          }
+          else if(req_kvp.key() == "LOCATION")
+          {
+            childRequestedKey = resDesig.childForKey("LOCATION");
             resultsForRequestedKey.push_back(childRequestedKey);
           }
           else if(req_kvp.key() == "SHAPE") //there can be multiple shapes and these are not nested
@@ -275,7 +288,32 @@ public:
               }
             }
           }
-          else if(req_kvp.key() == "ALL")//this shit needed so we don't loose al of our stuff just because all was sent instead of detection
+          else if(req_kvp.key() == "VOLUME")
+          {
+            childRequestedKey = resDesig.childForKey("VOLUME");
+            if(childRequestedKey != NULL)
+            {
+              resultsForRequestedKey.push_back(childRequestedKey);
+            }
+            else
+            {
+              keep_designator[i] = false;
+            }
+          }
+
+          else if(req_kvp.key() == "CONTAINS")
+          {
+            childRequestedKey = resDesig.childForKey("CONTAINS");
+            if(childRequestedKey != NULL)
+            {
+              resultsForRequestedKey.push_back(childRequestedKey);
+            }
+            else
+            {
+              keep_designator[i] = false;
+            }
+          }
+          else if(req_kvp.key() == "TYPE")//this shit needed so we don't loose al of our stuff just because all was sent instead of detection
           {
             resultsForRequestedKey.push_back(resDesig.childForKey("DETECTION"));
           }
@@ -307,6 +345,41 @@ public:
                     {
                       ok = true;
                     }
+                  }
+                }
+              }
+              if(resultsForRequestedKey[j]->key() == "VOLUME")
+              {
+                float volumeofCurrentObj = resultsForRequestedKey[j]->floatValue();
+                outWarn("Volume as a float: " << volumeofCurrentObj);
+                if(req_kvp.stringValue() == "")
+                {
+                  ok = true;
+                }
+                else
+                {
+                  float volumeAsked = atof(req_kvp.stringValue().c_str());
+                  outWarn("Volume asked as float: " << volumeAsked);
+                  if(volumeAsked <= volumeofCurrentObj)
+                  {
+                    ok = true;
+                  }
+                }
+              }
+              if(resultsForRequestedKey[j]->key() == "CONTAINS")
+              {
+                if(req_kvp.stringValue() == "")
+                {
+                  ok = true;
+                }
+                else
+                {
+                  std::string substanceName = resultsForRequestedKey[j]->childForKey("SUBSTANCE")->stringValue();
+                  std::string substanceAsked = req_kvp.stringValue();
+                  outWarn("Substance asked : " << substanceAsked);
+                  if(strcasecmp(substanceName.c_str(), substanceAsked.c_str()) == 0)
+                  {
+                    ok = true;
                   }
                 }
               }
@@ -345,6 +418,14 @@ public:
                     else if(strcasecmp(childrenPair.stringValue().c_str(), req_kvp.stringValue().c_str()) == 0 || req_kvp.stringValue() == "")
                     {
                       ok = true;
+                    }
+                    else if(childrenPair.stringValue() == "bottle_acid" || childrenPair.stringValue() == "bottle_base")
+                    {
+                      std::string new_name = "bottle";
+                      if(strcasecmp(new_name.c_str(), req_kvp.stringValue().c_str()) == 0)
+                      {
+                        ok = true;
+                      }
                     }
                   }
                 }
@@ -433,7 +514,7 @@ private:
         rs::conversion::from(roi.roi(), cvRoi);
         cv::rectangle(rgb, cvRoi, colors[idx % 9], 1.5);
         std::stringstream clusterName;
-        clusterName << "clusterID_" << idx;
+        clusterName << "cID_" << idx;
         cv::putText(rgb, clusterName.str(), cv::Point(cvRoi.x + 10, cvRoi.y - 10), cv::FONT_HERSHEY_COMPLEX, 0.7, colors[idx % 9]);
       }
       KeyValuePair *handleKvp = desig.childForKey("type");

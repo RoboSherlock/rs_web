@@ -312,7 +312,6 @@ public:
                                designator_integration_msgs::DesignatorCommunication::Response &res, bool allSolutions)
   {
     designator_integration::Designator *desigRequest = new designator_integration::Designator(req.request.designator);
-    outInfo("RS Query service called");
 
     RSQuery *query = new RSQuery();
     std::string superClass = "";
@@ -825,7 +824,6 @@ void help()
 
 int main(int argc, char *argv[])
 {
-  /* Access the command line arguments to get the name of the input text. */
   if(argc < 2)
   {
     help();
@@ -833,8 +831,6 @@ int main(int argc, char *argv[])
   }
 
   ros::init(argc, argv, std::string("RoboSherlock_") + getenv("USER"));
-
-  // Has JSON PROLOG been enabled at compile time?
 
   std::vector<std::string> args;
   args.resize(argc - 1);

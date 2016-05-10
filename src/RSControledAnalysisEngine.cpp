@@ -20,11 +20,9 @@ void RSControledAnalysisEngine::applyNextPipeline()
 }
 
 RSControledAnalysisEngine::RSControledAnalysisEngine() : RSAnalysisEngine(),
-  rspm(NULL)
+  rspm(NULL),currentAEName("")
 {
-  outWarn("");
   process_mutex = boost::shared_ptr<std::mutex>(new std::mutex);
-  outWarn("");
 }
 
 RSControledAnalysisEngine::~RSControledAnalysisEngine()
@@ -56,10 +54,9 @@ void RSControledAnalysisEngine::init(const std::string &file)
 
   engine = uima::Framework::createAnalysisEngine(file.c_str(), errorInfo);
 
-
   if(errorInfo.getErrorId() != UIMA_ERR_NONE)
   {
-    outError("createAnalysisEngine failed."<<errorInfo.asString());
+    outError("createAnalysisEngine failed." << errorInfo.asString());
     throw uima::Exception(errorInfo);
   }
   // RSPipelineManager rspm(engine);
@@ -109,11 +106,11 @@ void RSControledAnalysisEngine::init(const std::string &file)
 
   outInfo("initialization done: " << name << std::endl
           << std::endl << FG_YELLOW << "********************************************************************************" << std::endl);
+  currentAEName = file;
 }
 
 void RSControledAnalysisEngine::process()
 {
-  // TODO Use ptrs to avoid unnecessary memory allocation?
   designator_integration_msgs::DesignatorResponse d;
   process(d);
 }
@@ -188,11 +185,8 @@ void RSControledAnalysisEngine::process(
   outInfo("processing finished");
 }
 
-// Call process() and
-// decide if the pipeline should be reset or not
-void RSControledAnalysisEngine::process(
-  bool reset_pipeline_after_process,
-  designator_integration_msgs::DesignatorResponse &designator_response)
+// Call process() and decide if the pipeline should be reset or not
+void RSControledAnalysisEngine::process( bool reset_pipeline_after_process, designator_integration_msgs::DesignatorResponse &designator_response)
 {
   process_mutex->lock();
   outInfo(FG_CYAN << "process(bool,desig) - LOCK OBTAINED");
@@ -205,8 +199,7 @@ void RSControledAnalysisEngine::process(
   outInfo(FG_CYAN << "process(bool,desig) - LOCK RELEASED");
 }
 
-// Call process() and
-// decide if the pipeline should be reset or not
+// Call process() and decide if the pipeline should be reset or not
 void RSControledAnalysisEngine::process(bool reset_pipeline_after_process)
 {
   designator_integration_msgs::DesignatorResponse d;
@@ -216,11 +209,10 @@ void RSControledAnalysisEngine::process(bool reset_pipeline_after_process)
 // Define a pipeline that should be executed,
 // process(reset_pipeline_after_process) everything and
 // decide if the pipeline should be reset or not
-void RSControledAnalysisEngine::process(
-  std::vector<std::string> annotators,
-  bool reset_pipeline_after_process,
-  designator_integration_msgs::DesignatorResponse &designator_response,
-  RSQuery *query)
+void RSControledAnalysisEngine::process(std::vector<std::string> annotators,
+                                        bool reset_pipeline_after_process,
+                                        designator_integration_msgs::DesignatorResponse &designator_response,
+                                        RSQuery *query)
 {
   process_mutex->lock();
   outInfo(FG_CYAN << "process(std::vector, bool) - LOCK OBTAINED");

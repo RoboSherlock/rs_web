@@ -27,6 +27,7 @@ class RSControledAnalysisEngine: public RSAnalysisEngine
 
 private:
   RSPipelineManager *rspm;
+  std::string currentAEName;
   std::vector<std::string> next_pipeline_order;
   boost::shared_ptr<std::mutex> process_mutex;
 
@@ -50,6 +51,11 @@ public:
     {
       rspm->resetPipelineOrdering();
     }
+  }
+
+  std::string getCurrentAEName()
+  {
+    return currentAEName;
   }
 
   bool defaultPipelineEnabled()

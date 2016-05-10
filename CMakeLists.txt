@@ -4,7 +4,7 @@ project(rs_kbreasoning)
 
 find_package(catkin REQUIRED rosjava_build_tools rosprolog designator_integration_cpp
              designator_integration_msgs knowrob_common knowrob_actions knowrob_srdl
-             knowrob_vis robosherlock json_prolog robosherlock_demos rs_addons iai_robosherlock_msgs)
+             knowrob_vis robosherlock json_prolog robosherlock_demos rs_addons roslib rospack iai_robosherlock_msgs)
 
 catkin_rosjava_setup(installApp publishMavenJavaPublicationToMavenRepository writeClasspath)
 
@@ -86,8 +86,9 @@ rs_add_library(rs_clusterToPartsSegmenter src/ClusterToPartsSegmenter.cpp)
 target_link_libraries(rs_clusterToPartsSegmenter ${catkin_LIBRARIES})
 
 
-add_library(rs_prologrulescpp src/PrologQueries.cpp)
+rs_add_library(rs_prologrulescpp src/PrologQueries.cpp src/RSControledAnalysisEngine.cpp)
 target_link_libraries(rs_prologrulescpp
+  rs_designator_wrapper
   ${SWIPL_LIBRARIES}
   ${catkin_LIBRARIES}
 )

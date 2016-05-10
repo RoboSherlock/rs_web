@@ -1,22 +1,21 @@
 #include <designators/Designator.h>
 #include <rs_kbreasoning/RSControledAnalysisEngine.h>
 #include <rs/utils/RSAnalysisEngine.h>
+#include <rs/utils/common.h>
 #include <uima/api.hpp>
 #include <SWI-cpp.h>
 #include <iostream>
 #include <string>
 #include <memory>
+#include <ros/package.h>
+#include <stdio.h>
+#include <dlfcn.h>
+
 
 designator_integration::Designator *req_desig = NULL;
 
-//AnalysisEngineManagerProxy *ae_Proxy;
 static RSControledAnalysisEngine *ae_Proxy;
-
-PREDICATE(hello, 1)
-{
-  std::cout << "Hello " << (char *)A1 << std::endl;
-  return TRUE;
-}
+uima::ResourceManager &resourceManager = uima::ResourceManager::createInstance("RoboSherlock");
 
 PREDICATE(init_desig, 1)
 {
@@ -36,16 +35,103 @@ PREDICATE(init_desig, 1)
   }
 }
 
+/**
+ * @brief initialize the AnalysisEngine object
+ */
 PREDICATE(init_rs, 2)
 {
-  uima::ResourceManager &resourceManager = uima::ResourceManager::createInstance("RoboSherlock");
-  ae_Proxy = new RSControledAnalysisEngine();
-  std::string pipelineName((char *)A1);
-  ae_Proxy->init("/home/ferenc/work/ros_ws/src/robosherlock/descriptors/analysis_engines/storage.xml");
-  std::vector<std::string> next_pipeline = ae_Proxy->getNextPipeline();
-  std::cerr << "length of next pipeline: " << next_pipeline.size() << std::endl;
-  return A1 = (void *)ae_Proxy;
+  if(!ae_Proxy)
+  {
+    ae_Proxy = new RSControledAnalysisEngine();
+    dlopen("libpython2.7.so", RTLD_LAZY | RTLD_GLOBAL);
+    std::string pipelineName((char *)A1);
+    std::string pipelinePath;
+    rs::common::getAEPaths(pipelineName, pipelinePath);
+    if(!pipelinePath.empty())
+    {
+      ae_Proxy->init(pipelinePath);
+      return A2 = (void *)ae_Proxy;
+    }
+  }
+  else
+  {
+    return FALSE;
+  }
 }
+
+
+/**
+ * change AE file that is loaded, enables changing the context
+ * e.g. from kitchen to cehmlab, where we need different parameterizations
+ * */
+PREDICATE(change_context, 1)
+{
+  if(ae_Proxy)
+  {
+    std::string pipelineName((char *)A1);
+    std::string newPipelinePath;
+    rs::common::getAEPaths(pipelineName, newPipelinePath);
+
+
+    if(!newPipelinePath.empty())
+    {
+      std::string currentPipeline = ae_Proxy->getCurrentAEName();
+      if(currentPipeline != newPipelinePath)
+      {
+        ae_Proxy->init(newPipelinePath);
+        return TRUE;
+      }
+      else
+      {
+        outInfo("Already set to: "<<newPipelinePath);
+        return FALSE;
+      }
+    }
+    else
+    {
+      return FALSE;
+    }
+  }
+  else
+  {
+    return FALSE;
+  }
+}
+
+/**
+ * @brief run the process function once
+ */
+PREDICATE(process_once, 1)
+{
+  void *myobj = A1;
+  RSControledAnalysisEngine *ae  = (RSControledAnalysisEngine *)myobj;
+  ae->process();
+  return TRUE;
+}
+
+PREDICATE(set_new_pipeline, 1)
+{
+  if(ae_Proxy)
+  {
+
+    std::vector<std::string> new_pipeline;
+    new_pipeline.push_back("CollectionReader");
+    new_pipeline.push_back("ImagePreprocessor");
+    ae_Proxy->setNextPipeline(new_pipeline);
+    ae_Proxy->applyNextPipeline();
+//    PlTail tail(A1);
+//    PlTerm e;
+//    while(tail.next(e))
+//    {
+//      std::cout << (char *)e << std::endl;
+//    }
+    return TRUE;
+  }
+  else
+    return FALSE;
+}
+
+
 
 PREDICATE(delete_desig, 1)
 {
@@ -92,13 +178,15 @@ PREDICATE(print_desig, 1)
   }
 }
 
-PREDICATE(install, 1)
+PREDICATE(write_list, 1)
 {
+  PlTail tail(A1);
+  PlTerm e;
+
+  while(tail.next(e))
+  {
+    std::cout << (char *)e << std::endl;
+  }
+
   return TRUE;
 }
-
-void install(int i)
-{
-  std::cerr << "WTF";
-}
-

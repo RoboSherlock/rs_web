@@ -1,6 +1,7 @@
 :- module(knowrob_robosherlock,
     [
   detect/2,
+  change_context/1,	
   scene_clusters_count/3,
   current_robot/1,
   set_current_robot/1,
@@ -88,6 +89,9 @@ detect(Query,FrameID):-
     jpl_list_to_array(Query,QueryArray),
     jpl_call(Cl,'callService',[QueryArray,FrameID],_),!.
     
+change_context(CName):-
+    client_interface(Cl),
+    jpl_call(Cl,'changeDB',[CName],_).
 
 %%count object hypotheses logged in a scene by timestamp and Scene name
 scene_clusters_count(Timestamp,Collection,Count):-

@@ -365,7 +365,7 @@
 
     </configurationParameterSettings>
     <flowConstraints>
-        <fixedFlow>
+    <fixedFlow>
       <node>Trigger</node>
       <node>CollectionReader</node>
       <node>ImagePreprocessor</node>
@@ -394,10 +394,10 @@
 <!--      <node>ClusterGogglesAnnotator</node>-->
 <!--      <node>GroundTruthAnnotator</node>-->
 <!--      <node>MLNAtomsGenerator</node>-->
-      <node>StorageWriter</node>
+    <!--  <node>StorageWriter</node>-->
       <node>KBResultAdvertiser</node>
 <!--      <node>VisualizerAnnotator</node>-->
-      </fixedFlow>
+    </fixedFlow>
     </flowConstraints>
     <typePriorities/>
     <fsIndexCollection>

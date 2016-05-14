@@ -30,9 +30,11 @@ public class RSMongoWrapper {
 	public HashMap<String, DBCollection> collections;
 	public Scene scene;
 	public HashMap<Integer, String> timestamps;
-
+        public String dbName;
 	public RSMongoWrapper(String db_name)
 	{
+		
+		this.dbName = db_name;
 		String host = "localhost";
 		int port = 27017;
 		try {
@@ -55,6 +57,21 @@ public class RSMongoWrapper {
 		getAllTimestamps();
 	}
 
+	public boolean changeDB(String db_name){
+		this.dbName = db_name;
+		db = mongoClient.getDB(db_name);
+		//get all collections
+		collections.clear();
+		collections.put("cas", db.getCollection("cas"));
+		collections.put("scene", db.getCollection("scene"));
+		collections.put("depth_image_hd", db.getCollection("depth_image_hd"));
+		collections.put("color_image_hd", db.getCollection("color_image_hd"));
+		collections.put("camera_info_hd", db.getCollection("camera_info_hd"));
+		timestamps.clear();
+		getAllTimestamps();
+		return true;
+	}
+	 
 	public DBObject getDocument(String ts,String collectionName)
 	{
 		DBCollection casColl = (DBCollection)collections.get("cas");

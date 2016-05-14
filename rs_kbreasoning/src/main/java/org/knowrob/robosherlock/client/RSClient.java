@@ -25,6 +25,7 @@ public class RSClient extends AbstractNodeMain {
 	int globalTSIndex;
 	public ConnectedNode node;
 	RSMongoWrapper mongoWrapper;
+
 	@Override
 	public GraphName getDefaultNodeName() {
 		return GraphName.of("knowrob_robosherlock/rs_client");
@@ -178,5 +179,10 @@ public class RSClient extends AbstractNodeMain {
 		//this will not allow hierarchical tree structures, but will have to do for now
 		kvp.setId(list.size()+1);
 		list.add(kvp);
+	}
+	public boolean changeDB(String dbName){
+		globalTSIndex = 0;
+		mongoWrapper.changeDB(dbName);
+		return true;
 	}
 }

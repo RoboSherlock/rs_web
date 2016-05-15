@@ -1,0 +1,197 @@
+{
+    "query": [
+        {
+            "q":"",
+            "text":"----- Initialize -----"
+        },
+		{
+            "q":"register_ros_package(knowrob_rs_components).",
+            "text":"Initialize Context"
+        },
+		{
+            "q":"",
+            "text":"----- Query Robot Capabilities -----"
+        },
+        {
+            "text":"Is the PR2 capable of perceiving 3D depth data?",
+            "q":"perceptual_capabilities_on_robot('http://knowrob.org/kb/rs_components.owl#Perceive3DDepthCapability','http://knowrob.org/kb/PR2.owl#PR2Robot1'),!."            
+        },
+        {
+            "text":"Is the Jazz Robot capable of perceiving 3D depth data?",
+            "q":"perceptual_capabilities_on_robot('http://knowrob.org/kb/rs_components.owl#Perceive3DDepthCapability','http://knowrob.org/kb/pico.owl#jazz_robot1'),!."            
+        },
+        {
+            "text":"Can I run the Cluster3DGeometryAnnotator component of RoboSherlock on the Jazz Robot?",
+            "q":"action_feasible_on_robot(rs_components:'Cluster3DGeometryAnnotator',jazz:'jazz_robot1')."
+        },
+
+        {
+            "text":"What about the PR2?",
+            "q":"action_feasible_on_robot(rs_components:'Cluster3DGeometryAnnotator',pr2:'PR2Robot1')."
+        },
+        {   "text":"",
+            "q":""
+        },
+
+        {
+            "q":"",
+            "text":"----- Query for objects and their properties -----"
+        },
+        {
+            "text":"What are the objects defined in the ontology?",
+            "q":"owl_subclass_of(Obj,rs_test_objects:'ObjectsToTest')."
+        },
+        {
+            "text":"Are there any objects that can be container?",
+            "q":"owl_subclass_of(Obj,rs_test_objects:'ObjectsToTest'),owl_subclass_of(Obj,knowrob:'Container')."
+        },
+        {
+            "text":"What about a drinks?",
+            "q":"owl_subclass_of(Obj,rs_test_objects:'ObjectsToTest'),owl_subclass_of(Obj,knowrob:'Drink')."
+        },
+        {
+            "text":"What are the properties defined for the PancakeMaker?",
+            "q":"predicates_for_object('http://knowrob.org/kb/rs_test_objects.owl#PancakeMaker',P)."
+        },
+        {
+            "text":"Show me all objects that can have a lid",
+            "q":"owl_subclass_of(Obj,knowrob:'HumanScaleObject'),class_properties(Obj,rs_components:'hasVisualProperty',rs_test_objects:'ObjectPartLid')."
+        },
+        {
+            "text":"",
+            "q":""
+        },
+        {
+            "q":"",
+            "text":"----- Build pipelines -----"
+        },
+	{
+            "text":"Build a pipeline for the pancake maker.",
+            "q":"build_pipeline_for_object('http://knowrob.org/kb/rs_test_objects.owl#PancakeMaker',P)."
+        },
+	{
+	    "text":"Build pipeline for predicates: shape,color, location.",
+	    "q":"build_pipeline_from_predicates(['color','shape','location'],P)."
+	},
+	{
+	    "text":"Build pipeline for predicates: size and logo",
+	    "q":"build_pipeline_from_predicates(['size','logo'],P)."
+	},
+	{
+	    "text":"Detect pancake if we have a Pancake maker",             		    
+	    "q":"detect_if_individual_present('http://knowrob.org/kb/rs_test_objects.owl#Pancake','http://knowrob.org/kb/rs_test_objects.owl#PancakeMaker',P)."	
+	},
+	{
+	    "text":"Detect everything that a drink.",
+  	    "q":"build_pipeline_for_subclass_leafs('http://knowrob.org/kb/rs_test_objects.owl#Drink',Pipeline,Drink)."
+	},
+        {
+            "text":"-------- Execute pipelines and visualize results --------",
+            "q":" "
+        },
+	{
+	    "text":" ",
+	    "q":" "
+	},
+        {   "text":"Set kitchen context",
+            "q":"set_context('KBRExperiments')."
+        },
+        {
+            "text":"--- Detection queries using knowledge about the environment ---", 
+            "q":" "
+        },
+	{
+            "text":"Find a large black object on the counter top",
+            "q": "detect(['color:black','size:large'],'frame:10')."
+        },
+	{
+            "text":"Find the mondamin on the counter top",
+            "q": "detect(['detection:mondamin','location:countertop'],'frame:10')."
+        },
+	{
+            "text":"Find the spatulas in the drawer",
+            "q": "detect(['detection:spatula','location:drawer'],'frame:10')."
+        },
+        {
+            "text":"Detect Handles",
+            "q": "detect(['handle'],'frame:1')."
+        },
+	{
+	    "text":"Detect boxes at ts 2",
+	    "q":"detect(['shape:box'],'frame:2')."		
+	},
+	    {
+	        "text":"Detect the white box",
+	        "q":"detect(['shape:box','color:white'],'frame:12')."
+	    },
+	    {
+	        "text":"Detect size  and color of all objects at ts 5",
+	        "q":"detect(['size','color'],'frame:5')."		
+	    },
+	    {
+	        "text":"Detect the Pancake Maker",
+	        "q":"detect(['detection:Pancake_maker'],'frame:9')."		
+	    }, 
+        
+        {
+            "text":"--- Inspection queries using background knowledge about objects ---", 
+            "q":" "
+        },
+	    {
+	        "text":"Detect pancake on Pancake Maker",
+	        "q":"detect(['detection:pancake'],'frame:9')."		
+	    },
+        {
+            "text":"Inspect plate for objects on it",
+            "q":"detect(['inspect:plate'],'frame:5')."
+        },
+        {
+            "text":"Inspect cup for objects on it",
+            "q":"detect(['inspect:cup'],'frame:5')."
+        },
+        {
+            "text":"Find all objects that are drinks",
+            "q":"detect(['type:drink'],'frame:5')."
+        },
+        {
+            "text":"Find all objects that are Food or drink or ingredient",
+            "q":"detect(['type:foodordrinkoringredient'],'frame:8')."
+        },
+        {
+            "text":"Find all electrical devices",
+            "q":"detect(['type:electrical device'],'frame:10')."
+        },
+        {
+            "text":"Find cooking utensils in drawer",
+            "q":"detect(['type:cooking utensil','location:drawer'],'frame:10')."
+        },
+{
+            "text":"-------- CHEMLAB CONTEXT --------",
+            "q":" "
+        },
+	{
+            "text":"Find all objects",
+            "q": "detect(['detection','location:table'],'frame:1')."
+        },
+	{
+            "text":"Find the electrical device on the table",
+            "q": "detect(['type:electrical device','location:table'],'frame:1')."
+        },
+	{
+	    "text":"Detect container that can hold 100ml of liquid",
+	    "q":"detect(['volume:0.10','type:container'],'frame:1')."		
+	},
+        {
+	    "text":"Detect container that can hold 400ml of liquid",
+	    "q":"detect(['volume:0.40','type:container'],'frame:1')."		
+	},
+	{
+	    "text":"Detect bottle that contains acid",
+	    "q":"detect(['detection:bottle','contains:acid'],'frame:1')."
+	},
+	{
+	    "text":"Detect the container that can hold 250ml of substance and has base in it",
+	    "q":"detect(['type:container','volume:0.25','contains:base'],'frame:1')."
+	}
+    ]
+}

@@ -1312,18 +1312,6 @@
 <!-- http://knowrob.org/kb/rs_components.owl#DeCafClassifier -->
 <owl:Class rdf:about="http://knowrob.org/kb/rs_components.owl#DeCafClassifier">
     <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_components.owl#RoboSherlockComponent"/>
-    <rdfs:subClassOf>
-        <owl:Restriction>
-            <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#perceptualInputRequired"/>
-            <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#RsSceneMergedcluster"/>
-        </owl:Restriction>
-    </rdfs:subClassOf>
-    <rdfs:subClassOf>
-        <owl:Restriction>
-            <owl:onProperty rdf:resource="http://knowrob.org/kb/rs_components.owl#perceptualOutput"/>
-            <owl:someValuesFrom rdf:resource="http://knowrob.org/kb/rs_components.owl#RsAnnotationDetection"/>
-        </owl:Restriction>
-    </rdfs:subClassOf>
 </owl:Class>
 
 <!-- http://knowrob.org/kb/rs_components.owl#ARMarkersDetector -->
@@ -2493,8 +2481,6 @@
 
 <owl:NamedIndividual rdf:about="http://knowrob.org/kb/rs_components.owl#InstanceDeCafClassifier">
     <rdf:type rdf:resource="http://knowrob.org/kb/rs_components.owl#DeCafClassifier"/>
-    <requiresInput rdf:resource="http://knowrob.org/kb/rs_components.owl#RsSceneMergedcluster"/>
-    <factResult rdf:resource="http://knowrob.org/kb/rs_components.owl#RsAnnotationDetection"/>
 </owl:NamedIndividual>
 
 <!-- http://knowrob.org/kb/rs_components.owl#InstanceARMarkersDetector -->

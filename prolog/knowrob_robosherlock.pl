@@ -1,7 +1,7 @@
 :- module(knowrob_robosherlock,
     [
   detect/2,
-  change_context/1,	
+  set_context/1,	
   scene_clusters_count/3,
   current_robot/1,
   set_current_robot/1,
@@ -43,7 +43,8 @@
   leaf_subclasses/2,
 %  detect/2,
   query_result/5,
-  detect_if_individual_present/3
+  detect_if_individual_present/3,
+  build_single_pipeline_from_predicates/2
 ]).
 
 :- rdf_meta
@@ -84,14 +85,34 @@ client_interface(Client) :-
 client_interface(Client) :-
 	rs_interface(Client).
 
+
+context_client_interface :-
+	context_client_interface(_).
+
+:- assert(rs_context_interface(fail)).
+
+context_client_interface(Client) :-
+	rs_context_interface(fail),
+	jpl_new('org.knowrob.robosherlock.client.ContextClient',[],Client),
+	retract(rs_context_interface(fail)),
+        jpl_list_to_array(['org.knowrob.robosherlock.client.ContextClient'], Arr),  
+        jpl_call('org.knowrob.utils.ros.RosUtilities',runRosjavaNode,[Client,Arr],_),
+        assert(rs_context_interface(Client)),!.       
+
+context_client_interface(Client) :-
+	rs_context_interface(Client).
+
+
 detect(Query,FrameID):-
     client_interface(Cl),
     jpl_list_to_array(Query,QueryArray),
     jpl_call(Cl,'callService',[QueryArray,FrameID],_),!.
     
-change_context(CName):-
+set_context(CName):-
     client_interface(Cl),
-    jpl_call(Cl,'changeDB',[CName],_).
+    jpl_call(Cl,'changeDB',[CName],_),
+    context_client_interface(C),	
+    jpl_call(C,'callSetContextService',[CName],_).
 
 %%count object hypotheses logged in a scene by timestamp and Scene name
 scene_clusters_count(Timestamp,Collection,Count):-

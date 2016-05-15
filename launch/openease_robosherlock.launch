@@ -3,5 +3,5 @@
     <include file="$(find rs_kbreasoning)/launch/knowrob_rs_openease.launch"/>
    
     <!-- launch robosherlock-->
-    <node name="RoboSherlock_openease" pkg="rs_kbreasoning" type="runAE" output="screen" args="openease -wait -visualizer" />
+    <node name="RoboSherlock_openease" pkg="rs_kbreasoning" type="runAE" output="screen" args="kitchen -wait" />
 </launch>

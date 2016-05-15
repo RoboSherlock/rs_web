@@ -22,7 +22,8 @@ public class RSClient extends AbstractNodeMain {
 	
 	ServiceClient<designator_integration_msgs.DesignatorCommunicationRequest,
 	designator_integration_msgs.DesignatorCommunicationResponse> serviceClient;
-	int globalTSIndex;
+	
+        int globalTSIndex;
 	public ConnectedNode node;
 	RSMongoWrapper mongoWrapper;
 
@@ -34,7 +35,7 @@ public class RSClient extends AbstractNodeMain {
 	@Override
 	public void onStart(final ConnectedNode connectedNode) {
 		this.node = connectedNode;
-		mongoWrapper = new RSMongoWrapper("AcatScenes");
+		mongoWrapper = new RSMongoWrapper("KBRExperiments");
 		globalTSIndex = 0;
 		// wait for node to be ready
 		try {
@@ -52,11 +53,13 @@ public class RSClient extends AbstractNodeMain {
 			//			String service_name = "/robosherlock/designator_request/single_solution";
 			serviceClient = node.newServiceClient(service_name, 
 					designator_integration_msgs.DesignatorCommunication._TYPE);
+	
 		} catch (ServiceNotFoundException e) {
 			throw new RosRuntimeException(e);
 		}
 
 	}
+
 	//call RoboSherlock with a timestamp. RS should get the frame at this timestamp and process it
 	public void callServiceWithTimestamp(String[] queryItems, String timestamp)
 	{

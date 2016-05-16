@@ -393,18 +393,18 @@
       <node>RegionFilter</node>
       <node>NormalEstimator</node>
       <node>PlaneAnnotator</node>
-      <node>PointCloudClusterExtractor</node>
+      <!--node>PointCloudClusterExtractor</node-->
       <node>ImageSegmentationAnnotator</node>
       <node>ClusterMerger</node>
       <node>Cluster3DGeometryAnnotator</node>
-      <node>FeatureAnnotator</node>
+      <!--node>FeatureAnnotator</node-->
       <node>ClusterTFLocationAnnotator</node>
       <node>ClusterColorHistogramCalculator</node>
       <node>DeCafClassifier</node>
       <node>BottleAnnotator</node>
       <node>FlaskAnnotator</node>
       <node>MixerAnnotator</node>
-      <node>PancakeAnnotator</node>
+      <!--node>PancakeAnnotator</node-->
 <!--      <node>ClusterTracker</node>-->
 <!--      <node>ClusterGogglesAnnotator</node>-->
 <!--      <node>GroundTruthAnnotator</node>-->

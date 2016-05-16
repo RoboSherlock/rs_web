@@ -386,10 +386,10 @@
       <node>LinemodAnnotator</node>
       <node>MLNInferencer</node>
       <node>ClusterToPartsSegmenter</node>
-      <node>DeCafClassifier</node>
+      <!--node>DeCafClassifier</node>
       <node>BottleAnnotator</node>
       <node>FlaskAnnotator</node>
-      <node>MixerAnnotator</node>
+      <node>MixerAnnotator</node-->
       <node>PancakeAnnotator</node>
 <!--      <node>ClusterTracker</node>-->
 <!--      <node>ClusterGogglesAnnotator</node>-->

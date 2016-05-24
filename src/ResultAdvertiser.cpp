@@ -34,8 +34,8 @@
 #include <std_msgs/String.h>
 #include <sensor_msgs/Image.h>
 #include <actionlib/server/simple_action_server.h>
-#include <iai_robosherlock_actions/SimplePerceiveObjectAction.h>
-#include <iai_robosherlock_actions/PerceivedObjects.h>
+#include <iai_robosherlock_msgs/SimplePerceiveObjectAction.h>
+#include <iai_robosherlock_msgs/PerceivedObjects.h>
 
 #include <designators/Designator.h>
 #include <designator_integration_msgs/DesignatorCommunication.h>
@@ -115,7 +115,7 @@ public:
   ResultAdvertiser() : nh_("~"), it_(nh_), filter_results_(false)
   {
 
-    object_pub = nh_.advertise<iai_robosherlock_actions::PerceivedObjects>(std::string("object_perceived"), 5);
+    object_pub = nh_.advertise<iai_robosherlock_msgs::PerceivedObjects>(std::string("object_perceived"), 5);
 
     image_pub_ = it_.advertise("result_image", 1, true);
     mode = rs::DesignatorWrapper::CLUSTER;
@@ -224,7 +224,7 @@ public:
     cas.get(VIEW_CAMERA_INFO, cam_info);
     cas.get(VIEW_COLOR_IMAGE, rgb);
     designator_integration_msgs::DesignatorResponse res;
-    iai_robosherlock_actions::PerceivedObjects objects;
+    iai_robosherlock_msgs::PerceivedObjects objects;
 
     outInfo("filtering the results based on the designator request");
     std::vector<designator_integration::Designator> resultDesignators;

@@ -316,7 +316,7 @@ void DesignatorWrapper::convert(rs_demos::Substance &input, designator_integrati
 }
 
 
-iai_robosherlock_actions::PerceivedObjects DesignatorWrapper::getObjectsMsgs()
+iai_robosherlock_msgs::PerceivedObjects DesignatorWrapper::getObjectsMsgs()
 {
   return objects_;
 }

@@ -17,7 +17,7 @@
 #include <boost/signals2.hpp>
 #include <map>
 
-#include <iai_robosherlock_actions/PerceivedObjects.h>
+#include <iai_robosherlock_msgs/PerceivedObjects.h>
 
 //work in progress:)
 namespace rs
@@ -51,7 +51,7 @@ public:
   static designator_integration::Designator *res_designator;
 
   designator_integration_msgs::DesignatorResponse res;
-  iai_robosherlock_actions::PerceivedObjects objects_;
+  iai_robosherlock_msgs::PerceivedObjects objects_;
 
   uint64_t now;
   uima::CAS *tcas;
@@ -71,7 +71,7 @@ public:
 //  void notifyObserversDesignatorAdded(Designator d);
 
   designator_integration_msgs::DesignatorResponse getDesignatorResponseMsg();
-  iai_robosherlock_actions::PerceivedObjects getObjectsMsgs();
+  iai_robosherlock_msgs::PerceivedObjects getObjectsMsgs();
 
   bool getObjectDesignators(std::vector<designator_integration::Designator>&);
 
@@ -140,7 +140,7 @@ public:
       convertAll(volume, &objectDesignator);
       convertAll(substance, &objectDesignator);
 
-      iai_robosherlock_actions::PerceivedObject object;
+      iai_robosherlock_msgs::PerceivedObject object;
       if(!detections.empty() && !poses.empty())
       {
         rs::Detection a = detections[0];

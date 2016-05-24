@@ -518,7 +518,6 @@ public:
       //todo: this will be a bit of a hack to get the web stuff running, let's see how this works out:)
       if(desig->childForKey("INSPECT"))
       {
-         listOfAllPredicates.push_back("detection");
          listOfAllPredicates.push_back("parts");
       }
       if(desig->childForKey("DETECTION"))

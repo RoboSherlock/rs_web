@@ -283,10 +283,20 @@
         <multiValued>false</multiValued>
         <mandatory>false</mandatory>
         <overrides>
-          <parameter>ClusterMerger/hsvFilter</parameter>
+          <parameter>ImageSegmentationAnnotator/hsvFilter</parameter>
         </overrides>
       </configurationParameter>
 
+      <configurationParameter>
+        <name>segmMode</name>
+        <type>String</type>
+        <multiValued>false</multiValued>
+        <mandatory>false</mandatory>
+        <overrides>
+          <parameter>ImageSegmentationAnnotator/segmMode</parameter>
+        </overrides>
+      </configurationParameter>
+      
       <configurationParameter>
         <name>cluster_min_size</name>
         <type>Integer</type>
@@ -353,6 +363,13 @@
         <name>hsvFilter</name>
         <value>
           <boolean>true</boolean>
+        </value>
+      </nameValuePair>
+      
+      <nameValuePair>
+        <name>segmMode</name>
+        <value>
+          <string>INVBINARY</string>
         </value>
       </nameValuePair>
 

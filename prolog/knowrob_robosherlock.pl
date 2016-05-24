@@ -396,13 +396,15 @@ predicates_for_object(Obj,Preds):-
 
 build_pipeline_from_predicates(ListOfPredicates,Pipeline):-
   enumerate_annotator_sets_for_predicates(ListOfPredicates, Annotators),
-  build_pipeline(Annotators, TempPipeline), %ugly hack to sort out the problems with presort for now (reproduce bug with [parts, detection]
-  build_pipeline(TempPipeline, Piepline).
+  build_pipeline(Annotators, P),
+  build_pipeline(P,PP),
+  build_pipeline(PP,Pipeline). 
 
 build_single_pipeline_from_predicates(ListOfPredicates,Pipeline):-
   setof(X,annotators_for_predicates(ListOfPredicates, X), Annotators), % Only build one list of annotators for the given Predicates
   build_pipeline(Annotators, TempPipeline),%same as above
-  build_pipeline(TempPipeline,Pipeline).
+  build_pipeline(TempPipeline,P),
+  build_pipeline(P,Pipeline).
 
 build_pipeline_for_object(Obj,Pipeline):-
   predicates_for_object(Obj,ListOfPredicates),!,

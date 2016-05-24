@@ -308,6 +308,16 @@
           <parameter>PointCloudClusterExtractor/cluster_min_size</parameter>
         </overrides>
       </configurationParameter>
+      
+      <configurationParameter>
+        <name>cannyEdgeSegmentation</name>
+        <type>Boolean</type>
+        <multiValued>false</multiValued>
+        <mandatory>false</mandatory>
+        <overrides>
+          <parameter>ImageSegmentationAnnotator/cannyEdgeSegmentation</parameter>
+        </overrides>
+      </configurationParameter>
 
     </configurationParameters>
 
@@ -321,6 +331,12 @@
 
       <nameValuePair>
         <name>query_mln</name>
+        <value>
+          <boolean>true</boolean>
+        </value>
+      </nameValuePair>
+      <nameValuePair>
+        <name>cannyEdgeSegmentation</name>
         <value>
           <boolean>true</boolean>
         </value>

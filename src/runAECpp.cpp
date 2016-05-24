@@ -606,14 +606,16 @@ public:
     std::vector<std::string> files;
     if(newContextName == "kitchen")
     {
-        files.push_back("/home/bbferka/work/ros_ws/src/rs_kbreasoning/descriptors/analysis_engines/kitchen.xml");
+
+        files.push_back(ros::package::getPath("rs_kbreasoning")+"/descriptors/analysis_engines/kitchen.xml");
         this->init(files);
         outInfo("called the service with new ContextName: "<<newContextName);
         return true;
     }
     else if(newContextName == "chemlab")
     {
-        files.push_back("/home/bbferka/work/ros_ws/src/rs_kbreasoning/descriptors/analysis_engines/chemlab.xml");
+
+        files.push_back(ros::package::getPath("rs_kbreasoning")+ "/descriptors/analysis_engines/chemlab.xml");
         this->init(files);
         outInfo("called the service with new ContextName: "<<newContextName);
         return true;

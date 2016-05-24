@@ -4,7 +4,7 @@ project(rs_kbreasoning)
 
 find_package(catkin REQUIRED rosjava_build_tools rosprolog designator_integration_cpp
              designator_integration_msgs knowrob_common knowrob_actions knowrob_srdl
-             knowrob_vis robosherlock json_prolog robosherlock_demos rs_addons)
+             knowrob_vis robosherlock json_prolog robosherlock_demos rs_addons iai_robosherlock_msgs)
 
 catkin_rosjava_setup(installApp publishMavenJavaPublicationToMavenRepository writeClasspath)
 
@@ -34,7 +34,7 @@ find_include_dirs(RS_INCLUDE_DIRS_LIST)
 
 
 catkin_package(
-    DEPENDS designator_integration_msgs 
+    DEPENDS designator_integration_msgs iai_robosherlock_msgs 
 )
 
 ###########
@@ -70,6 +70,7 @@ rs_add_library(rs_handleAnnotator src/annotators/HandleAnnotator.cpp src/annotat
 target_link_libraries(rs_handleAnnotator ${catkin_LIBRARIES})
 
 rs_add_executable(runAE src/runAECpp.cpp src/RSPipelineManager.cpp)
+add_dependencies(runAE iai_robosherloc_msgs_gencpp)
 target_link_libraries(runAE rs_designator_wrapper ${catkin_LIBRARIES})
 
 rs_add_library(rs_kbResultAdvertiser src/ResultAdvertiser.cpp)

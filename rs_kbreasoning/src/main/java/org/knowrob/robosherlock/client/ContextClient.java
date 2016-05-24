@@ -16,13 +16,13 @@ import org.ros.node.service.ServiceResponseListener;
 
 
 
-import designator_integration_msgs.*;
+import iai_robosherlock_msgs.*;
 
 public class ContextClient extends AbstractNodeMain {
 	
 
-        ServiceClient<designator_integration_msgs.ResetRSContextRequest,
-	designator_integration_msgs.ResetRSContextResponse> setContextServiceClient;
+        ServiceClient<iai_robosherlock_msgs.SetRSContextRequest,
+		      iai_robosherlock_msgs.SetRSContextResponse> setContextServiceClient;
         int globalTSIndex;
 	public ConnectedNode node;
 
@@ -44,11 +44,10 @@ public class ContextClient extends AbstractNodeMain {
 		}
 
 		try {	
-			//			String service_name = "/robosherlock/designator_request/single_solution";
-			String context_service_name = "/RoboSherlock_openease/designator_request/set_context";
+			String context_service_name = "/RoboSherlock_openease/set_context";
 			
 			setContextServiceClient = node.newServiceClient(context_service_name, 
-					designator_integration_msgs.ResetRSContext._TYPE);
+					iai_robosherlock_msgs.SetRSContext._TYPE);
 	
 		} catch (ServiceNotFoundException e) {
 			throw new RosRuntimeException(e);
@@ -66,15 +65,14 @@ public class ContextClient extends AbstractNodeMain {
 			
 			e.printStackTrace();
 		}
-		designator_integration_msgs.ResetRSContextRequest request = setContextServiceClient.newMessage();	
+		iai_robosherlock_msgs.SetRSContextRequest request = setContextServiceClient.newMessage();	
 		request.setNewAe(contextName);
 		System.out.println("request message "+ contextName);
-		setContextServiceClient.call(request,new ServiceResponseListener<designator_integration_msgs.ResetRSContextResponse>()				
+		setContextServiceClient.call(request,new ServiceResponseListener<iai_robosherlock_msgs.SetRSContextResponse>()				
 			{
 			@Override
-			public void onSuccess(designator_integration_msgs.ResetRSContextResponse arg0) {
+			public void onSuccess(iai_robosherlock_msgs.SetRSContextResponse arg0) {
 				System.out.println("success");
-				//				System.out.println("Successfully called servidce.");
 			}
 			@Override
 			public void onFailure(RemoteException e) {

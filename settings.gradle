@@ -16,3 +16,4 @@
 
 include 'rs_kbreasoning'
 include 'designator_integration_msgs'
+include 'iai_robosherlock_msgs'

@@ -48,7 +48,7 @@
 
 #include <designator_integration_msgs/Designator.h>
 #include <designator_integration_msgs/DesignatorCommunication.h>
-#include <designator_integration_msgs/ResetRSContext.h>
+#include <iai_robosherlock_msgs/SetRSContext.h>
 
 #include <rs_kbreasoning/RSPipelineManager.h>
 #include <rs_kbreasoning/DesignatorWrapper.h>
@@ -599,8 +599,8 @@ public:
   {
     return designatorCallbackLogic(req, res, true);
   }
-  bool resetAECallback(designator_integration_msgs::ResetRSContext::Request &req,
-			designator_integration_msgs::ResetRSContext::Response &res)
+  bool resetAECallback(iai_robosherlock_msgs::SetRSContext::Request &req,
+			iai_robosherlock_msgs::SetRSContext::Response &res)
   {
     std::string newContextName =req.newAe;
     std::vector<std::string> files;
@@ -1261,7 +1261,7 @@ int main(int argc, char *argv[])
     // the pipeline with all Annotators, that provide the requested types (for example shape)
     singleService = n.advertiseService("designator_request/single_solution",
                                        &RSAnalysisEngineManager::designatorSingleSolutionCallback, &manager);
-    setContextService = n.advertiseService("designator_request/set_context",
+    setContextService = n.advertiseService("set_context",
                                            &RSAnalysisEngineManager::resetAECallback,&manager);
 
 

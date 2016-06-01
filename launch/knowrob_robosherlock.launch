@@ -4,7 +4,10 @@
     
     <node name="web_video_server" pkg="web_video_server" type="web_video_server" output="screen" respawn="true"/> 
 
-    <node name="RoboSherlock_openease" pkg="rs_kbreasoning" type="runAE" output="screen" args="kitchen -wait" />
+    <node name="RoboSherlock_openease" pkg="rs_kbreasoning" type="runAE" output="screen" args="kitchen -wait" >
+        <remap from="/RoboSherlock_openease/result_advertiser" to="/logged_designators"/>
+        <remap from="/RoboSherlock_openease/result_image" to="/logged_images"/>
+    </node>
 
 
 </launch>

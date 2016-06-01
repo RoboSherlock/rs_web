@@ -1,9 +1,10 @@
 <launch>
     
-    <include file="$find knowrob_roslog_launch)/launch/knowrob_ease.launch"></include>
+    <include file="$(find knowrob_roslog_launch)/launch/knowrob_ease.launch"></include>
     
     <node name="web_video_server" pkg="web_video_server" type="web_video_server" output="screen" respawn="true"/> 
 
     <node name="RoboSherlock_openease" pkg="rs_kbreasoning" type="runAE" output="screen" args="kitchen -wait" />
+
 
 </launch>

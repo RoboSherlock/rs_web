@@ -37,6 +37,16 @@ public class RSMongoWrapper {
 		this.dbName = db_name;
 		String host = "localhost";
 		int port = 27017;
+		
+		Map<String, String> env = System.getenv();
+		if(env.containsKey("MONGO_PORT_27017_TCP_ADDR")) {
+			host = env.get("MONGO_PORT_27017_TCP_ADDR");
+		}
+		if(env.containsKey("MONGO_PORT_27017_TCP_PORT")) {
+			port = Integer.valueOf(env.get("MONGO_PORT_27017_TCP_PORT"));
+		}
+
+		
 		try {
 			mongoClient = new MongoClient(host, port);
 		} catch (UnknownHostException e) {

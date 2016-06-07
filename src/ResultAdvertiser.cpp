@@ -30,6 +30,8 @@
 
 #include <uima/api.hpp>
 
+#include <base64.h>
+
 #include <ros/ros.h>
 #include <std_msgs/String.h>
 #include <sensor_msgs/Image.h>
@@ -79,11 +81,20 @@ using namespace designator_integration;
 
 using namespace uima;
 
+static const std::string base64_chars =
+             "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+
+static inline bool is_base64(unsigned char c) {
+  return (isalnum(c) || (c == '+') || (c == '/'));
+}
+
+
 class ResultAdvertiser : public Annotator
 {
 private:
   ros::NodeHandle nh_;
-  ros::Publisher object_pub;
+  ros::Publisher base64Img;
   image_transport::Publisher image_pub_;
   image_transport::ImageTransport it_;
 
@@ -109,13 +120,13 @@ private:
   std::vector<cv::Vec3b> colorsVec;
   uint64_t now;
 
-  std::map<std::string,std::string> krNameMapping;
+  std::map<std::string, std::string> krNameMapping;
 
 public:
   ResultAdvertiser() : nh_("~"), it_(nh_), filter_results_(false)
   {
 
-    object_pub = nh_.advertise<iai_robosherlock_msgs::PerceivedObjects>(std::string("object_perceived"), 5);
+    base64Img = nh_.advertise<std_msgs::String>(std::string("image_base64"), 5);
 
     image_pub_ = it_.advertise("result_image", 1, true);
     mode = rs::DesignatorWrapper::CLUSTER;
@@ -146,22 +157,22 @@ public:
 
 
     //superclasses
-    krNameMapping["DRINK"]="knowrob:'Drink'";
-    krNameMapping["FOODORDRINKORINGREDIENT"]="knowrob:'FoodOrDrinkOrIngredient'";
+    krNameMapping["DRINK"] = "knowrob:'Drink'";
+    krNameMapping["FOODORDRINKORINGREDIENT"] = "knowrob:'FoodOrDrinkOrIngredient'";
     krNameMapping["CONTAINER"] = "knowrob:'Container'";
     krNameMapping["COOKING UTENSIL"] = "knowrob:'CookingUtensil'";
     krNameMapping["ELECTRICAL DEVICE"] = "knowrob:'ElectricalDevice'";
 
     //objects
-    krNameMapping["icetea"]="rs_test_objects:'PfannerIceTea'";
-    krNameMapping["mondamin"]="rs_test_objects:'MondaminPancakeMix'";
-    krNameMapping["cereal"]="rs_test_objects:'KellogsCornFlakes'";
-    krNameMapping["plate"]="rs_test_objects:'Plate'";
-    krNameMapping["pancake_maker"]="rs_test_objects:'PancakeMaker'";
-    krNameMapping["spatula"]="rs_test_objects:'Spatula'";
-    krNameMapping["pitcher"]="rs_test_objects:'Pitcher'";
-    krNameMapping["milk"]="rs_test_objects:'Milk'";
-    krNameMapping["cup"]="rs_test_objects:'Cup'";
+    krNameMapping["icetea"] = "rs_test_objects:'PfannerIceTea'";
+    krNameMapping["mondamin"] = "rs_test_objects:'MondaminPancakeMix'";
+    krNameMapping["cereal"] = "rs_test_objects:'KellogsCornFlakes'";
+    krNameMapping["plate"] = "rs_test_objects:'Plate'";
+    krNameMapping["pancake_maker"] = "rs_test_objects:'PancakeMaker'";
+    krNameMapping["spatula"] = "rs_test_objects:'Spatula'";
+    krNameMapping["pitcher"] = "rs_test_objects:'Pitcher'";
+    krNameMapping["milk"] = "rs_test_objects:'Milk'";
+    krNameMapping["cup"] = "rs_test_objects:'Cup'";
     krNameMapping["bottle"] = "rs_test_objects:'KimaxBottle'";
     krNameMapping["bottle_acid"] = "rs_test_objects:'KimaxBottle'";
     krNameMapping["bottle_base"] = "rs_test_objects:'KimaxBottle'";
@@ -169,6 +180,62 @@ public:
     krNameMapping["flask_400ml"] = "rs_test_objects:'Flask'";
     krNameMapping["pipette"]  = "rs_test_objects:'Pipette'";
     krNameMapping["mixer_ikamag"] = "rs_test_objects:'MixerIkaMag'";
+  }
+
+
+
+  std::string base64_encode(unsigned char const *bytes_to_encode, unsigned int in_len)
+  {
+    std::string ret;
+    int i = 0;
+    int j = 0;
+    unsigned char char_array_3[3];
+    unsigned char char_array_4[4];
+
+    while(in_len--)
+    {
+      char_array_3[i++] = *(bytes_to_encode++);
+      if(i == 3)
+      {
+        char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+        char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+        char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+        char_array_4[3] = char_array_3[2] & 0x3f;
+
+        for(i = 0; (i < 4) ; i++)
+        {
+          ret += base64_chars[char_array_4[i]];
+        }
+        i = 0;
+      }
+    }
+
+    if(i)
+    {
+      for(j = i; j < 3; j++)
+      {
+        char_array_3[j] = '\0';
+      }
+
+      char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+      char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+      char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+      char_array_4[3] = char_array_3[2] & 0x3f;
+
+      for(j = 0; (j < i + 1); j++)
+      {
+        ret += base64_chars[char_array_4[j]];
+      }
+
+      while((i++ < 3))
+      {
+        ret += '=';
+      }
+
+    }
+
+    return ret;
+
   }
 
   TyErrorId initialize(AnnotatorContext &ctx)
@@ -224,7 +291,6 @@ public:
     cas.get(VIEW_CAMERA_INFO, cam_info);
     cas.get(VIEW_COLOR_IMAGE, rgb);
     designator_integration_msgs::DesignatorResponse res;
-    iai_robosherlock_msgs::PerceivedObjects objects;
 
     outInfo("filtering the results based on the designator request");
     std::vector<designator_integration::Designator> resultDesignators;
@@ -252,9 +318,9 @@ public:
       }
       if(req_kvp.key() == "TYPE")
       {
-         superClass = req_kvp.stringValue();
+        superClass = req_kvp.stringValue();
       }
-      outWarn("superclass is "<<superClass);
+      outWarn("superclass is " << superClass);
       outInfo("No. of result Designators: " << resultDesignators.size());
       for(size_t i = 0; i < resultDesignators.size(); ++i)
       {
@@ -393,25 +459,25 @@ public:
                   if(childrenPair.key() == "TYPE")
                   {
 
-                    if(superClass!="")
+                    if(superClass != "")
                     {
                       outWarn("filtering based on JSON required");
-                      outWarn("Object looked at: "<<childrenPair.stringValue());
+                      outWarn("Object looked at: " << childrenPair.stringValue());
                       std::stringstream prologQuery;
-                      outWarn("Object should be subclass of: "<<superClass);
+                      outWarn("Object should be subclass of: " << superClass);
 
-                      prologQuery<<"owl_subclass_of("<<krNameMapping[childrenPair.stringValue()]<<","<<krNameMapping[superClass]<<").";
+                      prologQuery << "owl_subclass_of(" << krNameMapping[childrenPair.stringValue()] << "," << krNameMapping[superClass] << ").";
                       outWarn(prologQuery.str());
                       json_prolog::Prolog pl;
                       json_prolog::PrologQueryProxy bdgs = pl.query(prologQuery.str());
                       if(bdgs.begin() == bdgs.end())
                       {
-                        outInfo(krNameMapping[childrenPair.stringValue()]<<" IS NOT "<<krNameMapping[superClass]);
+                        outInfo(krNameMapping[childrenPair.stringValue()] << " IS NOT " << krNameMapping[superClass]);
                         ok = false;
                       }
                       else
                       {
-                        ok=true;
+                        ok = true;
                       }
                     }
 
@@ -458,7 +524,26 @@ public:
     outImgMsgs.encoding = sensor_msgs::image_encodings::BGR8;
     outImgMsgs.image = rgb;
 
-    object_pub.publish(objects);
+    int width = rgb.cols;
+    int height = rgb.rows;
+    int type = rgb.type();
+    size_t size = rgb.total() * rgb.elemSize();
+
+    //encode
+    // Initialize a stringstream and write the data
+    std::stringstream ss;
+    ss.write((char *)(&width), sizeof(int));
+    ss.write((char *)(&height), sizeof(int));
+    ss.write((char *)(&type), sizeof(int));
+    ss.write((char *)(&size), sizeof(size_t));
+
+    // Write the whole image data
+    ss.write((char *)rgb.data, size);
+
+    std::string encoded = base64_encode(reinterpret_cast<const unsigned char*>(ss.str().c_str()), ss.str().length());
+
+
+    base64Img.publish(encoded);
     image_pub_.publish(outImgMsgs.toImageMsg());
 
     //    outInfo("took: " << clock.getTime() << " ms.");
@@ -473,7 +558,7 @@ private:
     std::vector<rs::Cluster> clusters;
     scene.identifiables.filter(clusters);
     //very hacky for now
-    for(int i=0;i<clusters.size();++i)
+    for(int i = 0; i < clusters.size(); ++i)
     {
       rs::Cluster &cluster = clusters[i];
       std::vector<rs::ClusterPart> parts;
@@ -482,21 +567,21 @@ private:
       {
         continue;
       }
-      for(int pIdx = 0;pIdx<parts.size();++pIdx)
+      for(int pIdx = 0; pIdx < parts.size(); ++pIdx)
       {
         rs::ClusterPart &part = parts[pIdx];
         pcl::PointIndices indices;
-        rs::conversion::from(part.indices(),indices);
-        for (int iIdx = 0;iIdx<indices.indices.size();++iIdx)
+        rs::conversion::from(part.indices(), indices);
+        for(int iIdx = 0; iIdx < indices.indices.size(); ++iIdx)
         {
           int idx = indices.indices[iIdx];
-          rgb.at<cv::Vec3b>(cv::Point(idx % 640, idx / 640)) = colorsVec[pIdx%9];
+          rgb.at<cv::Vec3b>(cv::Point(idx % 640, idx / 640)) = colorsVec[pIdx % 9];
         }
       }
     }
 
     for(int i = 0; i < filter.size(); ++i)
-    { 
+    {
 
       if(!filter[i])
       {
@@ -539,12 +624,8 @@ private:
           }
         }
       }
-
     }
   }
-
-
-
 };
 
 // This macro exports an entry point that is used to create the annotator.

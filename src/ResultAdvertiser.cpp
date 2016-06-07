@@ -542,8 +542,9 @@ public:
 
     std::string encoded = base64_encode(reinterpret_cast<const unsigned char*>(ss.str().c_str()), ss.str().length());
 
-
-    base64Img.publish(encoded);
+    std_msgs::String strMsg;
+    strMsg.data = encoded;
+    base64Img.publish(strMsg);
     image_pub_.publish(outImgMsgs.toImageMsg());
 
     //    outInfo("took: " << clock.getTime() << " ms.");

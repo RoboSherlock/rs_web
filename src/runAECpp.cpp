@@ -819,13 +819,8 @@ public:
     {
       // Convert the designator msg object to a normal Designator
       designator_integration::Designator d(designator);
-
-      //overwrite the parent field -> OPENEASE HACK
-      overwriteParentField(d, 0);
-
       resultDesignators.push_back(d);
       d.printDesignator();
-      outInfo("------------------");
       res.response.designators.push_back(d.serializeToMessage());
     }
 
@@ -834,10 +829,9 @@ public:
     designator_integration_msgs::DesignatorResponse topicResponse;
     for(auto & designator : filteredResponse)
     {
-      //      designator.printDesignator();
-      //      outInfo("------------------");
-
-      topicResponse.designators.push_back(designator.serializeToMessage());
+      //overwrite the parent field -> OPENEASE HACK
+      overwriteParentField(designator, 0);
+      topicResponse.designators.push_back(designator.serializeToMessage(false));
     }
     desig_pub.publish(topicResponse);
 
@@ -853,9 +847,9 @@ public:
     {
       for(std::list<designator_integration::KeyValuePair *>::iterator it = children.begin(); it != children.end(); ++it)
       {
-        outInfo("parent of this guy is: " << (*it)->parent());
+        outDebug("parent of this guy is: " << (*it)->parent());
         (*it)->setParent(level);
-        outInfo("Changed to :" << level);
+        outDebug("new parent of this guy is: " << (*it)->parent());
 //        designator_integration::KeyValuePair kvp = (*it);
         overwriteParentField(**it, level + 1);
       }

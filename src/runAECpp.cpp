@@ -847,10 +847,7 @@ public:
     {
       for(std::list<designator_integration::KeyValuePair *>::iterator it = children.begin(); it != children.end(); ++it)
       {
-        outDebug("parent of this guy is: " << (*it)->parent());
         (*it)->setParent(level);
-        outDebug("new parent of this guy is: " << (*it)->parent());
-//        designator_integration::KeyValuePair kvp = (*it);
         overwriteParentField(**it, level + 1);
       }
     }

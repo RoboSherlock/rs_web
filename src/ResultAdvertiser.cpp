@@ -524,30 +524,18 @@ public:
     outImgMsgs.encoding = sensor_msgs::image_encodings::BGR8;
     outImgMsgs.image = rgb;
 
-    int width = rgb.cols;
-    int height = rgb.rows;
-    int type = rgb.type();
-    size_t size = rgb.total() * rgb.elemSize();
+    std::vector<uchar> imageData;
+    std::vector<int> params ={CV_IMWRITE_JPEG_QUALITY,90,0};
+    cv::imencode(".jpg",rgb,imageData,params);
 
-    //encode
-    // Initialize a stringstream and write the data
-    std::stringstream ss;
-    ss.write((char *)(&width), sizeof(int));
-    ss.write((char *)(&height), sizeof(int));
-    ss.write((char *)(&type), sizeof(int));
-    ss.write((char *)(&size), sizeof(size_t));
+    std::string encoded = base64_encode(&imageData[0], imageData.size());
 
-    // Write the whole image data
-    ss.write((char *)rgb.data, size);
-
-    std::string encoded = base64_encode(reinterpret_cast<const unsigned char*>(ss.str().c_str()), ss.str().length());
 
     std_msgs::String strMsg;
-    strMsg.data = encoded;
+    strMsg.data = "data:image/jpg;base64,"+encoded;
     base64Img.publish(strMsg);
     image_pub_.publish(outImgMsgs.toImageMsg());
 
-    //    outInfo("took: " << clock.getTime() << " ms.");
     return  UIMA_ERR_NONE;
   }
 

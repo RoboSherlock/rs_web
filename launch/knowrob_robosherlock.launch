@@ -6,7 +6,7 @@
 
     <node name="RoboSherlock_openease" pkg="rs_kbreasoning" type="runAE" output="screen" args="kitchen -wait" >
         <remap from="/RoboSherlock_openease/result_advertiser" to="/RoboSherlock/object_designators"/>
-        <remap from="/RoboSherlock_openease/result_image" to="/RoboSherlock/result_image"/>
+        <remap from="/RoboSherlock_openease/image_base64" to="/logged_images"/>
     </node>
 
 

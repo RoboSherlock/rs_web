@@ -518,7 +518,7 @@ public:
       //todo: this will be a bit of a hack to get the web stuff running, let's see how this works out:)
       if(desig->childForKey("INSPECT"))
       {
-         listOfAllPredicates.push_back("parts");
+        listOfAllPredicates.push_back("parts");
       }
       if(desig->childForKey("DETECTION"))
       {
@@ -600,29 +600,29 @@ public:
     return designatorCallbackLogic(req, res, true);
   }
   bool resetAECallback(iai_robosherlock_msgs::SetRSContext::Request &req,
-			iai_robosherlock_msgs::SetRSContext::Response &res)
+                       iai_robosherlock_msgs::SetRSContext::Response &res)
   {
-    std::string newContextName =req.newAe;
+    std::string newContextName = req.newAe;
     std::vector<std::string> files;
     if(newContextName == "kitchen")
     {
 
-        files.push_back(ros::package::getPath("rs_kbreasoning")+"/descriptors/analysis_engines/kitchen.xml");
-        this->init(files);
-        outInfo("called the service with new ContextName: "<<newContextName);
-        return true;
+      files.push_back(ros::package::getPath("rs_kbreasoning") + "/descriptors/analysis_engines/kitchen.xml");
+      this->init(files);
+      outInfo("called the service with new ContextName: " << newContextName);
+      return true;
     }
     else if(newContextName == "chemlab")
     {
 
-        files.push_back(ros::package::getPath("rs_kbreasoning")+ "/descriptors/analysis_engines/chemlab.xml");
-        this->init(files);
-        outInfo("called the service with new ContextName: "<<newContextName);
-        return true;
+      files.push_back(ros::package::getPath("rs_kbreasoning") + "/descriptors/analysis_engines/chemlab.xml");
+      this->init(files);
+      outInfo("called the service with new ContextName: " << newContextName);
+      return true;
     }
     else
     {
-        return false;
+      return false;
     }
 
   }
@@ -819,6 +819,10 @@ public:
     {
       // Convert the designator msg object to a normal Designator
       designator_integration::Designator d(designator);
+
+      //overwrite the parent field -> OPENEASE HACK
+      overwriteParentField(d, 0);
+
       resultDesignators.push_back(d);
       d.printDesignator();
       outInfo("------------------");
@@ -826,12 +830,13 @@ public:
     }
 
     filterResults(*desigRequest, resultDesignators, filteredResponse, superClass);
-    outInfo("filteredResponse size:" << filteredResponse.size());
+    outInfo("THE filteredResponse size:" << filteredResponse.size());
     designator_integration_msgs::DesignatorResponse topicResponse;
     for(auto & designator : filteredResponse)
     {
       //      designator.printDesignator();
       //      outInfo("------------------");
+
       topicResponse.designators.push_back(designator.serializeToMessage());
     }
     desig_pub.publish(topicResponse);
@@ -839,6 +844,22 @@ public:
     delete query;
     outWarn("RS Query service call ended");
     return true;
+  }
+
+  void overwriteParentField(designator_integration::KeyValuePair &d, int level)
+  {
+    std::list<designator_integration::KeyValuePair *> children =  d.children();
+    if(!children.empty())
+    {
+      for(std::list<designator_integration::KeyValuePair *>::iterator it = children.begin(); it != children.end(); ++it)
+      {
+        outInfo("parent of this guy is: " << (*it)->parent());
+        (*it)->setParent(level);
+        outInfo("Changed to :" << level);
+//        designator_integration::KeyValuePair kvp = (*it);
+        overwriteParentField(**it, level + 1);
+      }
+    }
   }
 
   void filterResults(designator_integration::Designator &requestDesignator,
@@ -1262,7 +1283,7 @@ int main(int argc, char *argv[])
     singleService = n.advertiseService("designator_request/single_solution",
                                        &RSAnalysisEngineManager::designatorSingleSolutionCallback, &manager);
     setContextService = n.advertiseService("set_context",
-                                           &RSAnalysisEngineManager::resetAECallback,&manager);
+                                           &RSAnalysisEngineManager::resetAECallback, &manager);
 
 
     manager.init(analysisEngineFiles);

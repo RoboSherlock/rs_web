@@ -437,14 +437,14 @@ public:
                       outWarn("filtering based on JSON required");
                       outWarn("Object looked at: " << childrenPair.stringValue());
                       std::stringstream prologQuery;
-                      outWarn("Object should be subclass of: " << superClass);
-                      prologQuery<<"owl_subclass_of("<<rs_kbreasoning::krNameMapping[childrenPair.stringValue()]<<",knowrob:'"<<superClass<<"').";
+                      outWarn("Object should be subclass of: "<<rs_kbreasoning::krNameMapping[superClass]);
+                      prologQuery<<"owl_subclass_of("<<rs_kbreasoning::krNameMapping[childrenPair.stringValue()]<<","<<rs_kbreasoning::krNameMapping[superClass]<<").";
                       outWarn(prologQuery.str());
                       json_prolog::Prolog pl;
                       json_prolog::PrologQueryProxy bdgs = pl.query(prologQuery.str());
                       if(bdgs.begin() == bdgs.end())
                       {
-                        outInfo(rs_kbreasoning::krNameMapping[childrenPair.stringValue()]<<" IS NOT "<<superClass);
+                        outInfo(rs_kbreasoning::krNameMapping[childrenPair.stringValue()]<<" IS NOT "<<rs_kbreasoning::krNameMapping[superClass]);
                         ok = false;
                       }
                       else

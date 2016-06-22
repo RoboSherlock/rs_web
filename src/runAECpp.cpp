@@ -395,11 +395,6 @@ private:
   ros::NodeHandle nh_;
   ros::Publisher desig_pub;
 
-
-<<<<<<< HEAD
-  std::map<std::string, std::string> krNameMapping;
-=======
->>>>>>> cdfcd66... clean up, using new header for name mappings
 public:
   RSAnalysisEngineManager(const bool useVisualizer, const std::string &savePath, const bool &waitForServiceCall, ros::NodeHandle n) :
     useVisualizer(useVisualizer), waitForServiceCall(waitForServiceCall), visualizer(savePath), nh_(n)
@@ -424,34 +419,6 @@ public:
 
     desig_pub = nh_.advertise<designator_integration_msgs::DesignatorResponse>(std::string("result_advertiser"), 5);
 
-<<<<<<< HEAD
-    //superclasses
-    krNameMapping["DRINK"] = "knowrob:'Drink'";
-    krNameMapping["FOODORDRINKORINGREDIENT"] = "knowrob:'FoodOrDrinkOrIngredient'";
-    krNameMapping["CONTAINER"] = "knowrob:'Container'";
-    krNameMapping["COOKING UTENSIL"] = "knowrob:'CookingUtensil'";
-    krNameMapping["ELECTRICAL DEVICE"] = "knowrob:'ElectricalDevice'";
-
-    //objects
-    krNameMapping["icetea"] = "rs_test_objects:'PfannerIceTea'";
-    krNameMapping["mondamin"] = "rs_test_objects:'MondaminPancakeMix'";
-    krNameMapping["cereal"] = "rs_test_objects:'KellogsCornFlakes'";
-    krNameMapping["plate"] = "rs_test_objects:'Plate'";
-    krNameMapping["pancake_maker"] = "rs_test_objects:'PancakeMaker'";
-    krNameMapping["spatula"] = "rs_test_objects:'Spatula'";
-    krNameMapping["pitcher"] = "rs_test_objects:'Pitcher'";
-    krNameMapping["milk"] = "rs_test_objects:'Milk'";
-    krNameMapping["cup"] = "rs_test_objects:'Cup'";
-    krNameMapping["bottle"] = "rs_test_objects:'KimaxBottle'";
-    krNameMapping["bottle_acid"] = "rs_test_objects:'KimaxBottle'";
-    krNameMapping["bottle_base"] = "rs_test_objects:'KimaxBottle'";
-    krNameMapping["flask_250ml"] = "rs_test_objects:'Flask'";
-    krNameMapping["flask_400ml"] = "rs_test_objects:'Flask'";
-    krNameMapping["pipette"]  = "rs_test_objects:'Pipette'";
-    krNameMapping["mixer_ikamag"] = "rs_test_objects:'MixerIkaMag'";
-
-=======
->>>>>>> cdfcd66... clean up, using new header for name mappings
   }
 
   ~RSAnalysisEngineManager()
@@ -469,22 +436,15 @@ public:
     }
 
     std::string ret = "";
-<<<<<<< HEAD
     if(desig->childForKey("OBJECT"))
-=======
-    if(desig->childForKey("OBJECTTYPE"))
->>>>>>> cdfcd66... clean up, using new header for name mappings
+
     {
       // If the designator contains a "type" key, the highlevel is looking for a specific object of Type XY.
       // Use the corresponding Prolog Rule for object pipeline generation
 
       ret = "build_pipeline_for_object('";
       // Fetch the accepted predicates from the Designator
-<<<<<<< HEAD
       ret += desig->childForKey("OBJECT")->stringValue();
-=======
-      ret += desig->childForKey("OBJECTTYPE")->stringValue();
->>>>>>> cdfcd66... clean up, using new header for name mappings
       ret += "', A)";
     }
     else
@@ -836,28 +796,17 @@ public:
       designator_integration::Designator d(designator);
       resultDesignators.push_back(d);
       d.printDesignator();
-<<<<<<< HEAD
       res.response.designators.push_back(d.serializeToMessage());
-=======
-      outInfo("------------------");
->>>>>>> cdfcd66... clean up, using new header for name mappings
     }
 
     filterResults(*desigRequest, resultDesignators, filteredResponse, superClass);
-    outInfo("THE filteredResponse size:" << filteredResponse.size());
+    outInfo("The filteredResponse size:" << filteredResponse.size());
     designator_integration_msgs::DesignatorResponse topicResponse;
     for(auto & designator : filteredResponse)
     {
-<<<<<<< HEAD
-      //overwrite the parent field -> OPENEASE HACK
       overwriteParentField(designator, 0);
       topicResponse.designators.push_back(designator.serializeToMessage(false));
-=======
-      designator.printDesignator();
-      outInfo("------------------");
-      topicResponse.designators.push_back(designator.serializeToMessage());
       res.response.designators.push_back(designator.serializeToMessage());
->>>>>>> cdfcd66... clean up, using new header for name mappings
     }
     desig_pub.publish(topicResponse);
 
@@ -1048,14 +997,9 @@ public:
                       outWarn("filtering based on JSON required");
                       outWarn("Object looked at: " << childrenPair.stringValue());
                       std::stringstream prologQuery;
-                      outWarn("Object should be subclass of: " << superclass);
+                      outWarn("Object should be subclass of: " << rs_kbreasoning::krNameMapping[superclass]);
+                      prologQuery<<"owl_subclass_of("<<rs_kbreasoning::krNameMapping[childrenPair.stringValue()]<<","<<rs_kbreasoning::krNameMapping[superclass]<<").";
 
-
-<<<<<<< HEAD
-                      prologQuery << "owl_subclass_of(" << krNameMapping[childrenPair.stringValue()] << "," << krNameMapping[superclass] << ").";
-=======
-                      prologQuery<<"owl_subclass_of("<<rs_kbreasoning::krNameMapping[childrenPair.stringValue()]<<",knowrob:'"<<superclass<<"').";
->>>>>>> cdfcd66... clean up, using new header for name mappings
                       outWarn(prologQuery.str());
                       json_prolog::Prolog pl;
                       std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
@@ -1065,11 +1009,7 @@ public:
                       outInfo("Querying through json_prolog took: " << duration << " ms");
                       if(bdgs.begin() == bdgs.end())
                       {
-<<<<<<< HEAD
-                        outInfo(krNameMapping[childrenPair.stringValue()] << " IS NOT " << krNameMapping[superclass]);
-=======
-                        outInfo(rs_kbreasoning::krNameMapping[childrenPair.stringValue()]<<" IS NOT "<<superclass);
->>>>>>> cdfcd66... clean up, using new header for name mappings
+                        outInfo(rs_kbreasoning::krNameMapping[childrenPair.stringValue()]<<" IS NOT "<<rs_kbreasoning::krNameMapping[superclass]);
                         ok = false;
                       }
                       else

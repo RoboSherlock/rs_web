@@ -1,8 +1,5 @@
-:- module(knowrob_robosherlock,
+:- module(rs_plan_pipeline,
     [
-  detect/2,
-  set_context/1,	
-  scene_clusters_count/3,
   current_robot/1,
   set_current_robot/1,
   compute_annotators/1,
@@ -41,16 +38,11 @@
   build_pipeline_for_subclass_leafs/3,
   build_pipeline_for_subclasses/3,
   leaf_subclasses/2,
-%  detect/2,
-  query_result/5,
   detect_if_individual_present/3,
   build_single_pipeline_from_predicates/2
 ]).
 
 :- rdf_meta
-   call_robosherlock(+,+),
-   call_robosherlock(+),
-   scene_clusters_count(+,+,+),
    build_pipeline_for_object(+,+).
 
 :- use_module(library('jpl')).
@@ -69,66 +61,6 @@
 :- owl_parse('package://rs_kbreasoning/owl/PR2.owl'). % Load our own PR2 which has an enhanced ontology (ColorCameras etc.)
 :- owl_parse('package://rs_kbreasoning/owl/pico.owl'). % Jazz Robot http://www.gostai.com/products/jazz/openjazz/index.html
 :- owl_parse('package://rs_kbreasoning/owl/test_objects.owl'). % Load objects to reason about
-
-client_interface :-
-	client_interface(_).
-
-:- assert(rs_interface(fail)).
-client_interface(Client) :-
-	rs_interface(fail),
-	jpl_new('org.knowrob.robosherlock.client.RSClient',[],Client),
-	retract(rs_interface(fail)),
-    jpl_list_to_array(['org.knowrob.robosherlock.client.RSClient'], Arr),
-    jpl_call('org.knowrob.utils.ros.RosUtilities',runRosjavaNode,[Client,Arr],_),
-    assert(rs_interface(Client)),!.
-       
-client_interface(Client) :-
-	rs_interface(Client).
-
-
-context_client_interface :-
-	context_client_interface(_).
-
-:- assert(rs_context_interface(fail)).
-
-context_client_interface(Client) :-
-	rs_context_interface(fail),
-	jpl_new('org.knowrob.robosherlock.client.ContextClient',[],Client),
-	retract(rs_context_interface(fail)),
-        jpl_list_to_array(['org.knowrob.robosherlock.client.ContextClient'], Arr),  
-        jpl_call('org.knowrob.utils.ros.RosUtilities',runRosjavaNode,[Client,Arr],_),
-        assert(rs_context_interface(Client)),!.       
-
-context_client_interface(Client) :-
-	rs_context_interface(Client).
-
-
-detect(Query,FrameID):-
-    client_interface(Cl),
-    jpl_list_to_array(Query,QueryArray),
-    jpl_call(Cl,'callService',[QueryArray,FrameID],_),!.
-    
-set_context(CName):-
-    client_interface(Cl),
-    jpl_call(Cl,'changeDB',[CName],_),
-    context_client_interface(C),	
-    jpl_call(C,'callSetContextService',[CName],_).
-
-%%count object hypotheses logged in a scene by timestamp and Scene name
-scene_clusters_count(Timestamp,Collection,Count):-
-    jpl_new('org.knowrob.robosherlock.db.RSMongoWrapper',[Collection],RS),
-    jpl_call(RS,'getScene',[Timestamp],SceneObject),
-    jpl_call(SceneObject,'getNumberOfClusters',[],Count).		
-
-% Query the results of the database
-% Terms are: shape,color,size...for now..add instance
-% example: query_result(['size','shape'],['medium','flat'],'1409046631131301703','Scenes_annotated',R).
-query_result(Terms,Values,Timestamp,Collection,R):-
-    jpl_new('org.knowrob.robosherlock.db.RSMongoWrapper',[Collection],RS),
-    jpl_call(RS,'getScene',[Timestamp],SceneObject),
-    jpl_list_to_array(Terms,ATerms),
-    jpl_list_to_array(Values,AValues),	
-    jpl_call(SceneObject,'query',[ATerms,AValues],R).		
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

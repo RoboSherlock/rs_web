@@ -18,17 +18,17 @@
 client_interface :-
     client_interface(_).
 
-:- assert(rs_interface(fail)).
+:- assert(rs_java_interface(fail)).
 client_interface(Client) :-
-    rs_interface(fail),
+    rs_java_interface(fail),
     jpl_new('org.knowrob.robosherlock.client.RSClient',[],Client),
-    retract(rs_interface(fail)),
+    retract(rs_java_interface(fail)),
     jpl_list_to_array(['org.knowrob.robosherlock.client.RSClient'], Arr),
     jpl_call('org.knowrob.utils.ros.RosUtilities',runRosjavaNode,[Client,Arr],_),
-    assert(rs_interface(Client)),!.
+    assert(rs_java_interface(Client)),!.
        
 client_interface(Client) :-
-    rs_interface(Client).
+    rs_java_interface(Client).
 
 context_client_interface :-
     context_client_interface(_).

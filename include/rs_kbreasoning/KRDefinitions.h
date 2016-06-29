@@ -7,6 +7,11 @@
 #include <map>
 #include <string>
 
+
+/* for now this is OK, but to scale a diferent strategy needs to be implemented
+ * - main issue here is that classifiers are not trained on the names in knowrob so we need a mapping
+ * - the query terms should be stored somewhere else to facilitate easy extenstion
+*/
 namespace rs_kbreasoning
 {
 
@@ -38,4 +43,9 @@ std::map<std::string, std::string> krNameMapping =
   {"mixer_ikamag", "rs_test_objects:'MixerIkaMag'"}
 };
 
+std::vector<std::string> rsQueryTerms =
+  { "shape","volume","contains","color","size",
+    "location","logo","text","product","obj-parts",
+    "detection","type","handle"
+  };
 }

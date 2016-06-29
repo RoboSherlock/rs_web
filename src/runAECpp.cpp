@@ -126,7 +126,7 @@ public:
 
   // Returns a string with the prolog query to execute, based on the informations in the designator
   std::string buildPrologQueryFromDesignator(designator_integration::Designator *desig,
-                                             bool &success)
+      bool &success)
   {
     success = false;
     if(!desig)
@@ -149,79 +149,36 @@ public:
     else
     {
       ret = "build_single_pipeline_from_predicates([";
-      std::vector<std::string> listOfAllPredicates;
+      std::vector<std::string> queriedKeys;
 
-      // Fetch the accepted predicates from the Designator
-      //this would not be needed given a proper function and a clean interface and no hacks
-      if(desig->childForKey("SHAPE"))
+      // Fetch the keys from the Designator
+      std::list<std::string> allKeys = desig->keys();
+
+      //add the ones that are interpretable to the queriedKeys;
+      for(auto rsQueryTerm : rs_kbreasoning::rsQueryTerms)
       {
-        listOfAllPredicates.push_back("shape");
+        if(std::find(allKeys.begin(), allKeys.end(),
+                     boost::algorithm::to_upper_copy(rsQueryTerm))
+           != std::end(allKeys))
+        {
+          outInfo("key: " << rsQueryTerm << " exists in query language");
+          queriedKeys.push_back(rsQueryTerm);
+        }
       }
-      if(desig->childForKey("VOLUME"))
-      {
-        listOfAllPredicates.push_back("volume");
-      }
-      if(desig->childForKey("CONTAINS"))
-      {
-        listOfAllPredicates.push_back("contains");
-      }
-      if(desig->childForKey("COLOR"))
-      {
-        listOfAllPredicates.push_back("color");
-      }
-      if(desig->childForKey("SIZE"))
-      {
-        listOfAllPredicates.push_back("size");
-      }
-      if(desig->childForKey("LOCATION"))
-      {
-        listOfAllPredicates.push_back("location");
-      }
-      if(desig->childForKey("LOGO"))
-      {
-        listOfAllPredicates.push_back("logo");
-      }
-      if(desig->childForKey("TEXT"))
-      {
-        listOfAllPredicates.push_back("text");
-      }
-      if(desig->childForKey("PRODUCT"))
-      {
-        listOfAllPredicates.push_back("product");
-      }
-      //todo: this will be a bit of a hack to get the web stuff running, let's see how this works out:)
-      if(desig->childForKey("INSPECT"))
-      {
-        listOfAllPredicates.push_back("parts");
-      }
+      //leave this for now: TODO: need to handle also values
       if(desig->childForKey("DETECTION"))
       {
-        listOfAllPredicates.push_back("detection");
         designator_integration::KeyValuePair *kvp = desig->childForKey("DETECTION");
         if(kvp->stringValue() == "PANCAKE")
         {
-          listOfAllPredicates.push_back("pancakedetector");
+          queriedKeys.push_back("pancakedetector");
         }
+      }
 
-      }
-      if(desig->childForKey("TYPE"))
+      for(int i = 0; i < queriedKeys.size(); i++)
       {
-        listOfAllPredicates.push_back("detection");
-      }
-      if(desig->childForKey("HANDLE"))
-      {
-        listOfAllPredicates.push_back("handle");
-      }
-      //      if(desig->childForKey("PANCAKE"))
-      //      {
-      //        listOfAllPredicates.push_back("detection");
-      //        listOfAllPredicates.push_back("pancakedetector");
-      //      }
-
-      for(int i = 0; i < listOfAllPredicates.size(); i++)
-      {
-        ret += listOfAllPredicates.at(i);
-        if(i < listOfAllPredicates.size() - 1)
+        ret += queriedKeys.at(i);
+        if(i < queriedKeys.size() - 1)
         {
           ret += ",";
         }
@@ -233,8 +190,7 @@ public:
     return ret;
   }
 
-  // Create a vector of Annotator Names from the result of the
-  // knowrob_rs library.
+  // Create a vector of Annotator Names from the result of the knowrob_rs library.
   // This vector can be used as input for RSAnalysisEngine::setNextPipelineOrder
   std::vector<std::string> createPipelineFromPrologResult(std::string result)
   {
@@ -332,7 +288,7 @@ public:
         {
           foundLocation = true;
         }
-        if(*it == "INSPECT")
+        if(*it == "OBJ-PARTS")
         {
           foundInspect = true;
         }
@@ -356,7 +312,7 @@ public:
       }
       if(foundInspect)
       {
-        designator_integration::KeyValuePair *kvp = desigRequest->childForKey("INSPECT");
+        designator_integration::KeyValuePair *kvp = desigRequest->childForKey("OBJ-PARTS");
         query->objToInspect = kvp->stringValue();
         outInfo("received Inspection request for object: " << query->objToInspect);
       }
@@ -697,7 +653,7 @@ public:
                       outWarn("Object looked at: " << childrenPair.stringValue());
                       std::stringstream prologQuery;
                       outWarn("Object should be subclass of: " << rs_kbreasoning::krNameMapping[superclass]);
-                      prologQuery<<"owl_subclass_of("<<rs_kbreasoning::krNameMapping[childrenPair.stringValue()]<<","<<rs_kbreasoning::krNameMapping[superclass]<<").";
+                      prologQuery << "owl_subclass_of(" << rs_kbreasoning::krNameMapping[childrenPair.stringValue()] << "," << rs_kbreasoning::krNameMapping[superclass] << ").";
 
 
                       outWarn(prologQuery.str());
@@ -709,7 +665,7 @@ public:
                       outInfo("Querying through json_prolog took: " << duration << " ms");
                       if(bdgs.begin() == bdgs.end())
                       {
-                        outInfo(rs_kbreasoning::krNameMapping[childrenPair.stringValue()]<<" IS NOT "<<rs_kbreasoning::krNameMapping[superclass]);
+                        outInfo(rs_kbreasoning::krNameMapping[childrenPair.stringValue()] << " IS NOT " << rs_kbreasoning::krNameMapping[superclass]);
                         ok = false;
                       }
                       else

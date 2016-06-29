@@ -246,12 +246,15 @@ annotators_for_predicate(handle,A) :-
   annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsAnnotationHandleannotation' ).
 annotators_for_predicate(cylindrical_shape,A) :- 
   annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsAnnotationCylindricalshape' ).
-annotators_for_predicate(parts,A) :-
+annotators_for_predicate(obj-parts,A) :-
   annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsAnnotationClusterpart' ).
 annotators_for_predicate(contains,A) :-
   annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsdemosAcatSubstance' ).
 annotators_for_predicate(volume,A) :-
   annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsdemosAcatVolume' ).
+annotators_for_predicate(type,A) :-
+  annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsAnnotationDetection' ).
+
 
 % Detection Clue Annotators. Pick specific Annotators, not based on their inputs/outputs
 annotators_for_predicate(blort,A) :- 

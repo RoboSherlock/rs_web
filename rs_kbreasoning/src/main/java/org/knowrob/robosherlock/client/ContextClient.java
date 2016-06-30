@@ -77,7 +77,6 @@ public class ContextClient extends AbstractNodeMain {
 			@Override
 			public void onFailure(RemoteException e) {
 				System.out.println("Failed to call the service");
-				throw new RosRuntimeException(e);
 			}
 					    });
 	}

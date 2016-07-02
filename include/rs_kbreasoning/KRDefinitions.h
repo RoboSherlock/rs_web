@@ -1,9 +1,6 @@
 #ifndef KRDEFINITIONS_H
 #define KRDEFINITIONS_H
 
-#endif // KRDEFINITIONS_H
-
-
 #include <map>
 #include <string>
 
@@ -49,3 +46,5 @@ std::vector<std::string> rsQueryTerms =
     "detection","type","handle"
   };
 }
+
+#endif // KRDEFINITIONS_H

@@ -38,21 +38,6 @@ private:
   pcl::PointCloud<PointT>::Ptr dispCloudPtr;
   pcl::PointCloud<pcl::Normal>::Ptr normalPtr;
 
-  enum COLORS
-  {
-    RED = 0,
-    YELLOW,
-    GREEN,
-    CYAN,
-    BLUE,
-    MAGENTA,
-    WHITE,
-    BLACK,
-    GREY,
-    COUNT
-  };
-  std::vector<cv::Vec3b> colors;
-
   struct ClusterWithParts
   {
     std::vector<pcl::PointIndicesPtr> partsOfClusters;
@@ -89,16 +74,6 @@ public:
   ClusterToPartsSegmenter(): DrawingAnnotator(__func__), dispCloudPtr(new pcl::PointCloud<PointT>), pointSize(2), voxel_resolution(0.008f),
     seed_resolution(0.1f)
   {
-    colors.resize(COUNT);
-    colors[RED]     = cv::Vec3b(255, 0, 0);
-    colors[YELLOW]  = cv::Vec3b(255, 255, 0);
-    colors[GREEN]   = cv::Vec3b(0, 255, 0);
-    colors[CYAN]    = cv::Vec3b(0, 255, 255);
-    colors[BLUE]    = cv::Vec3b(0, 0, 255);
-    colors[MAGENTA] = cv::Vec3b(255, 0, 255);
-    colors[WHITE]   = cv::Vec3b(255, 255, 255);
-    colors[BLACK]   = cv::Vec3b(0, 0, 0);
-    colors[GREY]    = cv::Vec3b(127, 127, 127);
 
   }
 
@@ -151,19 +126,21 @@ private:
     //todo if there is time...check if object can hold other objects
 
     std::stringstream prologQuery;
-//    prologQuery<<"owl_subclass_of(Obj,rs_test_objects:'ObjectsToTest'),class_properties(Obj,"<<
-//                 "rs_components:'hasVisualProperty',rs_test_objects:'ObjectPart').";
-//        prologQuery<<"owl_subclass_of(Obj,rs_test_objects:'ObjectsToTest'),class_properties(Obj,"<<
-//                     "rs_components:'hasVisualProperty',rs_test_objects:'ObjectPart').";
-//    http://knowrob.org/kb/rs_test_objects.owl#Plate
+    //    prologQuery<<"owl_subclass_of(Obj,rs_test_objects:'ObjectsToTest'),class_properties(Obj,"<<
+    //                 "rs_components:'hasVisualProperty',rs_test_objects:'ObjectPart').";
+    //        prologQuery<<"owl_subclass_of(Obj,rs_test_objects:'ObjectsToTest'),class_properties(Obj,"<<
+    //                     "rs_components:'hasVisualProperty',rs_test_objects:'ObjectPart').";
+    //    http://knowrob.org/kb/rs_test_objects.owl#Plate
 
-    std::transform(objToProcess.begin(), objToProcess.end(), objToProcess.begin(), (int(*)(int)) std::tolower);
-    if (!objToProcess.empty())
-        objToProcess[0] = std::toupper(objToProcess[0]);
-    outWarn("Object Queried for is: "<<objToProcess);
+    std::transform(objToProcess.begin(), objToProcess.end(), objToProcess.begin(), (int( *)(int)) std::tolower);
+    if(!objToProcess.empty())
+    {
+      objToProcess[0] = std::toupper(objToProcess[0]);
+    }
+    outWarn("Object Queried for is: " << objToProcess);
 
 
-    prologQuery<<"class_properties(rs_test_objects:'"<<objToProcess<<"',rs_components:'hasVisualProperty',rs_test_objects:'ObjectPart').";
+    prologQuery << "class_properties(rs_test_objects:'" << objToProcess << "',rs_components:'hasVisualProperty',rs_test_objects:'ObjectPart').";
     json_prolog::Prolog pl;
     json_prolog::PrologQueryProxy bdgs = pl.query(prologQuery.str());
     if(bdgs.begin() == bdgs.end())
@@ -171,12 +148,12 @@ private:
       outInfo("Queried Object does not meet requirements of this annotator");
       return UIMA_ERR_NONE; // Indicate failure
     }
-//    for(json_prolog::PrologQueryProxy::iterator it = bdgs.begin();
-//        it != bdgs.end(); it++)
-//    {
-//      json_prolog::PrologBindings bdg = *it;
-//      outWarn("Result");
-//    }
+    //    for(json_prolog::PrologQueryProxy::iterator it = bdgs.begin();
+    //        it != bdgs.end(); it++)
+    //    {
+    //      json_prolog::PrologBindings bdg = *it;
+    //      outWarn("Result");
+    //    }
 
     for(int i = 0; i < clusters.size(); ++i)
     {
@@ -354,33 +331,33 @@ private:
         //for now do it like this: if more color clusters take those if not take the others
         if(clusterSplit.colorClusters.size() >= clusterSplit.partsOfClusters.size())
         {
-            cv::Rect roi = clusterSplit.clusterRoi;
-            for(auto & c : clusterSplit.colorClusters)
-            {
-              rs::ClusterPart part = rs::create<rs::ClusterPart>(tcas);
+          cv::Rect roi = clusterSplit.clusterRoi;
+          for(auto & c : clusterSplit.colorClusters)
+          {
+            rs::ClusterPart part = rs::create<rs::ClusterPart>(tcas);
 
-              pcl::PointIndices coloredIndice;
-              for(unsigned int j = 0; j < c.second.size(); ++j)
-              {
-                cv::Point p = c.second[j];
-                coloredIndice.indices.push_back((p.y/2 + roi.y/2) * 640 + (p.x/2 + roi.x/2));
-              }
-              if(!coloredIndice.indices.empty())
-              {
-                part.indices.set(rs::conversion::to(tcas,coloredIndice));
-                cluster.annotations.append(part);
-              }
+            pcl::PointIndices coloredIndice;
+            for(unsigned int j = 0; j < c.second.size(); ++j)
+            {
+              cv::Point p = c.second[j];
+              coloredIndice.indices.push_back((p.y / 2 + roi.y / 2) * 640 + (p.x / 2 + roi.x / 2));
             }
+            if(!coloredIndice.indices.empty())
+            {
+              part.indices.set(rs::conversion::to(tcas, coloredIndice));
+              cluster.annotations.append(part);
+            }
+          }
 
         }
         else
         {
-           for(int pclClIdx=0; pclClIdx< clusterSplit.partsOfClusters.size();pclClIdx++)
-           {
-             rs::ClusterPart part = rs::create<rs::ClusterPart>(tcas);
-             part.indices.set(rs::conversion::to(tcas,*clusterSplit.partsOfClusters[pclClIdx]));
-             cluster.annotations.append(part);
-           }
+          for(int pclClIdx = 0; pclClIdx < clusterSplit.partsOfClusters.size(); pclClIdx++)
+          {
+            rs::ClusterPart part = rs::create<rs::ClusterPart>(tcas);
+            part.indices.set(rs::conversion::to(tcas, *clusterSplit.partsOfClusters[pclClIdx]));
+            cluster.annotations.append(part);
+          }
         }
       }
     }
@@ -450,7 +427,7 @@ private:
         for(unsigned int j = 0; j < c.second.size(); ++j)
         {
           cv::Point p = c.second[j];
-          disp.at<cv::Vec3b>(cv::Point(p.x + roi.x, p.y + roi.y)) = colors[idx];
+          disp.at<cv::Vec3b>(cv::Point(p.x + roi.x, p.y + roi.y)) = rs::common::cvVec3bcolorsVec[idx % rs::common::cvVec3bcolorsVec.size()];
           coloredIndice.push_back((p.y + roi.y) * 0.5 * 640 + (p.x + roi.x) / 2);
         }
         idx++;

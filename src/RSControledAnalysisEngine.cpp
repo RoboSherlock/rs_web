@@ -186,6 +186,12 @@ void RSControledAnalysisEngine::process(
 }
 
 // Call process() and decide if the pipeline should be reset or not
+void RSControledAnalysisEngine::process(bool reset_pipeline_after_process)
+{
+  designator_integration_msgs::DesignatorResponse d;
+  process(reset_pipeline_after_process, d);
+}
+// Call process() and decide if the pipeline should be reset or not
 void RSControledAnalysisEngine::process( bool reset_pipeline_after_process, designator_integration_msgs::DesignatorResponse &designator_response)
 {
   process_mutex->lock();
@@ -197,13 +203,6 @@ void RSControledAnalysisEngine::process( bool reset_pipeline_after_process, desi
   }
   process_mutex->unlock();
   outInfo(FG_CYAN << "process(bool,desig) - LOCK RELEASED");
-}
-
-// Call process() and decide if the pipeline should be reset or not
-void RSControledAnalysisEngine::process(bool reset_pipeline_after_process)
-{
-  designator_integration_msgs::DesignatorResponse d;
-  process(reset_pipeline_after_process, d);
 }
 
 // Define a pipeline that should be executed,
@@ -237,3 +236,82 @@ void RSControledAnalysisEngine::process(std::vector<std::string> annotators, boo
   designator_integration_msgs::DesignatorResponse d;
   process(annotators, reset_pipeline_after_process, d);
 }
+
+void RSControledAnalysisEngine::drawResulstOnImage(cv::Mat &rgb, const std::vector<bool> &filter,
+                        std::vector<designator_integration::Designator> &resultDesignators)
+{
+  rs::SceneCas sceneCas(*cas);
+  rs::Scene scene = sceneCas.getScene();
+
+  std::vector<rs::Cluster> clusters;
+  scene.identifiables.filter(clusters);
+  //very hacky for now
+  for(int i = 0; i < clusters.size(); ++i)
+  {
+    rs::Cluster &cluster = clusters[i];
+    std::vector<rs::ClusterPart> parts;
+    cluster.annotations.filter(parts);
+    if(parts.empty())
+    {
+      continue;
+    }
+    for(int pIdx = 0; pIdx < parts.size(); ++pIdx)
+    {
+      rs::ClusterPart &part = parts[pIdx];
+      pcl::PointIndices indices;
+      rs::conversion::from(part.indices(), indices);
+      for(int iIdx = 0; iIdx < indices.indices.size(); ++iIdx)
+      {
+        int idx = indices.indices[iIdx];
+        rgb.at<cv::Vec3b>(cv::Point(idx % 640, idx / 640)) =rs::common::cvVec3bcolorsVec[rs::common::cvVec3bcolorsVec.size()];
+      }
+    }
+  }
+
+  for(int i = 0; i < filter.size(); ++i)
+  {
+
+    if(!filter[i])
+    {
+      continue;
+    }
+
+    designator_integration::Designator &desig = resultDesignators[i];
+    designator_integration::KeyValuePair *clusterId = desig.childForKey("CLUSTERID");
+    if(clusterId != NULL)
+    {
+      int idx = atoi(clusterId->stringValue().c_str());
+      outInfo("Draw cluster: " << idx);
+      rs::ImageROI roi = clusters[idx].rois();
+      cv::Rect cvRoi;
+      rs::conversion::from(roi.roi(), cvRoi);
+      cv::rectangle(rgb, cvRoi, rs::common::cvScalarColorsVec[idx % rs::common::cvScalarColorsVec.size()], 1.5);
+      std::stringstream clusterName;
+      clusterName << "cID_" << idx;
+      cv::putText(rgb, clusterName.str(), cv::Point(cvRoi.x + 10, cvRoi.y - 10), cv::FONT_HERSHEY_COMPLEX, 0.7, rs::common::cvScalarColorsVec[idx % rs::common::cvScalarColorsVec.size()]);
+    }
+    designator_integration::KeyValuePair *handleKvp = desig.childForKey("type");
+    if(handleKvp != NULL)
+    {
+      //color the pixels of the handle
+      std::vector<rs::HandleAnnotation> handles;
+      scene.annotations.filter(handles);
+      for(int i = 0; i < handles.size(); ++i)
+      {
+        pcl::PointIndices indices;
+        rs::conversion::from(handles[i].indices(), indices);
+        outInfo("Number of inliers in handle " << i << ": " << indices.indices.size());
+        for(int j = 0; j < indices.indices.size(); ++j)
+        {
+          int idx = indices.indices[j];
+          cv::Vec3b new_color;
+          new_color[0] = 0;
+          new_color[0] = 0;
+          new_color[0] = 255;
+          rgb.at<cv::Vec3b>(cv::Point(idx % 640, idx / 640)) = new_color;
+        }
+      }
+    }
+  }
+}
+

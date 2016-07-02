@@ -1,11 +1,14 @@
 #ifndef RSCONTROLEDANALYSISENGINE_H
 #define RSCONTROLEDANALYSISENGINE_H
 
+#include <rs/utils/common.h>
 #include <rs/utils/RSAnalysisEngine.h>
 #include <rs/utils/RSPipelineManager.h>
+#include <rs/scene_cas.h>
+
 #include <designator_integration_msgs/DesignatorResponse.h>
 #include <designator_integration_msgs/DesignatorRequest.h>
-#include <rs/scene_cas.h>
+
 
 #include <rs_kbreasoning/DesignatorWrapper.h>
 
@@ -93,5 +96,9 @@ public:
   // process(reset_pipeline_after_process) everything and
   // decide if the pipeline should be reset or not
   void process(std::vector<std::string> annotators, bool reset_pipeline_after_process);
+
+  //draw results on an image
+  void drawResulstOnImage(cv::Mat &rgb, const std::vector<bool> &filter,
+                          std::vector<designator_integration::Designator> &resultDesignators);
 };
 #endif // RSCONTROLEDANALYSISENGINE_H

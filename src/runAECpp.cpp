@@ -64,14 +64,13 @@
 #include <ros/package.h>
 
 #include <json_prolog/prolog.h>
-// TODO
-//  Allow the modifaction of multiple AEs
 
 #undef OUT_LEVEL
 #define OUT_LEVEL OUT_LEVEL_DEBUG
 
 #define SEARCHPATH "/descriptors/analysis_engines/"
 #define QUERY "QUERY"
+
 // This mutex will be locked, if:
 //   1) The RSAnalysisEngineManager wants to execute pipelines
 //   or
@@ -137,11 +136,9 @@ public:
 
     std::string ret = "";
     if(desig->childForKey("OBJECT"))
-
     {
       // If the designator contains a "type" key, the highlevel is looking for a specific object of Type XY.
       // Use the corresponding Prolog Rule for object pipeline generation
-
       ret = "build_pipeline_for_object('";
       // Fetch the accepted predicates from the Designator
       ret += desig->childForKey("OBJECT")->stringValue();
@@ -203,13 +200,11 @@ public:
     result.erase(result.end() - 1);
     result.erase(result.begin());
 
-    std::vector<std::string> list_of_annotators;
     std::stringstream resultstream(result);
 
     std::string token;
     while(std::getline(resultstream, token, ','))
     {
-      list_of_annotators.push_back(token);
       // erase leading whitespaces
       token.erase(token.begin(), std::find_if(token.begin(), token.end(), std::bind1st(std::not_equal_to<char>(), ' ')));
       outInfo("Planned Annotator " << token);
@@ -225,12 +220,6 @@ public:
       new_pipeline.push_back(token);
     }
     return new_pipeline;
-  }
-
-  bool designatorAllSolutionsCallback(designator_integration_msgs::DesignatorCommunication::Request &req,
-                                      designator_integration_msgs::DesignatorCommunication::Response &res)
-  {
-    return designatorCallbackLogic(req, res, true);
   }
 
   bool resetAECallback(iai_robosherlock_msgs::SetRSContext::Request &req,
@@ -251,6 +240,12 @@ public:
       outError("Contexts need to have a an AE defined");
       return false;
     }
+  }
+
+  bool designatorAllSolutionsCallback(designator_integration_msgs::DesignatorCommunication::Request &req,
+                                      designator_integration_msgs::DesignatorCommunication::Response &res)
+  {
+    return designatorCallbackLogic(req, res, true);
   }
 
   bool designatorSingleSolutionCallback(designator_integration_msgs::DesignatorCommunication::Request &req,
@@ -816,46 +811,11 @@ int main(int argc, char *argv[])
   }
 
   std::vector<std::string> analysisEngineFiles;
-
-  //generate a vector of possible paths for the analysis engine
-  std::vector<std::string> searchPaths;
-
-  //empty path for full path given as argument
-  searchPaths.push_back("");
-  //add core package path
-  searchPaths.push_back(ros::package::getPath("robosherlock") + std::string(SEARCHPATH));
-
-  //look for packages dependent on core and find their full path
-  std::vector<std::string> child_packages;
-  ros::package::command("depends-on robosherlock", child_packages);
-  for(int i = 0; i < child_packages.size(); ++i)
-  {
-    searchPaths.push_back(ros::package::getPath(child_packages[i]) + std::string(SEARCHPATH));
-  }
-
   analysisEngineFiles.resize(args.size(), "");
   for(int argI = 0; argI < args.size(); ++argI)
   {
     const std::string &arg = args[argI];
-    struct stat fileStat;
-
-    for(size_t i = 0; i < searchPaths.size(); ++i)
-    {
-      const std::string file = searchPaths[i] + arg;
-      const std::string fileXML = file + ".xml";
-
-      if(!stat(file.c_str(), &fileStat) && S_ISREG(fileStat.st_mode))
-      {
-        analysisEngineFiles[argI] = file;
-        break;
-      }
-      else if(!stat(fileXML.c_str(), &fileStat) && S_ISREG(fileStat.st_mode))
-      {
-        analysisEngineFiles[argI] = fileXML;
-        break;
-      }
-    }
-
+    rs::common::getAEPaths(arg,analysisEngineFiles[argI]);
     if(analysisEngineFiles[argI].empty())
     {
       outError("analysis engine \"" << arg << "\" not found.");

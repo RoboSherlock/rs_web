@@ -1,7 +1,6 @@
 #include <designators/Designator.h>
 #include <rs_kbreasoning/RSControledAnalysisEngine.h>
 #include <rs/utils/RSAnalysisEngine.h>
-#include <rs/utils/common.h>
 #include <uima/api.hpp>
 #include <SWI-cpp.h>
 #include <iostream>

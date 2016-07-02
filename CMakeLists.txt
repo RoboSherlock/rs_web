@@ -4,7 +4,7 @@ project(rs_kbreasoning)
 
 find_package(catkin REQUIRED rosjava_build_tools rosprolog designator_integration_cpp
              designator_integration_msgs knowrob_common knowrob_actions knowrob_srdl
-             knowrob_vis robosherlock json_prolog robosherlock_demos rs_addons roslib rospack iai_robosherlock_msgs)
+             tf tf_conversions knowrob_vis robosherlock json_prolog robosherlock_demos rs_addons roslib rospack iai_robosherlock_msgs)
 
 catkin_rosjava_setup(installApp publishMavenJavaPublicationToMavenRepository writeClasspath)
 

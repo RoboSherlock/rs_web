@@ -20,9 +20,13 @@ void RSControledAnalysisEngine::applyNextPipeline()
 }
 
 RSControledAnalysisEngine::RSControledAnalysisEngine() : RSAnalysisEngine(),
-  rspm(NULL),currentAEName("")
+  rspm(NULL),currentAEName(""),nh_("~"),it_(nh_)
 {
   process_mutex = boost::shared_ptr<std::mutex>(new std::mutex);
+
+  base64ImgPub = nh_.advertise<std_msgs::String>(std::string("image_base64"), 5);
+  image_pub_ = it_.advertise("result_image", 1, true);
+
 }
 
 RSControledAnalysisEngine::~RSControledAnalysisEngine()
@@ -86,7 +90,7 @@ void RSControledAnalysisEngine::init(const std::string &file)
   default_pipeline.push_back("ClusterTFLocationAnnotator");
   default_pipeline.push_back("SacModelAnnotator");
   default_pipeline.push_back("PrimitiveShapeAnnotator");
-  default_pipeline.push_back("KBResultAdvertiser");;
+//  default_pipeline.push_back("KBResultAdvertiser");
 
   // removed color histogram for tests
   rspm->setDefaultPipelineOrdering(default_pipeline);
@@ -237,11 +241,16 @@ void RSControledAnalysisEngine::process(std::vector<std::string> annotators, boo
   process(annotators, reset_pipeline_after_process, d);
 }
 
-void RSControledAnalysisEngine::drawResulstOnImage(cv::Mat &rgb, const std::vector<bool> &filter,
-                        std::vector<designator_integration::Designator> &resultDesignators)
+void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filter,
+                        const std::vector<designator_integration::Designator> &resultDesignators)
 {
   rs::SceneCas sceneCas(*cas);
   rs::Scene scene = sceneCas.getScene();
+
+  cv::Mat rgb;
+  sensor_msgs::CameraInfo cam_info;
+  sceneCas.get(VIEW_COLOR_IMAGE, rgb);
+  sceneCas.get(VIEW_CAMERA_INFO, cam_info);
 
   std::vector<rs::Cluster> clusters;
   scene.identifiables.filter(clusters);
@@ -276,7 +285,7 @@ void RSControledAnalysisEngine::drawResulstOnImage(cv::Mat &rgb, const std::vect
       continue;
     }
 
-    designator_integration::Designator &desig = resultDesignators[i];
+    designator_integration::Designator desig = resultDesignators[i];
     designator_integration::KeyValuePair *clusterId = desig.childForKey("CLUSTERID");
     if(clusterId != NULL)
     {
@@ -313,5 +322,21 @@ void RSControledAnalysisEngine::drawResulstOnImage(cv::Mat &rgb, const std::vect
       }
     }
   }
+  cv_bridge::CvImage outImgMsgs;
+  outImgMsgs.header = cam_info.header;
+  outImgMsgs.encoding = sensor_msgs::image_encodings::BGR8;
+  outImgMsgs.image = rgb;
+
+  std::vector<uchar> imageData;
+  std::vector<int> params ={CV_IMWRITE_JPEG_QUALITY,90,0};
+  cv::imencode(".jpg",rgb,imageData,params);
+
+  std::string encoded = rs::common::base64_encode(&imageData[0], imageData.size());
+
+
+  std_msgs::String strMsg;
+  strMsg.data = "data:image/jpg;base64,"+encoded;
+  base64ImgPub.publish(strMsg);
+  image_pub_.publish(outImgMsgs.toImageMsg());
 }
 

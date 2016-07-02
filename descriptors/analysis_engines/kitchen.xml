@@ -413,7 +413,7 @@
 <!--      <node>GroundTruthAnnotator</node>-->
 <!--      <node>MLNAtomsGenerator</node>-->
     <!--  <node>StorageWriter</node>-->
-      <node>KBResultAdvertiser</node>
+    <!--  <node>KBResultAdvertiser</node>-->
 <!--      <node>VisualizerAnnotator</node>-->
     </fixedFlow>
     </flowConstraints>

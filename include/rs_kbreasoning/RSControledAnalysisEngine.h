@@ -9,9 +9,12 @@
 #include <designator_integration_msgs/DesignatorResponse.h>
 #include <designator_integration_msgs/DesignatorRequest.h>
 
+#include <image_transport/image_transport.h>
+#include <cv_bridge/cv_bridge.h>
+#include <sensor_msgs/image_encodings.h>
+#include <std_msgs/String.h>
 
 #include <rs_kbreasoning/DesignatorWrapper.h>
-
 
 /*
  * struct for passing vital information from a query to individual annotators
@@ -33,6 +36,11 @@ private:
   std::string currentAEName;
   std::vector<std::string> next_pipeline_order;
   boost::shared_ptr<std::mutex> process_mutex;
+
+  ros::NodeHandle nh_;
+  ros::Publisher base64ImgPub;
+  image_transport::Publisher image_pub_;
+  image_transport::ImageTransport it_;
 
 public:
 
@@ -98,7 +106,7 @@ public:
   void process(std::vector<std::string> annotators, bool reset_pipeline_after_process);
 
   //draw results on an image
-  void drawResulstOnImage(cv::Mat &rgb, const std::vector<bool> &filter,
-                          std::vector<designator_integration::Designator> &resultDesignators);
+  void drawResulstOnImage(const std::vector<bool> &filter,
+                          const std::vector<designator_integration::Designator> &resultDesignators);
 };
 #endif // RSCONTROLEDANALYSISENGINE_H

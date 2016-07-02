@@ -345,10 +345,10 @@ public:
       std::vector<std::string> new_pipeline_order = createPipelineFromPrologResult(bdg["A"].toString());
 
       //needed for saving results and returning them on a ros topic
-      if(waitForServiceCall && !new_pipeline_order.empty())
-      {
-        new_pipeline_order.push_back("KBResultAdvertiser");
-      }
+//      if(waitForServiceCall && !new_pipeline_order.empty())
+//      {
+//        new_pipeline_order.push_back("KBResultAdvertiser");
+//      }
       outInfo(FG_BLUE << "Executing Pipeline #" << pipelineId);
 
       // First version. Change the pipeline on the first engine
@@ -609,7 +609,6 @@ public:
                 }
               }
 
-
               //another nested kv-p...we need a new interface...this one sux
               if(resultsForRequestedKey[j]->key() == "DETECTION")
               {
@@ -674,6 +673,7 @@ public:
         }
       }
     }
+
     for(int i = 0; i < keep_designator.size(); ++i)
     {
       if(keep_designator[i])
@@ -682,6 +682,7 @@ public:
         filteredResponse.push_back(resultDesignators[i]);
       }
     }
+    engines[0].drawResulstOnImage(keep_designator, resultDesignators);
   }
 
   void init(const std::vector<std::string> &files)

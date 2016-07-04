@@ -79,12 +79,8 @@ rs_add_executable(runAE src/runAECpp.cpp src/RSControledAnalysisEngine.cpp)
 add_dependencies(runAE iai_robosherlock_msgs_gencpp)
 target_link_libraries(runAE rs_designator_wrapper ${catkin_LIBRARIES})
 
-rs_add_library(rs_kbResultAdvertiser src/ResultAdvertiser.cpp)
-target_link_libraries(rs_kbResultAdvertiser rs_designator_wrapper ${catkin_LIBRARIES})
-
 rs_add_library(rs_clusterToPartsSegmenter src/ClusterToPartsSegmenter.cpp)
 target_link_libraries(rs_clusterToPartsSegmenter ${catkin_LIBRARIES})
-
 
 rs_add_library(rs_prologrulescpp src/PrologQueries.cpp src/RSControledAnalysisEngine.cpp)
 target_link_libraries(rs_prologrulescpp

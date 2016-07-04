@@ -80,7 +80,9 @@ std::mutex processing_mutex;
 
 class RSAnalysisEngineManager
 {
+
 private:
+
   std::vector<RSControledAnalysisEngine> engines;
 
   const bool useVisualizer;
@@ -153,15 +155,15 @@ public:
       std::list<std::string> allKeys = desig->keys();
 
       //add the ones that are interpretable to the queriedKeys;
-      for(const auto key:allKeys)
+      for(const auto key : allKeys)
       {
-        if(std::find(rs_kbreasoning::rsQueryTerms.begin(),rs_kbreasoning::rsQueryTerms.end(),boost::to_lower_copy(key))!= std::end(rs_kbreasoning::rsQueryTerms))
+        if(std::find(rs_kbreasoning::rsQueryTerms.begin(), rs_kbreasoning::rsQueryTerms.end(), boost::to_lower_copy(key)) != std::end(rs_kbreasoning::rsQueryTerms))
         {
           queriedKeys.push_back(boost::to_lower_copy(key));
         }
         else
         {
-         outWarn(key<<" is not a valid query-language term");
+          outWarn(key << " is not a valid query-language term");
         }
       }
 
@@ -266,7 +268,7 @@ public:
     if(desigRequest != NULL)
     {
       std::list<std::string> keys = desigRequest->keys();
-      for(auto key: keys)
+      for(auto key : keys)
       {
         if(key == "TIMESTAMP")
         {
@@ -345,16 +347,14 @@ public:
       std::vector<std::string> new_pipeline_order = createPipelineFromPrologResult(bdg["A"].toString());
 
       //needed for saving results and returning them on a ros topic
-//      if(waitForServiceCall && !new_pipeline_order.empty())
-//      {
-//        new_pipeline_order.push_back("KBResultAdvertiser");
-//      }
+      //      if(waitForServiceCall && !new_pipeline_order.empty())
+      //      {
+      //        new_pipeline_order.push_back("KBResultAdvertiser");
+      //      }
       outInfo(FG_BLUE << "Executing Pipeline #" << pipelineId);
 
       // First version. Change the pipeline on the first engine
       // to a fixed set
-
-
       if(engines.size() > 0)
       {
         // This designator response will hold the OBJECT designators with the detected
@@ -409,7 +409,7 @@ public:
     }
 
     // All engine calls have been processed. Release the Lock
-    processing_mutex.unlock();
+
     //now filter the shit out of the results:D
 
     std::vector<designator_integration::Designator> filteredResponse;
@@ -435,7 +435,7 @@ public:
       res.response.designators.push_back(designator.serializeToMessage());
     }
     desig_pub.publish(topicResponse);
-
+    processing_mutex.unlock();
     delete query;
     outWarn("RS Query service call ended");
     return true;
@@ -488,20 +488,20 @@ public:
         //        resDesig.printDesignator();
         //and here come the hacks
         std::vector<designator_integration::KeyValuePair *> resultsForRequestedKey;
-        designator_integration::KeyValuePair *childRequestedKey = NULL;
+        designator_integration::KeyValuePair *childForRequestedKey = NULL;
         if(resDesig.childForKey("CLUSTERID") != NULL)
         {
           if(req_kvp.key() == "SIZE") //size is nested get it from the bounding box..bad design
           {
-            childRequestedKey = resDesig.childForKey("BOUNDINGBOX")->childForKey("SIZE");
-            resultsForRequestedKey.push_back(childRequestedKey);
+            childForRequestedKey = resDesig.childForKey("BOUNDINGBOX")->childForKey("SIZE");
+            resultsForRequestedKey.push_back(childForRequestedKey);
           }
           else if(req_kvp.key() == "VOLUME")
           {
-            childRequestedKey = resDesig.childForKey("VOLUME");
-            if(childRequestedKey != NULL)
+            childForRequestedKey = resDesig.childForKey("VOLUME");
+            if(childForRequestedKey != NULL)
             {
-              resultsForRequestedKey.push_back(childRequestedKey);
+              resultsForRequestedKey.push_back(childForRequestedKey);
             }
             else
             {
@@ -511,10 +511,10 @@ public:
 
           else if(req_kvp.key() == "CONTAINS")
           {
-            childRequestedKey = resDesig.childForKey("CONTAINS");
-            if(childRequestedKey != NULL)
+            childForRequestedKey = resDesig.childForKey("CONTAINS");
+            if(childForRequestedKey != NULL)
             {
-              resultsForRequestedKey.push_back(childRequestedKey);
+              resultsForRequestedKey.push_back(childForRequestedKey);
             }
             else
             {
@@ -546,7 +546,6 @@ public:
         {
           outWarn("No CLUSTER ID");
         }
-
 
         if(!resultsForRequestedKey.empty())
         {
@@ -730,6 +729,7 @@ public:
     }
     for(size_t i = 0; i < engines.size(); ++i)
     {
+      engines[i].resetCas();
       engines[i].stop();
     }
   }
@@ -816,7 +816,7 @@ int main(int argc, char *argv[])
   for(int argI = 0; argI < args.size(); ++argI)
   {
     const std::string &arg = args[argI];
-    rs::common::getAEPaths(arg,analysisEngineFiles[argI]);
+    rs::common::getAEPaths(arg, analysisEngineFiles[argI]);
     if(analysisEngineFiles[argI].empty())
     {
       outError("analysis engine \"" << arg << "\" not found.");

@@ -85,17 +85,17 @@ bool DesignatorWrapper::getObjectDesignators(std::vector<designator_integration:
   scene.annotations.filter(arMarkers);
   for(int i = 0; i < handles.size(); i++)
   {
-    convertHandleAnnotation(handles[i], i, res);
+    convert(handles[i], res);
     objectDesignators.push_back(res);
     res.clear();
   }
   for(int i = 0; i < arMarkers.size(); i++)
   {
-    convertAR(arMarkers[i], res);
+    convert(arMarkers[i], res);
     objectDesignators.push_back(res);
     res.clear();
   }
-  outWarn("");
+
   if(mode == CLUSTER)
   {
     std::vector<rs::Cluster> clusters;
@@ -330,7 +330,7 @@ iai_robosherlock_msgs::PerceivedObjects DesignatorWrapper::getObjectsMsgs()
 //  object->addChild(dough);
 //}
 
-void DesignatorWrapper::convertAR(rs::ARMarker &input, designator_integration::Designator &arDesignator)
+void DesignatorWrapper::convert(rs::ARMarker &input, designator_integration::Designator &arDesignator)
 {
   arDesignator.setValue("type", "ARMARKER");
   arDesignator.setValue("ID", input.name());
@@ -345,8 +345,7 @@ void DesignatorWrapper::convertAR(rs::ARMarker &input, designator_integration::D
 
 }
 
-void DesignatorWrapper::convertHandleAnnotation(rs::HandleAnnotation &input,
-    int id,
+void DesignatorWrapper::convert(rs::HandleAnnotation &input,
     designator_integration::Designator &handleDesignator)
 {
   handleDesignator.setValue("type", "HANDLE");

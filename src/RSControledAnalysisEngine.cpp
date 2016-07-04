@@ -23,7 +23,6 @@ RSControledAnalysisEngine::RSControledAnalysisEngine() : RSAnalysisEngine(),
   rspm(NULL),currentAEName(""),nh_("~"),it_(nh_)
 {
   process_mutex = boost::shared_ptr<std::mutex>(new std::mutex);
-
   base64ImgPub = nh_.advertise<std_msgs::String>(std::string("image_base64"), 5);
   image_pub_ = it_.advertise("result_image", 1, true);
 
@@ -123,7 +122,9 @@ void RSControledAnalysisEngine::process(
   designator_integration_msgs::DesignatorResponse &designator_response,
   RSQuery *q)
 {
+
   outInfo("executing analisys engine: " << name);
+  cas->reset();
   try
   {
     UnicodeString ustrInputText;
@@ -185,7 +186,8 @@ void RSControledAnalysisEngine::process(
   dw.setCAS(cas);
 
   designator_response = dw.getDesignatorResponseMsg();
-  cas->reset();
+
+
   outInfo("processing finished");
 }
 
@@ -254,6 +256,7 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
 
   std::vector<rs::Cluster> clusters;
   scene.identifiables.filter(clusters);
+
   //very hacky for now
   for(int i = 0; i < clusters.size(); ++i)
   {
@@ -272,7 +275,7 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
       for(int iIdx = 0; iIdx < indices.indices.size(); ++iIdx)
       {
         int idx = indices.indices[iIdx];
-        rgb.at<cv::Vec3b>(cv::Point(idx % 640, idx / 640)) =rs::common::cvVec3bcolorsVec[rs::common::cvVec3bcolorsVec.size()];
+        rgb.at<cv::Vec3b>(cv::Point(idx % 640, idx / 640)) =rs::common::cvVec3bcolorsVec[pIdx%rs::common::cvVec3bcolorsVec.size()];
       }
     }
   }

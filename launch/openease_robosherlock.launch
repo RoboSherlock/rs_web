@@ -1,3 +1,4 @@
+<!-- Launch file for running RS locally with web viwualization-->
 <launch>
     <!--KnowRob roslog -->
     <include file="$(find rs_kbreasoning)/launch/knowrob_rs_openease.launch"/>

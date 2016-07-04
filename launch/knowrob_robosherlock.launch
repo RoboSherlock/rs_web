@@ -1,3 +1,4 @@
+<!--Thi Launch file is for OpenEASE. Do not touch!-->
 <launch>
     
     <include file="$(find knowrob_roslog_launch)/launch/knowrob_ease.launch"></include>

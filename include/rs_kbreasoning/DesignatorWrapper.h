@@ -192,8 +192,8 @@ public:
   void convert(rs_demos::Volume &input, designator_integration::KeyValuePair *object);
   void convert(rs_demos::Substance &input, designator_integration::KeyValuePair *object);
 
-  void convertAR(rs::ARMarker &input, designator_integration::Designator &res);
-  void convertHandleAnnotation(rs::HandleAnnotation &input,int id, designator_integration::Designator &res);
+  void convert(rs::ARMarker &input, designator_integration::Designator &res);
+  void convert(rs::HandleAnnotation &input, designator_integration::Designator &res);
 
 //  void addObserver(rs::DesignatorWrapperObserver* observer, boost::function<void (Designator)> f);
 //  void removeObserver(rs::DesignatorWrapperObserver* observer);

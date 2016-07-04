@@ -47,19 +47,57 @@ private:
 
 public:
 
-  RSControledAnalysisEngine();
-  ~RSControledAnalysisEngine();
+  RSControledAnalysisEngine() : RSAnalysisEngine(),
+    rspm(NULL),currentAEName(""),nh_("~"),it_(nh_)
+  {
+    process_mutex = boost::shared_ptr<std::mutex>(new std::mutex);
+    base64ImgPub = nh_.advertise<std_msgs::String>(std::string("image_base64"), 5);
+    image_pub_ = it_.advertise("result_image", 1, true);
+
+  }
+
+  ~RSControledAnalysisEngine()
+  {
+    if(cas)
+    {
+      delete cas;
+      cas = NULL;
+    }
+    if(engine)
+    {
+      delete engine;
+      engine = NULL;
+    }
+
+    if(rspm)
+    {
+      delete rspm;
+      rspm = NULL;
+    }
+  }
 
   /*set the next order of AEs to be executed*/
-  void setNextPipeline(std::vector<std::string> l);
+  void setNextPipeline(std::vector<std::string> l)
+  {
+    next_pipeline_order = l;
+  }
+
 
   /*get the next order of AEs to be executed*/
-  std::vector<std::string> &getNextPipeline();
+  inline std::vector<std::string> &getNextPipeline()
+  {
+    return next_pipeline_order;
+  }
 
-  void applyNextPipeline();
+  inline void applyNextPipeline()
+  {
+    if(rspm)
+    {
+      rspm->setPipelineOrdering(next_pipeline_order);
+    }
+  }
 
-
-  void resetPipelineOrdering()
+  inline void resetPipelineOrdering()
   {
     if(rspm)
     {
@@ -67,7 +105,7 @@ public:
     }
   }
 
-  std::string getCurrentAEName()
+  inline std::string getCurrentAEName()
   {
     return currentAEName;
   }

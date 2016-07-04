@@ -1,53 +1,5 @@
 #include <rs_kbreasoning/RSControledAnalysisEngine.h>
 
-
-void RSControledAnalysisEngine::setNextPipeline(std::vector<std::string> l)
-{
-  next_pipeline_order = l;
-}
-
-std::vector<std::string> &RSControledAnalysisEngine::getNextPipeline()
-{
-  return next_pipeline_order;
-}
-
-void RSControledAnalysisEngine::applyNextPipeline()
-{
-  if(rspm)
-  {
-    rspm->setPipelineOrdering(next_pipeline_order);
-  }
-}
-
-RSControledAnalysisEngine::RSControledAnalysisEngine() : RSAnalysisEngine(),
-  rspm(NULL),currentAEName(""),nh_("~"),it_(nh_)
-{
-  process_mutex = boost::shared_ptr<std::mutex>(new std::mutex);
-  base64ImgPub = nh_.advertise<std_msgs::String>(std::string("image_base64"), 5);
-  image_pub_ = it_.advertise("result_image", 1, true);
-
-}
-
-RSControledAnalysisEngine::~RSControledAnalysisEngine()
-{
-  if(cas)
-  {
-    delete cas;
-    cas = NULL;
-  }
-  if(engine)
-  {
-    delete engine;
-    engine = NULL;
-  }
-
-  if(rspm)
-  {
-    delete rspm;
-    rspm = NULL;
-  }
-}
-
 void RSControledAnalysisEngine::init(const std::string &file)
 {
   uima::ErrorInfo errorInfo;
@@ -81,14 +33,14 @@ void RSControledAnalysisEngine::init(const std::string &file)
   std::vector<std::string> default_pipeline;
   default_pipeline.push_back("CollectionReader");
   default_pipeline.push_back("ImagePreprocessor");
-  default_pipeline.push_back("RegionFilter");
-  default_pipeline.push_back("NormalEstimator");
-  default_pipeline.push_back("PlaneAnnotator");
-  default_pipeline.push_back("PointCloudClusterExtractor");
-  default_pipeline.push_back("Cluster3DGeometryAnnotator");
-  default_pipeline.push_back("ClusterTFLocationAnnotator");
-  default_pipeline.push_back("SacModelAnnotator");
-  default_pipeline.push_back("PrimitiveShapeAnnotator");
+//  default_pipeline.push_back("RegionFilter");
+//  default_pipeline.push_back("NormalEstimator");
+//  default_pipeline.push_back("PlaneAnnotator");
+//  default_pipeline.push_back("PointCloudClusterExtractor");
+//  default_pipeline.push_back("Cluster3DGeometryAnnotator");
+//  default_pipeline.push_back("ClusterTFLocationAnnotator");
+//  default_pipeline.push_back("SacModelAnnotator");
+//  default_pipeline.push_back("PrimitiveShapeAnnotator");
 //  default_pipeline.push_back("KBResultAdvertiser");
 
   // removed color histogram for tests

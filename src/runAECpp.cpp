@@ -289,6 +289,12 @@ public:
           query->objToInspect = kvp->stringValue();
           outInfo("received obj-part request for object: " << query->objToInspect);
         }
+        if(key == "IGREDIENT")
+        {
+          designator_integration::KeyValuePair *kvp = desigRequest->childForKey("INGREDIENT");
+          query->ingredient = kvp->stringValue();
+          outInfo("received request for detection ingredient: " << query->objToInspect);
+        }
         if(key == "TYPE")
         {
           designator_integration::KeyValuePair *kvp = desigRequest->childForKey("TYPE");

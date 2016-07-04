@@ -252,6 +252,8 @@ annotators_for_predicate(contains,A) :-
   annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsdemosAcatSubstance' ).
 annotators_for_predicate(volume,A) :-
   annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsdemosAcatVolume' ).
+annotators_for_predicate(ingredient,A) :-
+  annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsdemosRobohowPizza' ).
 annotators_for_predicate(type,A) :-
   annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsAnnotationDetection' ).
 

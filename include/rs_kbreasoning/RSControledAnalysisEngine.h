@@ -18,14 +18,17 @@
 
 /*
  * struct for passing vital information from a query to individual annotators
- *e.g. the timestamp for CollectionReader, or location for the RegionFilter
- *
+ *e.g. the timestamp for CollectionReader, or location for the RegionFilter;
+ *For now it's hacky consider changin interface to an wesom json thingy instead of
+ * desig_integration, and then just push the whole query to the cas and let
+ * individual annotators look it query contains something interesting for them
 */
 struct RSQuery
 {
   uint64_t timestamp = 0;
   std::string location = "";
   std::string objToInspect = "";
+  std::string ingredient ="";
 };
 
 class RSControledAnalysisEngine: public RSAnalysisEngine

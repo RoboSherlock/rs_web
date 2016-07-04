@@ -43,7 +43,7 @@ std::map<std::string, std::string> krNameMapping =
 std::vector<std::string> rsQueryTerms =
   { "shape","volume","contains","color","size",
     "location","logo","text","product","obj-parts",
-    "detection","type","handle"
+    "detection","type","handle","ingredient"
   };
 }
 

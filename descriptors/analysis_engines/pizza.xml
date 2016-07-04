@@ -322,7 +322,7 @@
         <value>
           <array>
               <!--               <string>config_mongodb_pizza.ini</string>-->
-           <string>config_kinect2_robot_legacy.ini</string>
+           <string>config_kinect2_robot.ini</string>
           </array>
         </value>
       </nameValuePair>
@@ -367,7 +367,7 @@
       <node>CollectionReader</node>
       <node>ImagePreprocessor</node>
       <!--      <node>HandleAnnotator</node>-->
-      <node>RegionFilter</node>
+<!--      <node>RegionFilter</node>-->
       <node>NormalEstimator</node>
       <node>PlaneAnnotator</node>
       <node>PointCloudClusterExtractor</node>
@@ -384,8 +384,8 @@
       <node>BottleAnnotator</node>
       <node>FlaskAnnotator</node>
       <node>MixerAnnotator</node-->
-<!--      <node>PizzaDetector</node>
-      <node>PancakeAnnotator</node>-->
+      <node>PizzaDetector</node>
+<!--      <node>PancakeAnnotator</node>-->
 <!--      <node>ClusterTracker</node>-->
 <!--      <node>ClusterGogglesAnnotator</node>-->
 <!--      <node>GroundTruthAnnotator</node>-->

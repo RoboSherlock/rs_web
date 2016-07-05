@@ -116,9 +116,7 @@ public:
       resourceManager.setLoggingLevel(uima::LogStream::EnMessage);
       break;
     }
-
     desig_pub = nh_.advertise<designator_integration_msgs::DesignatorResponse>(std::string("result_advertiser"), 5);
-
   }
 
   ~RSAnalysisEngineManager()
@@ -227,6 +225,9 @@ public:
   bool resetAECallback(iai_robosherlock_msgs::SetRSContext::Request &req,
                        iai_robosherlock_msgs::SetRSContext::Response &res)
   {
+    outInfo("acquiring lock");
+    processing_mutex.lock();
+    outInfo(FG_CYAN << "LOCK ACQUIRED");
     std::string newContextName = req.newAe, contextAEPath;
     std::vector<std::string> files;
 
@@ -235,13 +236,18 @@ public:
       outInfo("Setting new context: " << newContextName);
       files.push_back(contextAEPath);
       this->init(files);
+      outInfo("releasing lock");
+      processing_mutex.unlock();
       return true;
     }
     else
     {
       outError("Contexts need to have a an AE defined");
+      outInfo("releasing lock");
+      processing_mutex.unlock();
       return false;
     }
+    outInfo(FG_CYAN << "LOCK RELEASED");
   }
 
   bool designatorAllSolutionsCallback(designator_integration_msgs::DesignatorCommunication::Request &req,
@@ -341,9 +347,8 @@ public:
     int pipelineId = 0;
 
     // Block the RSAnalysisEngineManager  - We need the engines now
-    outInfo("acquiring lock");
     processing_mutex.lock();
-    outInfo("lock acquired");
+    outInfo(FG_CYAN << "LOCK ACQUIRED");
     designator_integration_msgs::DesignatorResponse designator_response;
     for(json_prolog::PrologQueryProxy::iterator it = bdgs.begin();
         it != bdgs.end(); it++)
@@ -442,6 +447,7 @@ public:
     }
     desig_pub.publish(topicResponse);
     processing_mutex.unlock();
+    outInfo(FG_CYAN << "LOCK RELEASE");
     delete query;
     outWarn("RS Query service call ended");
     return true;

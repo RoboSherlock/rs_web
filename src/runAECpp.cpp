@@ -125,28 +125,27 @@ public:
   }
 
   // Returns a string with the prolog query to execute, based on the informations in the designator
-  std::string buildPrologQueryFromDesignator(designator_integration::Designator *desig,
-      bool &success)
+  bool buildPrologQueryFromDesignator(designator_integration::Designator *desig,
+      std::string &prologQuery)
   {
-    success = false;
     if(!desig)
     {
-      return "NULL POINTER PASSED TO RSAnalysisEngineManager::buildPrologQueryFromDesignator";
+      outError("NULL POINTER PASSED TO RSAnalysisEngineManager::buildPrologQueryFromDesignator");
+      return false;
     }
 
-    std::string ret = "";
     if(desig->childForKey("OBJECT"))
     {
       // If the designator contains a "type" key, the highlevel is looking for a specific object of Type XY.
       // Use the corresponding Prolog Rule for object pipeline generation
-      ret = "build_pipeline_for_object('";
+      prologQuery = "build_pipeline_for_object('";
       // Fetch the accepted predicates from the Designator
-      ret += desig->childForKey("OBJECT")->stringValue();
-      ret += "', A)";
+      prologQuery += desig->childForKey("OBJECT")->stringValue();
+      prologQuery += "', A)";
     }
     else
     {
-      ret = "build_single_pipeline_from_predicates([";
+      prologQuery = "build_single_pipeline_from_predicates([";
       std::vector<std::string> queriedKeys;
 
       // Fetch the keys from the Designator
@@ -177,30 +176,29 @@ public:
 
       for(int i = 0; i < queriedKeys.size(); i++)
       {
-        ret += queriedKeys.at(i);
+        prologQuery += queriedKeys.at(i);
         if(i < queriedKeys.size() - 1)
         {
-          ret += ",";
+          prologQuery += ",";
         }
       }
 
-      ret += "], A)";
+      prologQuery += "], A)";
     }
-    success = true;
-    return ret;
+    return true;
   }
 
   // Create a vector of Annotator Names from the result of the knowrob_rs library.
   // This vector can be used as input for RSAnalysisEngine::setNextPipelineOrder
-  std::vector<std::string> createPipelineFromPrologResult(std::string result)
+  std::vector<std::string> createPipelineFromPrologResult(std::string queryResult)
   {
     std::vector<std::string> new_pipeline;
 
     // Strip the braces from the result
-    result.erase(result.end() - 1);
-    result.erase(result.begin());
+    queryResult.erase(queryResult.end() - 1);
+    queryResult.erase(queryResult.begin());
 
-    std::stringstream resultstream(result);
+    std::stringstream resultstream(queryResult);
 
     std::string token;
     while(std::getline(resultstream, token, ','))
@@ -325,10 +323,11 @@ public:
     rs::DesignatorWrapper::req_designator->printDesignator();
 
     std::string prologQuery = "";
-    bool plGenerationSuccess = false;
-    prologQuery = buildPrologQueryFromDesignator(desigRequest, plGenerationSuccess);
+//    bool plGenerationSuccess = false;
+//    prologQuery = buildPrologQueryFromDesignator(desigRequest, plGenerationSuccess);
 
-    if(!plGenerationSuccess)
+    if(!buildPrologQueryFromDesignator(desigRequest, prologQuery))
+//    if(!plGenerationSuccess)
     {
       outInfo("Aborting Prolog Query... The generated Prolog Command is invalid");
       return false;

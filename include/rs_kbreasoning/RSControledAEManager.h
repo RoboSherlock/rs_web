@@ -13,49 +13,108 @@
 #include <iai_robosherlock_msgs/SetRSContext.h>
 
 
-class RSControledAEManager:
-  public RSAnalysisEngineManager<RSControledAnalysisEngine>
+class RSControledAEManager
+  //  public RSAnalysisEngineManager<RSControledAnalysisEngine>
 {
 
 private:
 
+  RSControledAnalysisEngine engine;
+
   ros::NodeHandle nh_;
   ros::Publisher desig_pub_;
+  ros::ServiceServer service, singleService, setContextService;
 
   const bool waitForServiceCall_;
+  const bool useVisualizer_;
+
   std::mutex processing_mutex_;
+
+  rs::Visualizer visualizer_;
+
 public:
   RSControledAEManager(const bool useVisualizer, const std::string &savePath,
                        const bool &waitForServiceCall, ros::NodeHandle n):
-    RSAnalysisEngineManager(useVisualizer, savePath),
-    nh_(n),
-    waitForServiceCall_(waitForServiceCall)
+    nh_(n), waitForServiceCall_(waitForServiceCall),
+    useVisualizer_(useVisualizer),    visualizer_(savePath)
   {
+
+    outInfo("Creating resource manager"); // TODO: DEBUG
+    uima::ResourceManager &resourceManager = uima::ResourceManager::createInstance("RoboSherlock"); // TODO: change topic?
+
+    switch(OUT_LEVEL)
+    {
+    case OUT_LEVEL_NOOUT:
+    case OUT_LEVEL_ERROR:
+      resourceManager.setLoggingLevel(uima::LogStream::EnError);
+      break;
+    case OUT_LEVEL_INFO:
+      resourceManager.setLoggingLevel(uima::LogStream::EnWarning);
+      break;
+    case OUT_LEVEL_DEBUG:
+      resourceManager.setLoggingLevel(uima::LogStream::EnMessage);
+      break;
+    }
+
     desig_pub_ = nh_.advertise<designator_integration_msgs::DesignatorResponse>(std::string("result_advertiser"), 5);
+
+    service = n.advertiseService("designator_request/all_solutions",
+                                 &RSControledAEManager::designatorAllSolutionsCallback, this);
+
+    // Call this service, if RoboSherlock should try out only
+    // the pipeline with all Annotators, that provide the requested types (for example shape)
+    singleService = n.advertiseService("designator_request/single_solution",
+                                       &RSControledAEManager::designatorSingleSolutionCallback, this);
+
+    // Call this service to switch between AEs
+    setContextService = n.advertiseService("set_context", &RSControledAEManager::resetAECallback, this);
+
   }
-//  ~RSControledAEManager()
-//  {
-//    uima::ResourceManager::deleteInstance();
-//  }
+  ~RSControledAEManager()
+  {
+    uima::ResourceManager::deleteInstance();
+  }
 
   /*brief
    * in desig: query as designator
    * out prologQuery: the Prolog Query as a string
    * returns true or false /success or fail
    */
-  bool buildPrologQueryFromDesignator(designator_integration::Designator *desig, 
-				      std::string &prologQuery);  
-  
+  bool buildPrologQueryFromDesignator(designator_integration::Designator *desig,
+                                      std::string &prologQuery);
+
   /*brief
    * Create a vector of Annotator Names from the result of the knowrob_rs library.
    * This vector can be used as input for RSControledAnalysisEngine::setNextPipelineOrder
    */
   std::vector<std::string> createPipelineFromPrologResult(std::string result);
 
+  /*brief
+   * init the AE
+   **/
+  void init(std::string &xmlFile)
+  {
+    engine.init(xmlFile);
+    if(useVisualizer_)
+    {
+      visualizer_.start();
+    }
+  }
+
   /* brief
-   * run the AEs in the manager
+   * run the AE in the manager
    */
   void run();
+
+  void stop()
+  {
+    if(useVisualizer_)
+    {
+      visualizer_.stop();
+    }
+    engine.resetCas();
+    engine.stop();
+  }
 
   bool resetAECallback(iai_robosherlock_msgs::SetRSContext::Request &req,
                        iai_robosherlock_msgs::SetRSContext::Response &res);
@@ -76,8 +135,6 @@ public:
                      std::string superclass);
 
   void overwriteParentField(designator_integration::KeyValuePair &d, int level);
-
-
 
 };
 

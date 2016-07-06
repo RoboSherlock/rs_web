@@ -30,21 +30,21 @@ void RSControledAnalysisEngine::init(const std::string &file)
   outInfo("*** Number of Annotators in AnnotatorManager: " << rspm->aengine->getNbrOfAnnotators());
 
   // After all annotators have been initialized, pick the default pipeline
-  std::vector<std::string> default_pipeline;
-  default_pipeline.push_back("CollectionReader");
-  default_pipeline.push_back("ImagePreprocessor");
-//  default_pipeline.push_back("RegionFilter");
-//  default_pipeline.push_back("NormalEstimator");
-//  default_pipeline.push_back("PlaneAnnotator");
-//  default_pipeline.push_back("PointCloudClusterExtractor");
-//  default_pipeline.push_back("Cluster3DGeometryAnnotator");
-//  default_pipeline.push_back("ClusterTFLocationAnnotator");
-//  default_pipeline.push_back("SacModelAnnotator");
-//  default_pipeline.push_back("PrimitiveShapeAnnotator");
-//  default_pipeline.push_back("KBResultAdvertiser");
+  std::vector<std::string> lowLvlPipeline;
+  lowLvlPipeline.push_back("CollectionReader");
+  lowLvlPipeline.push_back("ImagePreprocessor");
+//  lowLvlPipeline.push_back("RegionFilter");
+//  lowLvlPipeline.push_back("NormalEstimator");
+//  lowLvlPipeline.push_back("PlaneAnnotator");
+//  lowLvlPipeline.push_back("PointCloudClusterExtractor");
+//  lowLvlPipeline.push_back("Cluster3DGeometryAnnotator");
+//  lowLvlPipeline.push_back("ClusterTFLocationAnnotator");
+//  lowLvlPipeline.push_back("SacModelAnnotator");
+//  lowLvlPipeline.push_back("PrimitiveShapeAnnotator");
+//  lowLvlPipeline.push_back("KBResultAdvertiser");
 
   // removed color histogram for tests
-  rspm->setDefaultPipelineOrdering(default_pipeline);
+  rspm->setDefaultPipelineOrdering(lowLvlPipeline);
 
   // Get a new CAS
   outInfo("Creating a new CAS");
@@ -85,24 +85,26 @@ void RSControledAnalysisEngine::process(
     if(q != NULL)
     {
       rs::SceneCas sceneCas(*cas);
-      rs::Query ts = rs::create<rs::Query>(*cas);
+      rs::Query query = rs::create<rs::Query>(*cas);
       if(q->timestamp != 0)
       {
-        ts.timestamp.set(q->timestamp);
+        query.timestamp.set(q->timestamp);
       }
       if(q->location != "")
       {
-        ts.location.set(q->location);
+        query.location.set(q->location);
       }
       if(q->objToInspect != "")
       {
-        ts.inspect.set(q->objToInspect);
+        query.inspect.set(q->objToInspect);
+      }
+      if(q->ingredient !="")
+      {
+        query.ingredient.set(q->ingredient);
       }
       outInfo("setting in CAS: ts:" << q->timestamp << " location: " << q->location);
-      sceneCas.set("QUERY", ts);
+      sceneCas.set("QUERY", query);
     }
-
-
     outInfo("processing CAS");
     uima::CASIterator casIter = engine->processAndOutputNewCASes(*cas);
 
@@ -114,7 +116,6 @@ void RSControledAnalysisEngine::process(
       outInfo("release CAS " << i);
       engine->getAnnotatorContext().releaseCAS(outCas);
     }
-
   }
   catch(const rs::Exception &e)
   {
@@ -138,8 +139,6 @@ void RSControledAnalysisEngine::process(
   dw.setCAS(cas);
 
   designator_response = dw.getDesignatorResponseMsg();
-
-
   outInfo("processing finished");
 }
 
@@ -149,6 +148,7 @@ void RSControledAnalysisEngine::process(bool reset_pipeline_after_process)
   designator_integration_msgs::DesignatorResponse d;
   process(reset_pipeline_after_process, d);
 }
+
 // Call process() and decide if the pipeline should be reset or not
 void RSControledAnalysisEngine::process( bool reset_pipeline_after_process, designator_integration_msgs::DesignatorResponse &designator_response)
 {

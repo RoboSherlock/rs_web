@@ -22,6 +22,7 @@
   <depend>robosherlock</depend>
   <depend>robosherlock_demos</depend>
   <depend>designator_integration_cpp</depend>
+  <depend>image_transport</depend>
 
   
 

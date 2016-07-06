@@ -33,13 +33,15 @@ namespace rs
 //    &observer1,
 //    _1));
 //    /
-class DesignatorWrapperObserver{
+class DesignatorWrapperObserver
+{
   virtual void addDesignator(designator_integration::Designator d) = 0;
 };
 
-class DesignatorWrapper{
+class DesignatorWrapper
+{
 public:
-  enum DesignatorProcessMode 
+  enum DesignatorProcessMode
   {
     CLUSTER = 0,
     OBJECT
@@ -68,12 +70,12 @@ public:
   void filterClusters(const std::vector<rs::Cluster> input, const designator_integration::Designator *out) const;
   void updateDesignator();
 
-//  void notifyObserversDesignatorAdded(Designator d);
+  //  void notifyObserversDesignatorAdded(Designator d);
 
   designator_integration_msgs::DesignatorResponse getDesignatorResponseMsg();
   iai_robosherlock_msgs::PerceivedObjects getObjectsMsgs();
 
-  bool getObjectDesignators(std::vector<designator_integration::Designator>&);
+  bool getObjectDesignators(std::vector<designator_integration::Designator> &);
 
   template<class T>
   void process(std::vector<T> &elements, std::vector<designator_integration::Designator> &objectDesignators)
@@ -124,8 +126,8 @@ public:
       element.annotations.filter(volume);
       element.annotations.filter(substance);
 
-      outDebug("Number of volume annotations: "<<volume.size());
-      outDebug("Number of substance annotations: "<<substance.size());
+      outDebug("Number of volume annotations: " << volume.size());
+      outDebug("Number of substance annotations: " << substance.size());
 
       convertAll(geometry, &objectDesignator);
       convertAll(detections, &objectDesignator);
@@ -147,7 +149,7 @@ public:
         rs::PoseAnnotation b = poses[0];
         object.id = a.name();
         tf::Stamped<tf::Pose> pose;
-        rs::conversion::from(b.camera(),pose);
+        rs::conversion::from(b.camera(), pose);
         geometry_msgs::PoseStamped pose_stamped_msgs;
 
         tf::poseStampedTFToMsg(pose, pose_stamped_msgs);
@@ -170,13 +172,13 @@ public:
   // TODO How can i define this in the cpp file?
   // If i do it naively, i get a runtime error that the method can't be found + the mangeled method name
   template<class T>
-    void convertAll(std::vector<T> &all, designator_integration::KeyValuePair *object)
+  void convertAll(std::vector<T> &all, designator_integration::KeyValuePair *object)
+  {
+    for(T input : all)
     {
-      for(T input : all)
-      {
-        convert(input, object);
-      }
+      convert(input, object);
     }
+  }
 
   void convert(rs::Detection &input, designator_integration::KeyValuePair *object);
   void convert(rs::TFLocation &input, designator_integration::KeyValuePair *object);
@@ -195,13 +197,6 @@ public:
   void convert(rs::ARMarker &input, designator_integration::Designator &res);
   void convert(rs::HandleAnnotation &input, designator_integration::Designator &res);
 
-//  void addObserver(rs::DesignatorWrapperObserver* observer, boost::function<void (Designator)> f);
-//  void removeObserver(rs::DesignatorWrapperObserver* observer);
-//private:
-  // boost::signals2::signal<void (Designator d)> m_signal_notify;
-  //
-  // We need a map for every object here, so we can disconnect an observer by deleting
-  // the associated signal for the instance.
-//  std::map<rs::DesignatorWrapperObserver*, boost::signals2::signal<void (Designator d)>> observer_connections;
+
 };
 }

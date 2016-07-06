@@ -78,9 +78,9 @@ target_link_libraries(rs_handleAnnotator ${catkin_LIBRARIES})
 add_library(rs_kbAEmanagement src/RSControledAnalysisEngine.cpp src/RSControledAEManager.cpp)
 target_link_libraries(rs_kbAEmanagement rs_designator_wrapper ${catkin_LIBRARIES})
 
-rs_add_executable(runAE src/runAECpp.cpp src/RSControledAnalysisEngine.cpp)
+rs_add_executable(runAE src/runAECpp.cpp)
 add_dependencies(runAE iai_robosherlock_msgs_gencpp)
-target_link_libraries(runAE rs_designator_wrapper ${catkin_LIBRARIES})
+target_link_libraries(runAE rs_kbAEmanagement ${catkin_LIBRARIES})
 
 rs_add_library(rs_clusterToPartsSegmenter src/ClusterToPartsSegmenter.cpp)
 target_link_libraries(rs_clusterToPartsSegmenter ${catkin_LIBRARIES})

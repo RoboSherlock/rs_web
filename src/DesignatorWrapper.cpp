@@ -300,35 +300,10 @@ void DesignatorWrapper::convert(rs_demos::Substance &input, designator_integrati
   object->addChild(substance);
 }
 
-
 iai_robosherlock_msgs::PerceivedObjects DesignatorWrapper::getObjectsMsgs()
 {
   return objects_;
 }
-
-
-//void DesignatorWrapper::convert(rs::Dough &input, designator_integration::KeyValuePair *object)
-//{
-//  designator_integration::KeyValuePair *dough = new designator_integration::KeyValuePair("DOUGH");
-
-//  rs::PoseAnnotation pose = input.pose();
-//  convert(pose, dough);
-
-//  designator_integration::KeyValuePair *contour = new designator_integration::KeyValuePair("CONTOUR");
-//  std::vector<rs::Point3f> points = input.contour();
-//  for(size_t i = 0; i < points.size(); ++i)
-//  {
-//    rs::Point3f &point = points[i];
-//    designator_integration::KeyValuePair *p = new designator_integration::KeyValuePair(std::to_string(i));
-//    p->setValue("X", point.x());
-//    p->setValue("Y", point.y());
-//    p->setValue("Z", point.z());
-//    contour->addChild(p);
-//  }
-//  dough->addChild(contour);
-
-//  object->addChild(dough);
-//}
 
 void DesignatorWrapper::convert(rs::ARMarker &input, designator_integration::Designator &arDesignator)
 {
@@ -356,28 +331,3 @@ void DesignatorWrapper::convert(rs::HandleAnnotation &input,
   tf::poseStampedTFToMsg(tf_stamped_pose, pose_stamped_msgs);
   handleDesignator.setValue("POSE", pose_stamped_msgs);
 }
-
-// void DesignatorWrapper::addObserver(boost::function<void (Designator)> f)
-
-//uncomment for now
-
-//void DesignatorWrapper::addObserver(rs::DesignatorWrapperObserver* observer,
-//    boost::function<void (Designator)> f)
-//{
-//  observer_connections[observer].connect(f);
-//}
-
-//void DesignatorWrapper::removeObserver(rs::DesignatorWrapperObserver* observer)
-//{
-//  observer_connections.erase(observer);
-//}
-
-//void DesignatorWrapper::notifyObserversDesignatorAdded(Designator d)
-//{
-//  for(auto& o : observer_connections){
-//    o.second(d); // Feed new designator to Observer
-
-//    // std::cout << "Observer connection called";
-//    // std::cout << "Address is: " << o.first;
-//  }
-//}

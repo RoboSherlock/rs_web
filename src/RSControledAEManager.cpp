@@ -217,8 +217,7 @@ bool RSControledAEManager::designatorCallbackLogic(designator_integration_msgs::
   designator_integration_msgs::DesignatorResponse topicResponse;
   for(auto & designator : filteredResponse)
   {
-    //    overwriteParentField(designator, 0);
-    topicResponse.designators.push_back(designator.serializeToMessage(false));
+    topicResponse.designators.push_back(designator.serializeToMessage());
     res.response.designators.push_back(designator.serializeToMessage());
   }
   desig_pub_.publish(topicResponse);
@@ -456,17 +455,4 @@ void RSControledAEManager::filterResults(designator_integration::Designator &req
     }
   }
   engine.drawResulstOnImage(keep_designator, resultDesignators);
-}
-
-void RSControledAEManager::overwriteParentField(designator_integration::KeyValuePair &d, int level)
-{
-  std::list<designator_integration::KeyValuePair *> children =  d.children();
-  if(!children.empty())
-  {
-    for(std::list<designator_integration::KeyValuePair *>::iterator it = children.begin(); it != children.end(); ++it)
-    {
-      (*it)->setParent(level);
-      overwriteParentField(**it, level + 1);
-    }
-  }
 }

@@ -2,6 +2,7 @@
 #define KRDEFINITIONS_H
 
 #include <map>
+#include <vector>
 #include <string>
 
 
@@ -12,7 +13,7 @@
 namespace rs_kbreasoning
 {
 
-std::map<std::string, std::string> krNameMapping =
+static std::map<std::string, std::string> krNameMapping =
 {
   //superclasses
   {"DRINK", "knowrob:'Drink'"},
@@ -40,7 +41,7 @@ std::map<std::string, std::string> krNameMapping =
   {"mixer_ikamag", "rs_test_objects:'MixerIkaMag'"}
 };
 
-std::vector<std::string> rsQueryTerms =
+static std::vector<std::string> rsQueryTerms =
   { "shape","volume","contains","color","size",
     "location","logo","text","product","obj-parts",
     "detection","type","handle","ingredient"

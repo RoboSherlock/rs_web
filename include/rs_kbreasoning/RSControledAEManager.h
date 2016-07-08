@@ -6,8 +6,8 @@
 #include <rs_kbreasoning/DesignatorWrapper.h>
 #include <rs_kbreasoning/RSControledAnalysisEngine.h>
 #include <rs_kbreasoning/KRDefinitions.h>
+#include <rs_kbreasoning/JsonPrologInterface.h>
 
-#include <json_prolog/prolog.h>
 
 #include <designator_integration_msgs/DesignatorCommunication.h>
 #include <iai_robosherlock_msgs/SetRSContext.h>
@@ -20,6 +20,7 @@ class RSControledAEManager
 private:
 
   RSControledAnalysisEngine engine;
+  JsonPrologInterface jsonPrologInterface_;
 
   ros::NodeHandle nh_;
   ros::Publisher desig_pub_;
@@ -35,7 +36,7 @@ private:
 public:
   RSControledAEManager(const bool useVisualizer, const std::string &savePath,
                        const bool &waitForServiceCall, ros::NodeHandle n):
-    nh_(n), waitForServiceCall_(waitForServiceCall),
+    jsonPrologInterface_(), nh_(n), waitForServiceCall_(waitForServiceCall),
     useVisualizer_(useVisualizer),    visualizer_(savePath)
   {
 
@@ -74,20 +75,6 @@ public:
   {
     uima::ResourceManager::deleteInstance();
   }
-
-  /*brief
-   * in desig: query as designator
-   * out prologQuery: the Prolog Query as a string
-   * returns true or false /success or fail
-   */
-  bool buildPrologQueryFromDesignator(designator_integration::Designator *desig,
-                                      std::string &prologQuery);
-
-  /*brief
-   * Create a vector of Annotator Names from the result of the knowrob_rs library.
-   * This vector can be used as input for RSControledAnalysisEngine::setNextPipelineOrder
-   */
-  std::vector<std::string> createPipelineFromPrologResult(std::string result);
 
   /*brief
    * init the AE

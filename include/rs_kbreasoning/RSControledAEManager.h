@@ -11,6 +11,7 @@
 
 #include <designator_integration_msgs/DesignatorCommunication.h>
 #include <iai_robosherlock_msgs/SetRSContext.h>
+#include <iai_robosherlock_msgs/RSQueryService.h>
 
 
 class RSControledAEManager
@@ -24,7 +25,7 @@ private:
 
   ros::NodeHandle nh_;
   ros::Publisher desig_pub_;
-  ros::ServiceServer service, singleService, setContextService;
+  ros::ServiceServer service, singleService, setContextService, jsonService;
 
   const bool waitForServiceCall_;
   const bool useVisualizer_;
@@ -70,6 +71,8 @@ public:
     // Call this service to switch between AEs
     setContextService = n.advertiseService("set_context", &RSControledAEManager::resetAECallback, this);
 
+    jsonService = n.advertiseService("json_query",&RSControledAEManager::jsonQueryCallback,this);
+
   }
   ~RSControledAEManager()
   {
@@ -114,6 +117,9 @@ public:
 
   bool designatorCallbackLogic(designator_integration_msgs::DesignatorCommunication::Request &req,
                                designator_integration_msgs::DesignatorCommunication::Response &res, bool allSolutions);
+
+  bool jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::Request &req,
+                         iai_robosherlock_msgs::RSQueryService::Response &res);
 
   //TODO: move to Designator wrapper or somewhere else
   void filterResults(designator_integration::Designator &requestDesignator,

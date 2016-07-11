@@ -66,12 +66,12 @@ void RSControledAnalysisEngine::init(const std::string &file)
 
 void RSControledAnalysisEngine::process()
 {
-  designator_integration_msgs::DesignatorResponse d;
+  std::vector<designator_integration::Designator> d;
   process(d);
 }
 
 void RSControledAnalysisEngine::process(
-  designator_integration_msgs::DesignatorResponse &designator_response,
+  std::vector<designator_integration::Designator> &designatorResponse,
   RSQuery *q)
 {
 
@@ -137,24 +137,24 @@ void RSControledAnalysisEngine::process(
   rs::DesignatorWrapper dw;
   dw.setMode(rs::DesignatorWrapper::CLUSTER);
   dw.setCAS(cas);
+  dw.getObjectDesignators(designatorResponse);
 
-  designator_response = dw.getDesignatorResponseMsg();
   outInfo("processing finished");
 }
 
 // Call process() and decide if the pipeline should be reset or not
 void RSControledAnalysisEngine::process(bool reset_pipeline_after_process)
 {
-  designator_integration_msgs::DesignatorResponse d;
+  std::vector<designator_integration::Designator> d;
   process(reset_pipeline_after_process, d);
 }
 
 // Call process() and decide if the pipeline should be reset or not
-void RSControledAnalysisEngine::process( bool reset_pipeline_after_process, designator_integration_msgs::DesignatorResponse &designator_response)
+void RSControledAnalysisEngine::process( bool reset_pipeline_after_process, std::vector<designator_integration::Designator> &designatorResponse)
 {
   process_mutex->lock();
   outInfo(FG_CYAN << "process(bool,desig) - LOCK OBTAINED");
-  process(designator_response, 0);
+  process(designatorResponse, 0);
   if(reset_pipeline_after_process)
   {
     resetPipelineOrdering();  // reset pipeline to default
@@ -168,7 +168,7 @@ void RSControledAnalysisEngine::process( bool reset_pipeline_after_process, desi
 // decide if the pipeline should be reset or not
 void RSControledAnalysisEngine::process(std::vector<std::string> annotators,
                                         bool reset_pipeline_after_process,
-                                        designator_integration_msgs::DesignatorResponse &designator_response,
+                                        std::vector<designator_integration::Designator> &designator_response,
                                         RSQuery *query)
 {
   process_mutex->lock();
@@ -191,7 +191,7 @@ void RSControledAnalysisEngine::process(std::vector<std::string> annotators,
 // decide if the pipeline should be reset or not
 void RSControledAnalysisEngine::process(std::vector<std::string> annotators, bool reset_pipeline_after_process)
 {
-  designator_integration_msgs::DesignatorResponse d;
+  std::vector<designator_integration::Designator> d;
   process(annotators, reset_pipeline_after_process, d);
 }
 

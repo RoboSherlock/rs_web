@@ -41,7 +41,7 @@ void DesignatorWrapper::setCAS(uima::CAS *cas)
 {
   tcas = cas;
 }
-// void DesignatorWrapper::setMode(DesignatorWrapper::DesignatorProcessMode m)
+
 void DesignatorWrapper::setMode(DesignatorProcessMode m)
 {
   mode = m;

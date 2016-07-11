@@ -123,11 +123,11 @@ public:
 
   void process();
 
-  void process(designator_integration_msgs::DesignatorResponse &designator_response,
+  void process(std::vector<designator_integration::Designator> &designator_response,
                RSQuery *q = NULL);
 
   void process(bool reset_pipeline_after_process,
-               designator_integration_msgs::DesignatorResponse &designator_response);
+               std::vector<designator_integration::Designator>&designator_response);
 
   // Call process() and
   // decide if the pipeline should be reset or not
@@ -138,7 +138,7 @@ public:
   // decide if the pipeline should be reset or not
   void process(std::vector<std::string> annotators,
                bool reset_pipeline_after_process,
-               designator_integration_msgs::DesignatorResponse &designator_response,
+               std::vector<designator_integration::Designator> &designator_response,
                RSQuery *query = NULL);
 
   // Define a pipeline that should be executed,

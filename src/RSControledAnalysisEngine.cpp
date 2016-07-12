@@ -37,7 +37,7 @@ void RSControledAnalysisEngine::init(const std::string &AEFile)
   fs["annotators"] >>lowLvlPipeline;
 
   rspm->setDefaultPipelineOrdering(lowLvlPipeline);
-  rspm->applyPipelineOrdering(lowLvlPipeline);
+  rspm->setPipelineOrdering(lowLvlPipeline);
   // Get a new CAS
   outInfo("Creating a new CAS");
   cas = engine->newCAS();

@@ -1,13 +1,13 @@
 #include <rs_kbreasoning/RSControledAnalysisEngine.h>
 
-void RSControledAnalysisEngine::init(const std::string &file)
+void RSControledAnalysisEngine::init(const std::string &AEFile)
 {
   uima::ErrorInfo errorInfo;
 
-  size_t pos = file.rfind('/');
-  outInfo("Creating analysis engine: " FG_BLUE << (pos == file.npos ? file : file.substr(pos)));
+  size_t pos = AEFile.rfind('/');
+  outInfo("Creating analysis engine: " FG_BLUE << (pos == AEFile.npos ? AEFile : AEFile.substr(pos)));
 
-  engine = uima::Framework::createAnalysisEngine(file.c_str(), errorInfo);
+  engine = uima::Framework::createAnalysisEngine(AEFile.c_str(), errorInfo);
 
   if(errorInfo.getErrorId() != UIMA_ERR_NONE)
   {
@@ -30,22 +30,14 @@ void RSControledAnalysisEngine::init(const std::string &file)
   outInfo("*** Number of Annotators in AnnotatorManager: " << rspm->aengine->getNbrOfAnnotators());
 
   // After all annotators have been initialized, pick the default pipeline
+  std::string pathToPackage = ros::package::getPath("rs_kbreasoning");
+  cv::FileStorage fs(pathToPackage+"/config/lowLvlpipeline.yaml",cv::FileStorage::READ);
+
   std::vector<std::string> lowLvlPipeline;
-  lowLvlPipeline.push_back("CollectionReader");
-  lowLvlPipeline.push_back("ImagePreprocessor");
-//  lowLvlPipeline.push_back("RegionFilter");
-//  lowLvlPipeline.push_back("NormalEstimator");
-//  lowLvlPipeline.push_back("PlaneAnnotator");
-//  lowLvlPipeline.push_back("PointCloudClusterExtractor");
-//  lowLvlPipeline.push_back("Cluster3DGeometryAnnotator");
-//  lowLvlPipeline.push_back("ClusterTFLocationAnnotator");
-//  lowLvlPipeline.push_back("SacModelAnnotator");
-//  lowLvlPipeline.push_back("PrimitiveShapeAnnotator");
-//  lowLvlPipeline.push_back("KBResultAdvertiser");
+  fs["annotators"] >>lowLvlPipeline;
 
-  // removed color histogram for tests
   rspm->setDefaultPipelineOrdering(lowLvlPipeline);
-
+  rspm->applyPipelineOrdering(lowLvlPipeline);
   // Get a new CAS
   outInfo("Creating a new CAS");
   cas = engine->newCAS();
@@ -61,7 +53,7 @@ void RSControledAnalysisEngine::init(const std::string &file)
 
   outInfo("initialization done: " << name << std::endl
           << std::endl << FG_YELLOW << "********************************************************************************" << std::endl);
-  currentAEName = file;
+  currentAEName = AEFile;
 }
 
 void RSControledAnalysisEngine::process()

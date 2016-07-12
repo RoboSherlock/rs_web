@@ -81,13 +81,7 @@ bool RSControledAEManager::designatorCallbackLogic(designator_integration_msgs::
     delete rs::DesignatorWrapper::req_designator;
   }
   rs::DesignatorWrapper::req_designator = new designator_integration::Designator(req.request.designator);
-  outInfo("Type of request designator: "<< rs::DesignatorWrapper::req_designator->type());
-  //this is weird, output before and after setting type is the same, but serializeToJson only works if I set it here explicitly
-  rs::DesignatorWrapper::req_designator->setType(designator_integration::Designator::OBJECT);
-  outInfo("Type of request designator: "<< rs::DesignatorWrapper::req_designator->type());
-  outInfo("Received Designator call: " << rs::DesignatorWrapper::req_designator->serializeToJSON());
   rs::DesignatorWrapper::req_designator->printDesignator();
-
 
   RSQuery *query = new RSQuery();
   std::string superClass = "";

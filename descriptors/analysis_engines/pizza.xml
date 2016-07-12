@@ -366,8 +366,7 @@
       <node>Trigger</node>
       <node>CollectionReader</node>
       <node>ImagePreprocessor</node>
-      <!--      <node>HandleAnnotator</node>-->
-<!--      <node>RegionFilter</node>-->
+      <node>RegionFilter</node>
       <node>NormalEstimator</node>
       <node>PlaneAnnotator</node>
       <node>PointCloudClusterExtractor</node>
@@ -380,19 +379,8 @@
       <node>PrimitiveShapeAnnotator</node>
       <node>MLNInferencer</node>
       <node>ClusterToPartsSegmenter</node>
-      <!--node>DeCafClassifier</node>
-      <node>BottleAnnotator</node>
-      <node>FlaskAnnotator</node>
-      <node>MixerAnnotator</node-->
       <node>PizzaDetector</node>
-<!--      <node>PancakeAnnotator</node>-->
-<!--      <node>ClusterTracker</node>-->
-<!--      <node>ClusterGogglesAnnotator</node>-->
-<!--      <node>GroundTruthAnnotator</node>-->
-<!--      <node>MLNAtomsGenerator</node>-->
-    <!--  <node>StorageWriter</node>-->
-    <!--  <node>KBResultAdvertiser</node>-->
-<!--      <node>VisualizerAnnotator</node>-->
+      <node>ObjectIdentityResolutuion</node>
     </fixedFlow>
     </flowConstraints>
     <typePriorities/>

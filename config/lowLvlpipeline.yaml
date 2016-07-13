@@ -6,6 +6,8 @@ annotators:
     - NormalEstimator
     - PlaneAnnotator
     - PointCloudClusterExtractor
+    - ImageSegmentationAnnotator
+    - ClusterMerger
     - Cluster3DGeometryAnnotator
     - PrimitiveShapeAnnotator
     - ClusterColorHistogramCalculator

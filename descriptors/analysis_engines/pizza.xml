@@ -335,7 +335,7 @@
       <nameValuePair>
         <name>storagedb</name>
         <value>
-          <string>Scenes_annotated</string>
+          <string>Scenes</string>
         </value>
       </nameValuePair>
 
@@ -381,6 +381,7 @@
       <node>ClusterToPartsSegmenter</node>
       <node>PizzaDetector</node>
       <node>ObjectIdentityResolution</node>
+      <node>StorageWriter</node>
     </fixedFlow>
     </flowConstraints>
     <typePriorities/>

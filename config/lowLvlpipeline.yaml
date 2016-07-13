@@ -10,3 +10,4 @@ annotators:
     - PrimitiveShapeAnnotator
     - ClusterColorHistogramCalculator
     - ObjectIdentityResolution
+    - StorageWriter

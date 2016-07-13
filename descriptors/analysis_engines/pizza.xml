@@ -380,7 +380,7 @@
       <node>MLNInferencer</node>
       <node>ClusterToPartsSegmenter</node>
       <node>PizzaDetector</node>
-      <node>ObjectIdentityResolutuion</node>
+      <node>ObjectIdentityResolution</node>
     </fixedFlow>
     </flowConstraints>
     <typePriorities/>

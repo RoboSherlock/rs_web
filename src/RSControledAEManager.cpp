@@ -117,11 +117,11 @@ bool RSControledAEManager::designatorCallbackLogic(designator_integration_msgs::
         query->objToInspect = kvp->stringValue();
         outInfo("received obj-part request for object: " << query->objToInspect);
       }
-      if(key == "IGREDIENT")
+      if(key == "INGREDIENT")
       {
         designator_integration::KeyValuePair *kvp =  rs::DesignatorWrapper::req_designator->childForKey("INGREDIENT");
         query->ingredient = kvp->stringValue();
-        outInfo("received request for detection ingredient: " << query->objToInspect);
+        outInfo("received request for detection ingredient: " << query->ingredient);
       }
       if(key == "TYPE")
       {

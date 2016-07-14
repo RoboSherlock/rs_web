@@ -355,9 +355,25 @@
         </overrides>
       </configurationParameter>
 
+      <configurationParameter>
+        <name>projectOnPlane</name>
+        <type>Boolean</type>
+        <multiValued>false</multiValued>
+        <mandatory>false</mandatory>
+        <overrides>
+          <parameter>Cluster3DGeometryAnnotator/projectOnPlane</parameter>
+        </overrides>
+      </configurationParameter>
     </configurationParameters>
 
     <configurationParameterSettings>
+
+      <nameValuePair>
+        <name>projectOnPlane</name>
+        <value>
+          <boolean>true</boolean>
+        </value>
+      </nameValuePair>
 
    <nameValuePair>
       <name>DeCafH5File</name>
@@ -495,6 +511,7 @@
 <!--      <node>ClusterGogglesAnnotator</node>-->
 <!--      <node>GroundTruthAnnotator</node>-->
 <!--      <node>MLNAtomsGenerator</node>-->
+<node>TFBroadcaster</node>
       <node>ObjectIdentityResolution</node>
       <node>StorageWriter</node>
 

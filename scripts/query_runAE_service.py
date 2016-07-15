@@ -10,7 +10,7 @@ class RSQuery(cmd.Cmd):
     DETECT_COMMANDS = [ 'SHAPE', 'COLOR', 'SIZE', 'LOCATION', 'LOGO', 'TEXT', 'PRODUCT', 'DETECTION' ]
     # OBJECT_NAMES = [ 'http://knowrob.org/kb/rs_components.owl#MondaminPancakeMix', 'http://knowrob.org/kb/rs_components.owl#PancakeMaker', 'http://knowrob.org/kb/rs_components.owl#Milk', 'http://knowrob.org/kb/rs_components.owl#SomatTabs']
     OBJECT_NAMES = [ 'MondaminPancakeMix', 'PancakeMaker', 'Milk', 'SomatTabs']
-    OBJECT_NAMESPACE_PREFIX = "http://knowrob.org/kb/rs_test_objects.owl#"
+    OBJECT_NAMESPACE_PREFIX = "http://knowrob.org/kb/rs_objects.owl#"
 
     # Take the first value in SOLUTION_COMMANDS as default0
     solution_mode = SOLUTION_COMMANDS[0]

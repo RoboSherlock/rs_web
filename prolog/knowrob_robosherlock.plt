@@ -97,14 +97,14 @@ test(build_pipeline_from_predicates1):-
   assertion(S == ['http://knowrob.org/kb/rs_components.owl#CollectionReader','http://knowrob.org/kb/rs_components.owl#ImagePreprocessor','http://knowrob.org/kb/rs_components.owl#PlaneAnnotator','http://knowrob.org/kb/rs_components.owl#PointCloudClusterExtractor','http://knowrob.org/kb/rs_components.owl#ClusterColorHistogramCalculator','http://knowrob.org/kb/rs_components.owl#NormalEstimator','http://knowrob.org/kb/rs_components.owl#SacModelAnnotator','http://knowrob.org/kb/rs_components.owl#PrimitiveShapeAnnotator']). 
 
 test(blort_predicate_for_milk):-
-  obj_has_predicate(blort,'http://knowrob.org/kb/rs_test_objects.owl#Milk'),!.
+  obj_has_predicate(blort,'http://knowrob.org/kb/rs_objects.owl#Milk'),!.
 
 test(linemod_predicate_for_pancakemaker):-
-  obj_has_predicate(linemod,'http://knowrob.org/kb/rs_test_objects.owl#PancakeMaker'),!.
+  obj_has_predicate(linemod,'http://knowrob.org/kb/rs_objects.owl#PancakeMaker'),!.
 
 
 test(build_pipeline_for_object_milk):-
-  build_pipeline_for_object('http://knowrob.org/kb/rs_test_objects.owl#Milk',S),!, % Test the first solution
+  build_pipeline_for_object('http://knowrob.org/kb/rs_objects.owl#Milk',S),!, % Test the first solution
   length(S,Length),
   assertion(Length == 9),
   assertion(S == 
@@ -120,7 +120,7 @@ test(build_pipeline_for_object_milk):-
   'http://knowrob.org/kb/rs_components.owl#BlortAnnotator']).
 
 test(build_pipeline_for_object_pancakemaker):-
-  build_pipeline_for_object('http://knowrob.org/kb/rs_test_objects.owl#PancakeMaker',S),!, % Test the first solution
+  build_pipeline_for_object('http://knowrob.org/kb/rs_objects.owl#PancakeMaker',S),!, % Test the first solution
   length(S,Length),
   assertion(Length == 7),
   assertion(S == 

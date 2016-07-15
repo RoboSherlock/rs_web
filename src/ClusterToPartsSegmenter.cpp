@@ -126,11 +126,6 @@ private:
     //todo if there is time...check if object can hold other objects
 
     std::stringstream prologQuery;
-    //    prologQuery<<"owl_subclass_of(Obj,rs_test_objects:'ObjectsToTest'),class_properties(Obj,"<<
-    //                 "rs_components:'hasVisualProperty',rs_test_objects:'ObjectPart').";
-    //        prologQuery<<"owl_subclass_of(Obj,rs_test_objects:'ObjectsToTest'),class_properties(Obj,"<<
-    //                     "rs_components:'hasVisualProperty',rs_test_objects:'ObjectPart').";
-    //    http://knowrob.org/kb/rs_test_objects.owl#Plate
 
     std::transform(objToProcess.begin(), objToProcess.end(), objToProcess.begin(), (int( *)(int)) std::tolower);
     if(!objToProcess.empty())
@@ -140,7 +135,7 @@ private:
     outWarn("Object Queried for is: " << objToProcess);
 
 
-    prologQuery << "class_properties(rs_test_objects:'" << objToProcess << "',rs_components:'hasVisualProperty',rs_test_objects:'ObjectPart').";
+    prologQuery << "class_properties(rs_objects:'" << objToProcess << "',rs_components:'hasVisualProperty',rs_objects:'ObjectPart').";
     json_prolog::Prolog pl;
     json_prolog::PrologQueryProxy bdgs = pl.query(prologQuery.str());
     if(bdgs.begin() == bdgs.end())
@@ -148,12 +143,6 @@ private:
       outInfo("Queried Object does not meet requirements of this annotator");
       return UIMA_ERR_NONE; // Indicate failure
     }
-    //    for(json_prolog::PrologQueryProxy::iterator it = bdgs.begin();
-    //        it != bdgs.end(); it++)
-    //    {
-    //      json_prolog::PrologBindings bdg = *it;
-    //      outWarn("Result");
-    //    }
 
     for(int i = 0; i < clusters.size(); ++i)
     {

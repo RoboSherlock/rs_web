@@ -51,17 +51,19 @@
 :- register_ros_package(knowrob_actions).
 :- register_ros_package(knowrob_srdl).
 
+% Load RoboSherlock components
 :- owl_parse('package://rs_kbreasoning/owl/rs_components.owl').
-:- rdf_db:rdf_register_ns(rs_components, 'http://knowrob.org/kb/rs_components.owl#',     [keep(true)]).
-:- rdf_db:rdf_register_ns(rs_test_objects, 'http://knowrob.org/kb/rs_test_objects.owl#',     [keep(true)]).
-:- rdf_db:rdf_register_ns(pr2, 'http://knowrob.org/kb/PR2.owl#',     [keep(true)]).
-:- rdf_db:rdf_register_ns(jazz, 'http://knowrob.org/kb/pico.owl#',     [keep(true)]).
-
+% Load Defined Objects
+:- owl_parse('package://rs_kbreasoning/owl/rs_objects.owl'). 
 % Load robots with their capabilities
 :- owl_parse('package://rs_kbreasoning/owl/PR2.owl'). % Load our own PR2 which has an enhanced ontology (ColorCameras etc.)
 :- owl_parse('package://rs_kbreasoning/owl/pico.owl'). % Jazz Robot http://www.gostai.com/products/jazz/openjazz/index.html
-:- owl_parse('package://rs_kbreasoning/owl/test_objects.owl'). % Load objects to reason about
 
+% Register Namespaces
+:- rdf_db:rdf_register_ns(rs_components, 'http://knowrob.org/kb/rs_components.owl#',     [keep(true)]).
+:- rdf_db:rdf_register_ns(rs_objects, 'http://knowrob.org/kb/rs_objects.owl#',     [keep(true)]).
+:- rdf_db:rdf_register_ns(pr2, 'http://knowrob.org/kb/PR2.owl#',     [keep(true)]).
+:- rdf_db:rdf_register_ns(jazz, 'http://knowrob.org/kb/pico.owl#',     [keep(true)]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Pipeline Planning

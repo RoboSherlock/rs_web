@@ -649,30 +649,30 @@ if __name__ == "__main__":
     owl_manager.addOWLClass(OWLClass("PancakeDetector", OWLSubClassOf("ModelDetection") ))
 
 #
-#     <!-- http://knowrob.org/kb/rs_test_objects.owl#InDrawer -->
+#     <!-- http://knowrob.org/kb/rs_objects.owl#InDrawer -->
 #
-#     <owl:Class rdf:about="http://knowrob.org/kb/rs_test_objects.owl#InDrawer">
-#         <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_test_objects.owl#QualitativeLocationDescription"/>
+#     <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#InDrawer">
+#         <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#QualitativeLocationDescription"/>
 #     </owl:Class>
 #
 #
 #
-#     <!-- http://knowrob.org/kb/rs_test_objects.owl#InRefrigerator -->
+#     <!-- http://knowrob.org/kb/rs_objects.owl#InRefrigerator -->
 #
-#     <owl:Class rdf:about="http://knowrob.org/kb/rs_test_objects.owl#InRefrigerator">
-#         <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_test_objects.owl#QualitativeLocationDescription"/>
+#     <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#InRefrigerator">
+#         <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#QualitativeLocationDescription"/>
 #     </owl:Class>
 #
 #
 #
-#     <!-- http://knowrob.org/kb/rs_test_objects.owl#OnTable -->
+#     <!-- http://knowrob.org/kb/rs_objects.owl#OnTable -->
 #
-#     <owl:Class rdf:about="http://knowrob.org/kb/rs_test_objects.owl#OnTable">
-#         <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_test_objects.owl#QualitativeLocationDescription"/>
+#     <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#OnTable">
+#         <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#QualitativeLocationDescription"/>
 #     </owl:Class>
     # <!-- http://knowrob.org/kb/rs_test_bjects.owl#QualitativeLocationDescription -->
 
-    # <owl:Class rdf:about="http://knowrob.org/kb/rs_test_objects.owl#QualitativeLocationDescription"/>
+    # <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#QualitativeLocationDescription"/>
 
 
     print "Collected the following entities for the Ontology:"

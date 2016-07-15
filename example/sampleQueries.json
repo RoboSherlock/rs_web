@@ -31,23 +31,23 @@
         },
         {
             "text":"What are the objects defined in the ontology?",
-            "q":"owl_subclass_of(Obj,rs_test_objects:'ObjectsToTest')."
+            "q":"owl_subclass_of(Obj,rs_objects:'ObjectsToTest')."
         },
         {
             "text":"Are there any objects that can be contaioner?",
-            "q":"owl_subclass_of(Obj,rs_test_objects:'ObjectsToTest'),owl_subclass_of(Obj,knowrob:'Container')."
+            "q":"owl_subclass_of(Obj,rs_objects:'ObjectsToTest'),owl_subclass_of(Obj,knowrob:'Container')."
         },
         {
             "text":"What about a drinks?",
-            "q":"owl_subclass_of(Obj,rs_test_objects:'ObjectsToTest'),owl_subclass_of(Obj,rs_test_objects:'Drink')."
+            "q":"owl_subclass_of(Obj,rs_objects:'ObjectsToTest'),owl_subclass_of(Obj,rs_objects:'Drink')."
         },
         {
             "text":"What are the properties defined for the PancakeMaker?",
-            "q":"predicates_for_object('http://knowrob.org/kb/rs_test_objects.owl#PancakeMaker',P)."
+            "q":"predicates_for_object('http://knowrob.org/kb/rs_objects.owl#PancakeMaker',P)."
         },
         {
             "text":"Show me all objects that can have a lid",
-            "q":"owl_subclass_of(Obj,knowrob:'HumanScaleObject'),class_properties(Obj,rs_components:'hasVisualProperty',rs_test_objects:'ObjectPartLid')."
+            "q":"owl_subclass_of(Obj,knowrob:'HumanScaleObject'),class_properties(Obj,rs_components:'hasVisualProperty',rs_objects:'ObjectPartLid')."
         },
         {
             "text":"",
@@ -59,7 +59,7 @@
         },
 		{
             "text":"Build a pipeline for the pancake maker.",
-            "q":"build_pipeline_for_object('http://knowrob.org/kb/rs_test_objects.owl#PancakeMaker',P)."
+            "q":"build_pipeline_for_object('http://knowrob.org/kb/rs_objects.owl#PancakeMaker',P)."
         },
 		{
 			"text":"Build pipeline for predicates: shape,color, location.",
@@ -71,11 +71,11 @@
 		},
 		{
 			"text":"Detect pancake if we have a Pancake maker",             		    
-			"q":"detect_if_individual_present('http://knowrob.org/kb/rs_test_objects.owl#Pancake','http://knowrob.org/kb/rs_test_objects.owl#PancakeMaker',P)."	
+			"q":"detect_if_individual_present('http://knowrob.org/kb/rs_objects.owl#Pancake','http://knowrob.org/kb/rs_objects.owl#PancakeMaker',P)."	
 		},
 		{
 			"text":"Detect everything that a drink.",
-  			"q":"build_pipeline_for_subclass_leafs('http://knowrob.org/kb/rs_test_objects.owl#Drink',Pipeline,Drink)."
+  			"q":"build_pipeline_for_subclass_leafs('http://knowrob.org/kb/rs_objects.owl#Drink',Pipeline,Drink)."
 		},
         {
             "text":"-----------------------------------",

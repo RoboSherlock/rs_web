@@ -23,22 +23,22 @@ static std::map<std::string, std::string> krNameMapping =
   {"ELECTRICAL DEVICE", "knowrob:'ElectricalDevice'"},
 
   //objects
-  {"icetea", "rs_test_objects:'PfannerIceTea'"},
-  {"mondamin", "rs_test_objects:'MondaminPancakeMix'"},
-  {"cereal", "rs_test_objects:'KellogsCornFlakes'"},
-  {"plate", "rs_test_objects:'Plate'"},
-  {"pancake_maker", "rs_test_objects:'PancakeMaker'"},
-  {"spatula", "rs_test_objects:'Spatula'"},
-  {"pitcher", "rs_test_objects:'Pitcher'"},
-  {"milk", "rs_test_objects:'Milk'"},
-  {"cup", "rs_test_objects:'Cup'"},
-  {"bottle", "rs_test_objects:'KimaxBottle'"},
-  {"bottle_acid", "rs_test_objects:'KimaxBottle'"},
-  {"bottle_base", "rs_test_objects:'KimaxBottle'"},
-  {"flask_250ml", "rs_test_objects:'Flask'"},
-  {"flask_400ml", "rs_test_objects:'Flask'"},
-  {"pipette", "rs_test_objects:'Pipette'"},
-  {"mixer_ikamag", "rs_test_objects:'MixerIkaMag'"}
+  {"icetea", "rs_objects:'PfannerIceTea'"},
+  {"mondamin", "rs_objects:'MondaminPancakeMix'"},
+  {"cereal", "rs_objects:'KellogsCornFlakes'"},
+  {"plate", "rs_objects:'Plate'"},
+  {"pancake_maker", "rs_objects:'PancakeMaker'"},
+  {"spatula", "rs_objects:'Spatula'"},
+  {"pitcher", "rs_objects:'Pitcher'"},
+  {"milk", "rs_objects:'Milk'"},
+  {"cup", "rs_objects:'Cup'"},
+  {"bottle", "rs_objects:'KimaxBottle'"},
+  {"bottle_acid", "rs_objects:'KimaxBottle'"},
+  {"bottle_base", "rs_objects:'KimaxBottle'"},
+  {"flask_250ml", "rs_objects:'Flask'"},
+  {"flask_400ml", "rs_objects:'Flask'"},
+  {"pipette", "rs_objects:'Pipette'"},
+  {"mixer_ikamag", "rs_objects:'MixerIkaMag'"}
 };
 
 static std::vector<std::string> rsQueryTerms =

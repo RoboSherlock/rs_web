@@ -52,10 +52,7 @@ PREDICATE(init_rs, 2)
       return A2 = (void *)ae_Proxy;
     }
   }
-  else
-  {
-    return FALSE;
-  }
+  return FALSE;
 }
 
 

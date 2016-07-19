@@ -120,7 +120,7 @@ bool DesignatorWrapper::getObjectDesignators(std::vector<designator_integration:
     process(objects, objectDesignators);
   }
   outWarn("here");
-   true;
+  return true;
 }
 
 void DesignatorWrapper::filterClusters(const std::vector<rs::Cluster> input, const designator_integration::Designator *output) const

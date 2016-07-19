@@ -31,10 +31,10 @@ void RSControledAnalysisEngine::init(const std::string &AEFile)
 
   // After all annotators have been initialized, pick the default pipeline
   std::string pathToPackage = ros::package::getPath("rs_kbreasoning");
-  cv::FileStorage fs(pathToPackage+"/config/lowLvlpipeline.yaml",cv::FileStorage::READ);
+  cv::FileStorage fs(pathToPackage + "/config/lowLvlpipeline.yaml", cv::FileStorage::READ);
 
   std::vector<std::string> lowLvlPipeline;
-  fs["annotators"] >>lowLvlPipeline;
+  fs["annotators"] >> lowLvlPipeline;
 
   rspm->setDefaultPipelineOrdering(lowLvlPipeline);
   rspm->setPipelineOrdering(lowLvlPipeline);
@@ -90,7 +90,7 @@ void RSControledAnalysisEngine::process(
       {
         query.inspect.set(q->objToInspect);
       }
-      if(q->ingredient !="")
+      if(q->ingredient != "")
       {
         query.ingredient.set(q->ingredient);
       }
@@ -98,15 +98,21 @@ void RSControledAnalysisEngine::process(
       sceneCas.set("QUERY", query);
     }
     outInfo("processing CAS");
-    uima::CASIterator casIter = engine->processAndOutputNewCASes(*cas);
-
-    for(int i = 0; casIter.hasNext(); ++i)
+    try
     {
-      uima::CAS &outCas = casIter.next();
+      uima::CASIterator casIter = engine->processAndOutputNewCASes(*cas);
+      for(int i = 0; casIter.hasNext(); ++i)
+      {
+        uima::CAS &outCas = casIter.next();
 
-      // release CAS
-      outInfo("release CAS " << i);
-      engine->getAnnotatorContext().releaseCAS(outCas);
+        // release CAS
+        outInfo("release CAS " << i);
+        engine->getAnnotatorContext().releaseCAS(outCas);
+      }
+    }
+    catch(const rs::FrameFilterException &)
+    {
+      // Nothing changed, time to do something else
     }
   }
   catch(const rs::Exception &e)
@@ -142,7 +148,7 @@ void RSControledAnalysisEngine::process(bool reset_pipeline_after_process)
 }
 
 // Call process() and decide if the pipeline should be reset or not
-void RSControledAnalysisEngine::process( bool reset_pipeline_after_process, std::vector<designator_integration::Designator> &designatorResponse)
+void RSControledAnalysisEngine::process(bool reset_pipeline_after_process, std::vector<designator_integration::Designator> &designatorResponse)
 {
   process_mutex->lock();
   outInfo(FG_CYAN << "process(bool,desig) - LOCK OBTAINED");
@@ -188,7 +194,7 @@ void RSControledAnalysisEngine::process(std::vector<std::string> annotators, boo
 }
 
 void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filter,
-                        const std::vector<designator_integration::Designator> &resultDesignators)
+    const std::vector<designator_integration::Designator> &resultDesignators)
 {
   rs::SceneCas sceneCas(*cas);
   rs::Scene scene = sceneCas.getScene();
@@ -219,7 +225,7 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
       for(int iIdx = 0; iIdx < indices.indices.size(); ++iIdx)
       {
         int idx = indices.indices[iIdx];
-        rgb.at<cv::Vec3b>(cv::Point(idx % 640, idx / 640)) =rs::common::cvVec3bcolorsVec[pIdx%rs::common::cvVec3bcolorsVec.size()];
+        rgb.at<cv::Vec3b>(cv::Point(idx % 640, idx / 640)) = rs::common::cvVec3bcolorsVec[pIdx % rs::common::cvVec3bcolorsVec.size()];
       }
     }
   }
@@ -275,14 +281,14 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
   outImgMsgs.image = rgb;
 
   std::vector<uchar> imageData;
-  std::vector<int> params ={CV_IMWRITE_JPEG_QUALITY,90,0};
-  cv::imencode(".jpg",rgb,imageData,params);
+  std::vector<int> params = {CV_IMWRITE_JPEG_QUALITY, 90, 0};
+  cv::imencode(".jpg", rgb, imageData, params);
 
   std::string encoded = rs::common::base64_encode(&imageData[0], imageData.size());
 
 
   std_msgs::String strMsg;
-  strMsg.data = "data:image/jpg;base64,"+encoded;
+  strMsg.data = "data:image/jpg;base64," + encoded;
   base64ImgPub.publish(strMsg);
   image_pub_.publish(outImgMsgs.toImageMsg());
 }

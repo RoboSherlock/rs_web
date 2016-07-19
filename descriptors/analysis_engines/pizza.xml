@@ -293,6 +293,17 @@
         </overrides>
       </configurationParameter>
 
+      <configurationParameter>
+        <name>enable_change_detection</name>
+        <description>Enable filtering of frames based on changes.</description>
+        <type>Boolean</type>
+        <multiValued>false</multiValued>
+        <mandatory>false</mandatory>
+        <overrides>
+          <parameter>RegionFilter/enable_change_detection</parameter>
+        </overrides>
+      </configurationParameter>
+
     </configurationParameters>
 
     <configurationParameterSettings>
@@ -357,6 +368,13 @@
         <name>cluster_min_size</name>
         <value>
           <integer>500</integer>
+        </value>
+      </nameValuePair>
+
+      <nameValuePair>
+        <name>enable_change_detection</name>
+        <value>
+          <boolean>true</boolean>
         </value>
       </nameValuePair>
 

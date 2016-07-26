@@ -416,7 +416,7 @@ private:
         for(unsigned int j = 0; j < c.second.size(); ++j)
         {
           cv::Point p = c.second[j];
-          disp.at<cv::Vec3b>(cv::Point(p.x + roi.x, p.y + roi.y)) = rs::common::cvVec3bcolorsVec[idx % rs::common::cvVec3bcolorsVec.size()];
+          disp.at<cv::Vec3b>(cv::Point(p.x + roi.x, p.y + roi.y)) = rs::common::cvVec3bColors[idx % rs::common::numberOfColors];
           coloredIndice.push_back((p.y + roi.y) * 0.5 * 640 + (p.x + roi.x) / 2);
         }
         idx++;
@@ -452,7 +452,7 @@ private:
         for(unsigned int k = 0; k < indices->indices.size(); ++k)
         {
           int index = indices->indices[k];
-          cloudPtr->points[index].rgba = rs::common::colors[j % COLOR_SIZE];
+          cloudPtr->points[index].rgba = rs::common::colors[j % rs::common::numberOfColors];
         }
       }
     }

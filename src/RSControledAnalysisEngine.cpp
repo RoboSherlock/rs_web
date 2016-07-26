@@ -225,7 +225,7 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
       for(int iIdx = 0; iIdx < indices.indices.size(); ++iIdx)
       {
         int idx = indices.indices[iIdx];
-        rgb.at<cv::Vec3b>(cv::Point(idx % 640, idx / 640)) = rs::common::cvVec3bcolorsVec[pIdx % rs::common::cvVec3bcolorsVec.size()];
+        rgb.at<cv::Vec3b>(cv::Point(idx % 640, idx / 640)) = rs::common::cvVec3bColors[pIdx % rs::common::numberOfColors];
       }
     }
   }
@@ -247,10 +247,10 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
       rs::ImageROI roi = clusters[idx].rois();
       cv::Rect cvRoi;
       rs::conversion::from(roi.roi(), cvRoi);
-      cv::rectangle(rgb, cvRoi, rs::common::cvScalarColorsVec[idx % rs::common::cvScalarColorsVec.size()], 1.5);
+      cv::rectangle(rgb, cvRoi, rs::common::cvScalarColors[idx % rs::common::numberOfColors], 1.5);
       std::stringstream clusterName;
       clusterName << "cID_" << idx;
-      cv::putText(rgb, clusterName.str(), cv::Point(cvRoi.x + 10, cvRoi.y - 10), cv::FONT_HERSHEY_COMPLEX, 0.7, rs::common::cvScalarColorsVec[idx % rs::common::cvScalarColorsVec.size()]);
+      cv::putText(rgb, clusterName.str(), cv::Point(cvRoi.x + 10, cvRoi.y - 10), cv::FONT_HERSHEY_COMPLEX, 0.7, rs::common::cvScalarColors[idx % rs::common::numberOfColors]);
     }
     designator_integration::KeyValuePair *handleKvp = desig.childForKey("type");
     if(handleKvp != NULL)

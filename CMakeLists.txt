@@ -18,7 +18,7 @@ find_package(PkgConfig)
 pkg_check_modules(SWIPL REQUIRED swipl)
 include_directories(${SWIPL_INCLUDE_DIRS})
 link_directories(${SWIPL_LIBRARY_DIRS})
-message("SWIPL" ${SWIPL_LIBRARIES})
+message(STATUS "SWIPL found.")
 
 find_package(RapidJSON QUIET)
 if(${RapidJSON_FOUND})

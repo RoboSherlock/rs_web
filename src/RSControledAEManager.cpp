@@ -46,17 +46,67 @@ bool RSControledAEManager::resetAECallback(iai_robosherlock_msgs::SetRSContext::
 bool RSControledAEManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::Request &req,
     iai_robosherlock_msgs::RSQueryService::Response &res)
 {
-  designator_integration::Designator reqDesig;
-  reqDesig.fillFromJSON(std::string(req.query));
-  designator_integration_msgs::DesignatorCommunication::Request reqMsg;
-  designator_integration_msgs::DesignatorCommunication::Response respMsg;
-  reqMsg.request.designator = reqDesig.serializeToMessage();
-  designatorCallbackLogic(reqMsg, respMsg, false);
-  for(auto resp : respMsg.response.designators)
+  outInfo("JSON Reuqest: " << req.query);
+  rapidjson::Document doc;
+  doc.Parse(req.query.c_str());
+  if(doc.HasMember("semrec"))
   {
-    designator_integration::Designator d(resp);
-    d.setType(designator_integration::Designator::OBJECT);
-    res.answer.push_back(d.serializeToJSON());
+    std::string value = doc["semrec"].GetString();
+    if(value == "start")
+    {
+      if(!ctxMain && !semrecClient)
+      {
+        outInfo("Starting Semantic Logging");
+        semrecClient = new semrec_client::BeliefstateClient("semrec_client");
+        semrecClient->setMetaDataField("experiment", "ex1");
+        semrecClient->startNewExperiment();
+        semrecClient->registerOWLNamespace("robosherlock", "http://robosherlock.org/#");
+        ctxMain = new semrec_client::Context(semrecClient, "RSTimeline", "&robosherlock;", "RSMainTimeline");
+      }
+      else
+      {
+        outError("Logging allready started");
+      }
+    }
+    else if(value == "stop")
+    {
+      if(ctxMain && semrecClient)
+      {
+        outInfo("Stopping Semantic Logging");
+        ctxMain->end(true);
+        semrecClient->exportFiles("robosherlock");
+        delete ctxMain;
+        delete semrecClient;
+        ctxMain = NULL;
+        semrecClient = NULL;
+      }
+      else
+      {
+        outError("There is no logging started");
+      }
+    }
+    else
+    {
+      outError("Undefined command!");
+    }
+  }
+  else
+  {
+    designator_integration::Designator reqDesig;
+    reqDesig.fillFromJSON(std::string(req.query));
+
+    designator_integration_msgs::DesignatorCommunication::Request reqMsg;
+    designator_integration_msgs::DesignatorCommunication::Response respMsg;
+
+    reqMsg.request.designator = reqDesig.serializeToMessage();
+    designatorCallbackLogic(reqMsg, respMsg, false);
+
+    for(auto resp : respMsg.response.designators)
+    {
+      designator_integration::Designator d(resp);
+      d.setType(designator_integration::Designator::OBJECT);
+      res.answer.push_back(d.serializeToJSON());
+    }
   }
   return true;
 }
@@ -82,6 +132,14 @@ bool RSControledAEManager::designatorCallbackLogic(designator_integration_msgs::
   }
   rs::DesignatorWrapper::req_designator = new designator_integration::Designator(req.request.designator);
   rs::DesignatorWrapper::req_designator->printDesignator();
+
+  //log the req desig with semrec
+  semrec_client::Context *ctxRSEvent = NULL;
+  if(ctxMain)
+  {
+    ctxRSEvent = ctxMain->startContext("RoboSherlockEvent", "&robosherlock;", "RoboSherlockEvent");
+    ctxRSEvent->addDesignator(rs::DesignatorWrapper::req_designator, "knowrob:eventRequest");
+  }
 
   RSQuery *query = new RSQuery();
   std::string superClass = "";
@@ -201,12 +259,11 @@ bool RSControledAEManager::designatorCallbackLogic(designator_integration_msgs::
   pipeline_action.setValue("PIPELINEID", pipelineId);
   pipeline_action.setValue("ANNOTATORS", designator_integration::KeyValuePair::LIST, lstDescription);
   filteredResponse.push_back(pipeline_action);
+  //  ctxRSEvent->addDesignator(pipeline_action, "knowrob:eventHandler");
+
 
   //   Delete the allocated keyvalue pairs for the annotator names
-  for(auto & kvpPtr : lstDescription)
-  {
-    delete kvpPtr;
-  }
+
   designator_integration_msgs::DesignatorResponse topicResponse;
   for(auto & designator : filteredResponse)
   {
@@ -214,11 +271,27 @@ bool RSControledAEManager::designatorCallbackLogic(designator_integration_msgs::
     designator.printDesignator();
     res.response.designators.push_back(designator.serializeToMessage());
     topicResponse.designators.push_back(designator.serializeToMessage(false));
+    if(ctxRSEvent)
+    {
+      //this needs to be an object->create copy constructor in Object class
+      ctxRSEvent->addDesignator(&designator,"knowrob:eventRequest");
+    }
+
   }
+  if(ctxRSEvent != NULL)
+  {
+    ctxRSEvent->end();
+  }
+  delete ctxRSEvent;
+
   desig_pub_.publish(topicResponse);
   processing_mutex_.unlock();
   outInfo(FG_CYAN << "LOCK RELEASE");
   delete query;
+  for(auto & kvpPtr : lstDescription)
+  {
+    delete kvpPtr;
+  }
   outWarn("RS Query service call ended");
   return true;
 }

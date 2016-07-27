@@ -13,6 +13,11 @@
 #include <iai_robosherlock_msgs/SetRSContext.h>
 #include <iai_robosherlock_msgs/RSQueryService.h>
 
+#include <semrec_client/BeliefstateClient.h>
+#include <semrec_client/Context.h>
+
+#include <rapidjson/rapidjson.h>
+#include <rapidjson/document.h>
 
 class RSControledAEManager
   //  public RSAnalysisEngineManager<RSControledAnalysisEngine>
@@ -33,6 +38,9 @@ private:
   std::mutex processing_mutex_;
 
   rs::Visualizer visualizer_;
+
+  semrec_client::BeliefstateClient *semrecClient;
+  semrec_client::Context *ctxMain;
 
 public:
   RSControledAEManager(const bool useVisualizer, const std::string &savePath,
@@ -71,12 +79,17 @@ public:
     // Call this service to switch between AEs
     setContextService = n.advertiseService("set_context", &RSControledAEManager::resetAECallback, this);
 
-    jsonService = n.advertiseService("json_query",&RSControledAEManager::jsonQueryCallback,this);
+    jsonService = n.advertiseService("json_query", &RSControledAEManager::jsonQueryCallback, this);
 
+    semrecClient=NULL;
+    ctxMain=NULL;
   }
   ~RSControledAEManager()
   {
+    delete semrecClient;
+    delete ctxMain;
     uima::ResourceManager::deleteInstance();
+    outInfo("RSControledAnalysisEngine Stoped");
   }
 
   /*brief
@@ -126,8 +139,6 @@ public:
                      const std::vector<designator_integration::Designator> &resultDesignators,
                      std::vector<designator_integration::Designator> &filteredResponse,
                      std::string superclass);
-
-  void overwriteParentField(designator_integration::KeyValuePair &d, int level);
 
 };
 

@@ -247,8 +247,8 @@ bool RSControledAEManager::designatorCallbackLogic(designator_integration_msgs::
   }
 
   // Define an ACTION designator with the planned pipeline
-  designator_integration::Designator pipeline_action;
-  pipeline_action.setType(designator_integration::Designator::ACTION);
+  designator_integration::Designator *pipeline_action = new designator_integration::Designator();
+  pipeline_action->setType(designator_integration::Designator::ACTION);
   std::list<designator_integration::KeyValuePair *> lstDescription;
   for(auto & annotatorName : executedPipeline)
   {
@@ -256,11 +256,14 @@ bool RSControledAEManager::designatorCallbackLogic(designator_integration_msgs::
     oneAnno->setValue(annotatorName);
     lstDescription.push_back(oneAnno);
   }
-  pipeline_action.setValue("PIPELINEID", pipelineId);
-  pipeline_action.setValue("ANNOTATORS", designator_integration::KeyValuePair::LIST, lstDescription);
-  filteredResponse.push_back(pipeline_action);
-  //  ctxRSEvent->addDesignator(pipeline_action, "knowrob:eventHandler");
+  pipeline_action->setValue("PIPELINEID", pipelineId);
+  pipeline_action->setValue("ANNOTATORS", designator_integration::KeyValuePair::LIST, lstDescription);
+  //  filteredResponse.push_back(pipeline_action);
 
+  if(ctxRSEvent != NULL)
+  {
+    ctxRSEvent->addDesignator(pipeline_action, "knowrob:eventHandler");
+  }
 
   //   Delete the allocated keyvalue pairs for the annotator names
 
@@ -274,7 +277,7 @@ bool RSControledAEManager::designatorCallbackLogic(designator_integration_msgs::
     if(ctxRSEvent)
     {
       //this needs to be an object->create copy constructor in Object class
-      ctxRSEvent->addDesignator(&designator,"knowrob:eventRequest");
+      ctxRSEvent->addDesignator(&designator, "knowrob:eventRequest");
     }
 
   }
@@ -292,6 +295,7 @@ bool RSControledAEManager::designatorCallbackLogic(designator_integration_msgs::
   {
     delete kvpPtr;
   }
+  delete pipeline_action;
   outWarn("RS Query service call ended");
   return true;
 }

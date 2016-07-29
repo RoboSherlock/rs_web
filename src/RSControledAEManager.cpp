@@ -54,14 +54,13 @@ bool RSControledAEManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryServi
     std::string value = doc["semrec"].GetString();
     if(value == "start")
     {
-      if(!ctxMain && !semrecClient)
+      if(!semrecClient)
       {
         outInfo("Starting Semantic Logging");
         semrecClient = new semrec_client::BeliefstateClient("semrec_client");
         semrecClient->setMetaDataField("experiment", "ex1");
         semrecClient->startNewExperiment();
-        semrecClient->registerOWLNamespace("robosherlock", "http://robosherlock.org/#");
-        ctxMain = new semrec_client::Context(semrecClient, "RSTimeline", "&robosherlock;", "RSMainTimeline");
+        semrecClient->registerOWLNamespace("rs_kbreasoning", "http://robosherlock.org/#");
       }
       else
       {
@@ -70,14 +69,11 @@ bool RSControledAEManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryServi
     }
     else if(value == "stop")
     {
-      if(ctxMain && semrecClient)
+      if(semrecClient)
       {
         outInfo("Stopping Semantic Logging");
-        ctxMain->end(true);
         semrecClient->exportFiles("robosherlock");
-        delete ctxMain;
         delete semrecClient;
-        ctxMain = NULL;
         semrecClient = NULL;
       }
       else
@@ -131,22 +127,26 @@ bool RSControledAEManager::designatorCallbackLogic(designator_integration_msgs::
     delete rs::DesignatorWrapper::req_designator;
   }
   rs::DesignatorWrapper::req_designator = new designator_integration::Designator(req.request.designator);
+  rs::DesignatorWrapper::req_designator->setType(designator_integration::Designator::ACTION);
   rs::DesignatorWrapper::req_designator->printDesignator();
 
   //log the req desig with semrec
   semrec_client::Context *ctxRSEvent = NULL;
-  if(ctxMain)
+  if(semrecClient)
   {
-    ctxRSEvent = ctxMain->startContext("RoboSherlockEvent", "&robosherlock;", "RoboSherlockEvent");
-    ctxRSEvent->addDesignator(rs::DesignatorWrapper::req_designator, "knowrob:eventRequest");
+    ctxRSEvent = new semrec_client::Context(this->semrecClient, "RoboSherlockEvent", "&rs_kbreasoning;", "RoboSherlockEvent");
+//    ctxRSEvent->addObject(new semrec_client::Object(rs::DesignatorWrapper::req_designator,"&rs_kbreasoning;","eventRequest"),"rs_kbreasoning:eventRequest");
+    ctxRSEvent->addDesignator(rs::DesignatorWrapper::req_designator,"rs_kbreasoning:eventRequest","&rs_kbreasoning;","eventRequest");
+//    eveReq->end();
+//    delete eveReq;
   }
 
   RSQuery *query = new RSQuery();
   std::string superClass = "";
 
-  if(rs::DesignatorWrapper::req_designator->type() != designator_integration::Designator::OBJECT)
+  if(rs::DesignatorWrapper::req_designator->type() != designator_integration::Designator::ACTION)
   {
-    outInfo(" ***** RECEIVED SERVICE CALL WITH UNHANDELED DESIGNATOR TYPE (everything != OBJECT) ! Aborting... ****** ");
+    outInfo(" ***** RECEIVED SERVICE CALL WITH UNHANDELED DESIGNATOR TYPE (everything != ACTION) ! Aborting... ****** ");
     return false;
   }
 
@@ -262,7 +262,7 @@ bool RSControledAEManager::designatorCallbackLogic(designator_integration_msgs::
 
   if(ctxRSEvent != NULL)
   {
-    ctxRSEvent->addDesignator(pipeline_action, "knowrob:eventHandler");
+    ctxRSEvent->addDesignator(pipeline_action, "rs_kbreasoning:eventHandler","&rs_kbreasoning;","eventHandler");
   }
 
   //   Delete the allocated keyvalue pairs for the annotator names
@@ -277,7 +277,7 @@ bool RSControledAEManager::designatorCallbackLogic(designator_integration_msgs::
     if(ctxRSEvent)
     {
       //this needs to be an object->create copy constructor in Object class
-      ctxRSEvent->addDesignator(&designator, "knowrob:eventRequest");
+      ctxRSEvent->addObject(new semrec_client::Object(&designator,"&rs_kbreasoning;","objectPerceived"),"rs_kbreasoning:objectPerceived");
     }
 
   }

@@ -463,7 +463,7 @@ void RSControledAEManager::filterResults(designator_integration::Designator &req
                 designator_integration::KeyValuePair childrenPair = **iter;
                 if(childrenPair.key() == "TYPE")
                 {
-                  if(superclass != "")
+                  if(superclass != "" && rs_kbreasoning::krNameMapping.count(superclass) == 1)
                   {
                     std::stringstream prologQuery;
                     prologQuery << "owl_subclass_of(" << rs_kbreasoning::krNameMapping[childrenPair.stringValue()] << "," << rs_kbreasoning::krNameMapping[superclass] << ").";

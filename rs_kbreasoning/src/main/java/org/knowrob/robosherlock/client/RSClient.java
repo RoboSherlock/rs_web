@@ -163,7 +163,7 @@ public class RSClient extends AbstractNodeMain {
 				}
 				else 
 				{
-					addKeyValuePair(kvp[0].toUpperCase(),kvp[1].toUpperCase(),list);
+					addKeyValuePair(kvp[0].toUpperCase(),kvp[1],list);
 				}
 			}
 			else

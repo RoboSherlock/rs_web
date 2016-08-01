@@ -100,7 +100,6 @@ bool DesignatorWrapper::getObjectDesignators(std::vector<designator_integration:
   {
     std::vector<rs::Cluster> clusters;
     scene.identifiables.filter(clusters);
-    outWarn("Processing Clusters in the designator wrapper");
     process(clusters, objectDesignators);
   }
   else
@@ -119,7 +118,6 @@ bool DesignatorWrapper::getObjectDesignators(std::vector<designator_integration:
     }
     process(objects, objectDesignators);
   }
-  outWarn("here");
   return true;
 }
 

@@ -119,6 +119,12 @@
     
 
 
+    <!-- http://knowrob.org/kb/knowrob.owl#HandTool -->
+
+    <owl:Class rdf:about="http://knowrob.org/kb/knowrob.owl#HandTool"/>
+    
+
+
     <!-- http://knowrob.org/kb/knowrob.owl#Handle -->
 
     <owl:Class rdf:about="http://knowrob.org/kb/knowrob.owl#Handle">
@@ -365,6 +371,15 @@
     
 
 
+    <!-- http://knowrob.org/kb/rs_objects.owl#Cutlery -->
+
+    <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#Cutlery">
+        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/knowrob.owl#HandTool"/>
+        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#KitchenObjects"/>
+    </owl:Class>
+    
+
+
     <!-- http://knowrob.org/kb/rs_objects.owl#DrawerHandle -->
 
     <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#DrawerHandle">
@@ -391,10 +406,18 @@
     
 
 
+    <!-- http://knowrob.org/kb/rs_objects.owl#Fork -->
+
+    <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#Fork">
+        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#Cutlery"/>
+    </owl:Class>
+    
+
+
     <!-- http://knowrob.org/kb/rs_objects.owl#ForkBluePlastic -->
 
     <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#ForkBluePlastic">
-        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#KitchenObjects"/>
+        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#Fork"/>
     </owl:Class>
     
 
@@ -402,7 +425,7 @@
     <!-- http://knowrob.org/kb/rs_objects.owl#ForkRedPlastic -->
 
     <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#ForkRedPlastic">
-        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#KitchenObjects"/>
+        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#Fork"/>
     </owl:Class>
     
 
@@ -410,7 +433,7 @@
     <!-- http://knowrob.org/kb/rs_objects.owl#ForkYcb -->
 
     <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#ForkYcb">
-        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#KitchenObjects"/>
+        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#Fork"/>
     </owl:Class>
     
 
@@ -554,10 +577,18 @@
     
 
 
+    <!-- http://knowrob.org/kb/rs_objects.owl#Knife -->
+
+    <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#Knife">
+        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#Cutlery"/>
+    </owl:Class>
+    
+
+
     <!-- http://knowrob.org/kb/rs_objects.owl#KnifeBluePlastic -->
 
     <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#KnifeBluePlastic">
-        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#KitchenObjects"/>
+        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#Knife"/>
     </owl:Class>
     
 
@@ -565,7 +596,7 @@
     <!-- http://knowrob.org/kb/rs_objects.owl#KnifeRedPlastic -->
 
     <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#KnifeRedPlastic">
-        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#KitchenObjects"/>
+        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#Knife"/>
     </owl:Class>
     
 
@@ -573,7 +604,7 @@
     <!-- http://knowrob.org/kb/rs_objects.owl#KnifeYcb -->
 
     <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#KnifeYcb">
-        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#KitchenObjects"/>
+        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#Knife"/>
     </owl:Class>
     
 
@@ -849,6 +880,7 @@
     <!-- http://knowrob.org/kb/rs_objects.owl#PfannerGruneIcetea -->
 
     <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#PfannerGruneIcetea">
+        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/knowrob.owl#Drink"/>
         <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#KitchenObjects"/>
     </owl:Class>
     
@@ -865,6 +897,7 @@
     <!-- http://knowrob.org/kb/rs_objects.owl#PfannerPfirschIcetea -->
 
     <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#PfannerPfirschIcetea">
+        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/knowrob.owl#Drink"/>
         <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#KitchenObjects"/>
     </owl:Class>
     

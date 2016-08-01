@@ -16,15 +16,18 @@ namespace rs_kbreasoning
 static std::map<std::string, std::string> krNameMapping =
 {
   //superclasses
-  {"DRINK", "knowrob:'Drink'"},
-  {"FOODORDRINKORINGREDIENT", "knowrob:'FoodOrDrinkOrIngredient'"},
-  {"CONTAINER", "knowrob:'Container'"},
-  {"COOKING UTENSIL", "knowrob:'CookingUtensil'"},
-  {"ELECTRICAL DEVICE", "knowrob:'ElectricalDevice'"},
+  {"Drink", "knowrob:'Drink'"},
+  {"FoodOrDrinkOrIngredient", "knowrob:'FoodOrDrinkOrIngredient'"},
+  {"Container", "knowrob:'Container'"},
+  {"CookingUtensil", "knowrob:'CookingUtensil'"},
+  {"ElectricalDevice", "knowrob:'ElectricalDevice'"},
+  {"Cutlery", "rs_objects:'Cutlery'"},
+  {"Fork", "rs_objects:'Fork'"},
+  {"Knife", "rs_objects:'Knife'"},
 
   //OBJECTS:
   //kitchen should solve this with some conversion and naming guideline
-  {"icetea", "rs_objects:'PfannerPfirschIceTea'"},
+  {"icetea", "rs_objects:'PfannerPfirschIcetea'"},
   {"mondamin", "rs_objects:'Mondamin'"},
   {"cereal", "rs_objects:'KellogsCornFlakes'"},
   {"plate", "rs_objects:'RedSpottedPlate'"},

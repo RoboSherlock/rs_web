@@ -34,6 +34,9 @@
     <delegateAnalysisEngine key="BottleAnnotator">
       <import location="../../../robosherlock_demos/descriptors/annotators/acat/BottleAnnotator.xml"/>
     </delegateAnalysisEngine>
+    <delegateAnalysisEngine key="CaffeAnnotator">
+      <import location="../../../robosherlock/descriptors/annotators/annotation/CaffeAnnotator.xml"/>
+    </delegateAnalysisEngine>
     <delegateAnalysisEngine key="CaffeClassificationAnnotator">
       <import location="../../../rs_addons/descriptors/annotators/CaffeClassificationAnnotator.xml"/>
     </delegateAnalysisEngine>
@@ -490,7 +493,7 @@
       <nameValuePair>
         <name>border</name>
         <value>
-          <float>0.03</float>
+          <float>0.05</float>
         </value>
       </nameValuePair>
 
@@ -504,7 +507,7 @@
     </configurationParameterSettings>
     <flowConstraints>
     <fixedFlow>
-     <!-- <node>Trigger</node>-->
+      <node>Trigger</node>
       <node>CollectionReader</node>
       <node>ImagePreprocessor</node>
       <node>HandleAnnotator</node>
@@ -516,7 +519,9 @@
       <node>ClusterMerger</node>
 
       <node>Cluster3DGeometryAnnotator</node>
+      <node>CaffeAnnotator</node>
       <node>FeatureAnnotator</node>
+      <node>PCLFeatureExtractor</node>
       <node>ClusterTFLocationAnnotator</node>
       <node>ClusterColorHistogramCalculator</node>
       <node>PrimitiveShapeAnnotator</node>
@@ -525,13 +530,9 @@
 <!--      <node>MLNInferencer</node>-->
       <node>ClusterToPartsSegmenter</node>
       <node>DeCafClassifier</node>
-     <!-- <node>BottleAnnotator</node>
-      <node>FlaskAnnotator</node>
-      <node>MixerAnnotator</node-->
 <!--      <node>ClusterTracker</node>-->
 <!--      <node>ClusterGogglesAnnotator</node>-->
 <!--      <node>GroundTruthAnnotator</node>-->
-<!--      <node>MLNAtomsGenerator</node>-->
 <node>TFBroadcaster</node>
       <node>ObjectIdentityResolution</node>
       <node>StorageWriter</node>

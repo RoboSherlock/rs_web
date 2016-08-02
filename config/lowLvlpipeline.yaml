@@ -11,5 +11,8 @@ annotators:
     - Cluster3DGeometryAnnotator
     - PrimitiveShapeAnnotator
     - ClusterColorHistogramCalculator
+    - FeatureAnnotator
+    - CaffeAnnotator
+    - PCLFeatureExtractor
     - ObjectIdentityResolution
     - StorageWriter

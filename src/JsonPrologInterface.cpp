@@ -49,7 +49,11 @@ bool JsonPrologInterface::buildPrologQueryFromDesignator(designator_integration:
         queriedKeys.push_back("pancakedetector");
       }
     }
-
+    //a bit hacky for now it will have to do..ensure that there is always a pose
+    if( std::find(queriedKeys.begin(),queriedKeys.end(), "size") == queriedKeys.end())
+    {
+        queriedKeys.push_back("size");
+    }
     for(int i = 0; i < queriedKeys.size(); i++)
     {
       prologQuery += queriedKeys.at(i);

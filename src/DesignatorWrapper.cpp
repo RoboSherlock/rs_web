@@ -321,8 +321,7 @@ void DesignatorWrapper::convert(rs::ARMarker &input, designator_integration::Des
 void DesignatorWrapper::convert(rs::HandleAnnotation &input,
     designator_integration::Designator &handleDesignator)
 {
-  handleDesignator.setValue("type", "HANDLE");
-  handleDesignator.setValue("NAME", input.name());
+  handleDesignator.setValue("HANDLE",input.name());
   tf::Stamped<tf::Pose> tf_stamped_pose;
   geometry_msgs::PoseStamped pose_stamped_msgs;
   rs::conversion::from(input.pose(), tf_stamped_pose);

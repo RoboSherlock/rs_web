@@ -29,7 +29,7 @@ bool RSControledAEManager::resetAECallback(iai_robosherlock_msgs::SetRSContext::
   if(rs::common::getAEPaths(newContextName, contextAEPath))
   {
     outInfo("Setting new context: " << newContextName);
-    this->init(contextAEPath);
+    this->init(contextAEPath,configFile);
     outInfo("releasing lock");
     processing_mutex_.unlock();
     return true;
@@ -321,11 +321,11 @@ void RSControledAEManager::filterResults(designator_integration::Designator &req
     {
       continue;
     }
-    if(req_kvp.key() == "HANDLE")
-    {
-      outInfo("Handle requested, nothing to do here");
-      continue;
-    }
+//    if(req_kvp.key() == "HANDLE")
+//    {
+//      outInfo("Handle requested, nothing to do here");
+//      continue;
+//    }
 
     outInfo("No. of result Designators: " << resultDesignators.size());
     for(size_t i = 0; i < resultDesignators.size(); ++i)
@@ -390,6 +390,7 @@ void RSControledAEManager::filterResults(designator_integration::Designator &req
       }
       else
       {
+        resultsForRequestedKey.push_back(resDesig.childForKey(req_kvp.key()));
         outWarn("No CLUSTER ID");
       }
 

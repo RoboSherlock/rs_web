@@ -58,6 +58,7 @@ void help()
   std::cout << "Usage: runAECpp [options] analysisEngine.xml [...]" << std::endl
             << "Options:" << std::endl
             << "  -wait If using piepline set this to wait for a service call" << std::endl
+            << "  -cwa use the list of objects from [pkg_path]/config/config.yaml to set a closed world assumption"
             << "  -visualizer  Enable visualization" << std::endl
             << "  -save PATH   Path for storing images" << std::endl;
 }
@@ -84,6 +85,7 @@ int main(int argc, char *argv[])
   }
   bool useVisualizer = false;
   bool waitForServiceCall = false;
+  bool useCWAssumption = false;
   std::string savePath = getenv("HOME");
 
   size_t argO = 0;
@@ -98,6 +100,10 @@ int main(int argc, char *argv[])
     else if(arg == "-wait")
     {
       waitForServiceCall = true;
+    }
+    else if(arg == "-cwa")
+    {
+      useCWAssumption = true;
     }
     else if(arg == "-save")
     {
@@ -138,11 +144,12 @@ int main(int argc, char *argv[])
     }
   }
   outInfo(analysisEngineFile);
+  std::string configFile = ros::package::getPath("rs_kbreasoning") +"/config/config.yaml";
   ros::NodeHandle n("~");
   try
   {
-    RSControledAEManager manager(useVisualizer, savePath, waitForServiceCall, n);
-    manager.init(analysisEngineFile);
+    RSControledAEManager manager(useVisualizer, savePath, waitForServiceCall,useCWAssumption, n);
+    manager.init(analysisEngineFile,configFile);
     manager.run();
     manager.stop();
   }

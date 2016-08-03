@@ -45,12 +45,12 @@ PREDICATE(init_rs, 2)
     dlopen("libpython2.7.so", RTLD_LAZY | RTLD_GLOBAL);
     std::string pipelineName((char *)A1);
     std::string pipelinePath;
-    rs::common::getAEPaths(pipelineName, pipelinePath);
-    if(!pipelinePath.empty())
-    {
-      ae_Proxy->init(pipelinePath);
-      return A2 = (void *)ae_Proxy;
-    }
+//    rs::common::getAEPaths(pipelineName, pipelinePath);
+//    if(!pipelinePath.empty())
+//    {
+//      ae_Proxy->init(pipelinePath,"");
+//      return A2 = (void *)ae_Proxy;
+//    }
   }
   return FALSE;
 }
@@ -74,7 +74,7 @@ PREDICATE(change_context, 1)
       std::string currentPipeline = ae_Proxy->getCurrentAEName();
       if(currentPipeline != newPipelinePath)
       {
-        ae_Proxy->init(newPipelinePath);
+        ae_Proxy->init(newPipelinePath,"");
         return TRUE;
       }
       else

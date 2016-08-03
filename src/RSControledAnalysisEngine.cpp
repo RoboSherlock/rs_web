@@ -1,6 +1,6 @@
 #include <rs_kbreasoning/RSControledAnalysisEngine.h>
 
-void RSControledAnalysisEngine::init(const std::string &AEFile)
+void RSControledAnalysisEngine::init(const std::string &AEFile, const std::string &configFile)
 {
   uima::ErrorInfo errorInfo;
 
@@ -31,7 +31,7 @@ void RSControledAnalysisEngine::init(const std::string &AEFile)
 
   // After all annotators have been initialized, pick the default pipeline
   std::string pathToPackage = ros::package::getPath("rs_kbreasoning");
-  cv::FileStorage fs(pathToPackage + "/config/lowLvlpipeline.yaml", cv::FileStorage::READ);
+  cv::FileStorage fs(configFile, cv::FileStorage::READ);
 
   std::vector<std::string> lowLvlPipeline;
   fs["annotators"] >> lowLvlPipeline;
@@ -54,6 +54,11 @@ void RSControledAnalysisEngine::init(const std::string &AEFile)
   outInfo("initialization done: " << name << std::endl
           << std::endl << FG_YELLOW << "********************************************************************************" << std::endl);
   currentAEName = AEFile;
+}
+
+void RSControledAnalysisEngine::setCWAssumption(const std::vector<std::string> &cwObjs)
+{
+  cwObjects_.assign(cwObjs.begin(), cwObjs.end());
 }
 
 void RSControledAnalysisEngine::process()
@@ -96,6 +101,14 @@ void RSControledAnalysisEngine::process(
       }
       outInfo("setting in CAS: ts:" << q->timestamp << " location: " << q->location);
       sceneCas.set("QUERY", query);
+    }
+    if(!cwObjects_.empty())
+    {
+      outInfo("setting list of objects for closed world assumption in the CAS");
+      rs::SceneCas sceneCas(*cas);
+      rs::CWAssumption cwAssump = rs::create<rs::CWAssumption>(*cas);
+      cwAssump.cwObjects(cwObjects_);
+      sceneCas.set("CWA", cwAssump);
     }
     outInfo("processing CAS");
     try
@@ -252,7 +265,7 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
       clusterName << "cID_" << idx;
       cv::putText(rgb, clusterName.str(), cv::Point(cvRoi.x + 10, cvRoi.y - 10), cv::FONT_HERSHEY_COMPLEX, 0.7, rs::common::cvScalarColors[idx % rs::common::numberOfColors]);
     }
-    designator_integration::KeyValuePair *handleKvp = desig.childForKey("type");
+    designator_integration::KeyValuePair *handleKvp = desig.childForKey("HANDLE");
     if(handleKvp != NULL)
     {
       //color the pixels of the handle
@@ -260,17 +273,22 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
       scene.annotations.filter(handles);
       for(int i = 0; i < handles.size(); ++i)
       {
-        pcl::PointIndices indices;
-        rs::conversion::from(handles[i].indices(), indices);
-        outInfo("Number of inliers in handle " << i << ": " << indices.indices.size());
-        for(int j = 0; j < indices.indices.size(); ++j)
+        outInfo("Actual name: " <<handles[i].name());
+        outInfo("Queried name: "<<handleKvp->stringValue());
+        if(handles[i].name() == handleKvp->stringValue())
         {
-          int idx = indices.indices[j];
-          cv::Vec3b new_color;
-          new_color[0] = 0;
-          new_color[0] = 0;
-          new_color[0] = 255;
-          rgb.at<cv::Vec3b>(cv::Point(idx % 640, idx / 640)) = new_color;
+          pcl::PointIndices indices;
+          rs::conversion::from(handles[i].indices(), indices);
+          outInfo("Number of inliers in handle " << i << ": " << indices.indices.size());
+          for(int j = 0; j < indices.indices.size(); ++j)
+          {
+            int idx = indices.indices[j];
+            cv::Vec3b new_color;
+            new_color[0] = 0;
+            new_color[0] = 0;
+            new_color[0] = 255;
+            rgb.at<cv::Vec3b>(cv::Point(idx % 640, idx / 640)) = new_color;
+          }
         }
       }
     }

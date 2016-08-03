@@ -38,6 +38,7 @@ private:
   RSPipelineManager *rspm;
   std::string currentAEName;
   std::vector<std::string> next_pipeline_order;
+  std::vector<std::string> cwObjects_;
   boost::shared_ptr<std::mutex> process_mutex;
 
   ros::NodeHandle nh_;
@@ -119,8 +120,9 @@ public:
     return false;
   }
 
-  void init(const std::string &file);
+  void init(const std::string &file,const std::string &configFile);
 
+  void setCWAssumption(const std::vector<std::string>&);
   void process();
 
   void process(std::vector<designator_integration::Designator> &designator_response,

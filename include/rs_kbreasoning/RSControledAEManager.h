@@ -34,6 +34,7 @@ private:
 
   const bool waitForServiceCall_;
   const bool useVisualizer_;
+  const bool useCWAssumption_;
 
   std::mutex processing_mutex_;
 
@@ -42,11 +43,14 @@ private:
   semrec_client::BeliefstateClient *semrecClient;
   semrec_client::Context *ctxMain;
 
+  std::string configFile;
+  std::vector<std::string> closedWorldAssumption;
+
 public:
   RSControledAEManager(const bool useVisualizer, const std::string &savePath,
-                       const bool &waitForServiceCall, ros::NodeHandle n):
+                       const bool &waitForServiceCall, const bool useCWAssumption, ros::NodeHandle n):
     jsonPrologInterface_(), nh_(n), waitForServiceCall_(waitForServiceCall),
-    useVisualizer_(useVisualizer),    visualizer_(savePath)
+    useVisualizer_(useVisualizer),useCWAssumption_(useCWAssumption), visualizer_(savePath)
   {
 
     outInfo("Creating resource manager"); // TODO: DEBUG
@@ -93,11 +97,24 @@ public:
   }
 
   /*brief
-   * init the AE
+   * init the AE Manager
    **/
-  void init(std::string &xmlFile)
+  void init(std::string &xmlFile,std::string configFile)
   {
-    engine.init(xmlFile);
+    this->configFile = configFile;
+    cv::FileStorage fs(configFile, cv::FileStorage::READ);
+    fs["cw_assumption"] >>closedWorldAssumption;
+    engine.init(xmlFile,configFile);
+    outInfo("Number of objects in closed world assumption: "<<closedWorldAssumption.size());
+    if(!closedWorldAssumption.empty() && useCWAssumption_)
+    {
+
+      for(auto cwa:closedWorldAssumption)
+      {
+        outInfo(cwa);
+      }
+      engine.setCWAssumption(closedWorldAssumption);
+    }
     if(useVisualizer_)
     {
       visualizer_.start();

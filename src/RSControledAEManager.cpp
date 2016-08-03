@@ -321,11 +321,6 @@ void RSControledAEManager::filterResults(designator_integration::Designator &req
     {
       continue;
     }
-//    if(req_kvp.key() == "HANDLE")
-//    {
-//      outInfo("Handle requested, nothing to do here");
-//      continue;
-//    }
 
     outInfo("No. of result Designators: " << resultDesignators.size());
     for(size_t i = 0; i < resultDesignators.size(); ++i)

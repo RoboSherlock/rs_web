@@ -219,6 +219,15 @@ bool RSControledAEManager::designatorCallbackLogic(designator_integration_msgs::
     std::vector<std::string> new_pipeline_order = jsonPrologInterface_.createPipelineFromPrologResult(bdg["A"].toString());
 
     //always add Storage at the end
+    if( std::find(new_pipeline_order.begin(),new_pipeline_order.end(), "Cluster3DGeometryAnnotator") == new_pipeline_order.end())
+    {
+       std::vector<std::string>::iterator it= std::find(new_pipeline_order.begin(),new_pipeline_order.end(),"ClusterMerger");
+       if(it!= new_pipeline_order.end())
+       {
+           new_pipeline_order.insert(it+1,"Cluster3DGeometryAnnotator");
+       }
+    }
+
     new_pipeline_order.push_back("TFBroadcaster");
     new_pipeline_order.push_back("StorageWriter");
 

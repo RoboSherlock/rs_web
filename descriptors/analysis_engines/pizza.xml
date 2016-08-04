@@ -338,8 +338,8 @@
         <name>camera_config_files</name>
         <value>
           <array>
-              <!--               <string>config_mongodb_pizza.ini</string>-->
-           <string>config_kinect2_robot.ini</string>
+            <!--<string>config_mongodb_pizza.ini</string>-->
+            <string>config_kinect2_robot_filtered.ini</string>
           </array>
         </value>
       </nameValuePair>

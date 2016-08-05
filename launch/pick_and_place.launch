@@ -13,5 +13,7 @@
   </node>
 
   <!-- launch robosherlock -->
-  <node name="RoboSherlock" pkg="rs_kbreasoning" type="runAE" output="screen" args="pickandplace" />
+  <arg name="wait" default="false" />
+  <node if="$(arg wait)"  name="RoboSherlock" pkg="rs_kbreasoning" type="runAE" output="screen" args="pickandplace -wait" />
+  <node unless="$(arg wait)"  name="RoboSherlock" pkg="rs_kbreasoning" type="runAE" output="screen" args="pickandplace" />
 </launch>

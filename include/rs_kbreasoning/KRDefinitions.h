@@ -31,7 +31,7 @@ static std::map<std::string, std::string> krNameMapping =
   {"icetea", "rs_objects:'PfannerPfirschIcetea'"},
   {"mondamin", "rs_objects:'Mondamin'"},
   {"cereal", "rs_objects:'KellogsCornFlakes'"},
-  {"plate", "rs_objects:'RedSpottedPlate'"},
+  {"red_spotted_plate", "rs_objects:'RedSpottedPlate'"},
   {"pancake_maker", "rs_objects:'PancakeMaker'"},
   {"spatula", "rs_objects:'FryingSpatula'"},
   {"pitcher", "rs_objects:'YellowPitcher'"},

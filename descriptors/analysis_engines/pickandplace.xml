@@ -381,27 +381,9 @@
           <parameter>Cluster3DGeometryAnnotator/projectOnPlane</parameter>
         </overrides>
       </configurationParameter>
-
-      <configurationParameter>
-        <name>overwrite2DEstimates</name>
-        <type>Boolean</type>
-        <multiValued>false</multiValued>
-        <mandatory>false</mandatory>
-      </configurationParameter>
-      <overrides>
-        <parameter>Cluster3DGeometryAnnotator/overwrite2DEstimates</parameter>
-      </overrides>
-
     </configurationParameters>
 
     <configurationParameterSettings>
-
-      <nameValuePair>
-        <name>overwrite2DEstimates</name>
-        <value>
-          <boolean>true</boolean>
-        </value>
-      </nameValuePair>
 
       <nameValuePair>
         <name>projectOnPlane</name>

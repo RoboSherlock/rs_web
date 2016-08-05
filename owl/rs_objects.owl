@@ -1062,6 +1062,7 @@
     <!-- http://knowrob.org/kb/rs_objects.owl#ReineButterMilch -->
 
     <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#ReineButterMilch">
+        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#Bottle"/>
         <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#MilkProduct"/>
     </owl:Class>
     

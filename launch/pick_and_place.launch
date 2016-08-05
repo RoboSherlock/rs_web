@@ -3,6 +3,9 @@
   <param name="initial_package" type="string" value="rs_kbreasoning" />
   <node name="json_prolog" pkg="json_prolog" type="json_prolog_node" cwd="node" output="screen" />
 
+  <!-- launch robosherlock -->
+  <node name="RoboSherlock" pkg="rs_kbreasoning" type="runAE" output="screen" args="pickandplace" />
+
   <!-- realtime filter -->
   <node pkg="realtime_urdf_filter" type="realtime_urdf_filter" name="$(anon realtime_urdf_filter)" output="log">
     <remap from="~input_depth" to="/kinect_head/depth_registered/image_raw"/>
@@ -10,8 +13,6 @@
     <remap from="~output_mask" to="/kinect_head/depth_registered/mask_filtered" />
 
     <rosparam command="load" file="$(find robosherlock)/config/filter_parameters_kinect.yaml"/>
+    <env name="DISPLAY" value=":0"/>
   </node>
-
-  <!-- launch robosherlock -->
-  <node name="RoboSherlock" pkg="rs_kbreasoning" type="runAE" output="screen" args="pickandplace" />
 </launch>

@@ -134,7 +134,7 @@ public:
 
         std::vector<rs::SemanticMapObject> drawers,doors;
         getSemanticMapEntries(cas, "Drawer", drawers);
-        getSemanticMapEntries(cas, "Refridgerator", doors);
+        getSemanticMapEntries(cas, "Refrigerator", doors);
 
 
         std::vector<rs::SemanticMapObject> regionsOfInterest;

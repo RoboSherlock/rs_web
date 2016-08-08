@@ -395,21 +395,21 @@
    <nameValuePair>
       <name>DeCafH5File</name>
       <value>
-        <string>/caffe/extracted_feats/rh_kitchen_bvlc_fc7/cnnfc7.hdf5</string>
+        <string>/caffe/extracted_feats/rh_kitchen_bvlc_fc7/cnnfc7_robohow_2016_all.hdf5</string>
       </value>
     </nameValuePair>
 
     <nameValuePair>
       <name>DeCafListFile</name>
       <value>
-        <string>/caffe/extracted_feats/rh_kitchen_bvlc_fc7/cnnfc7.list</string>
+        <string>/caffe/extracted_feats/rh_kitchen_bvlc_fc7/cnnfc7_robohow_2016_all.list</string>
       </value>
     </nameValuePair>
 
     <nameValuePair>
       <name>DeCafKDTreeIndices</name>
       <value>
-        <string>/caffe/extracted_feats/rh_kitchen_bvlc_fc7/kdtree.idx</string>
+        <string>/caffe/extracted_feats/rh_kitchen_bvlc_fc7/cnnfc7_kdtree_robohow_2016_all.idx</string>
       </value>
     </nameValuePair>
 

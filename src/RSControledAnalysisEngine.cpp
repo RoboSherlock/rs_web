@@ -213,14 +213,17 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
   rs::Scene scene = sceneCas.getScene();
 
   cv::Mat rgb;
+  pcl::PointCloud<pcl::PointXYZRGBA>::Ptr dispCloud(new pcl::PointCloud<pcl::PointXYZRGBA>());
   sensor_msgs::CameraInfo cam_info;
+
   sceneCas.get(VIEW_COLOR_IMAGE, rgb);
   sceneCas.get(VIEW_CAMERA_INFO, cam_info);
+  sceneCas.get(VIEW_CLOUD, *dispCloud);
 
   std::vector<rs::Cluster> clusters;
   scene.identifiables.filter(clusters);
 
-  //very hacky for now
+  //very hacky for now: draws the parts of the objects if they were found
   for(int i = 0; i < clusters.size(); ++i)
   {
     rs::Cluster &cluster = clusters[i];
@@ -256,7 +259,7 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
     if(clusterId != NULL)
     {
       int idx = atoi(clusterId->stringValue().c_str());
-      outInfo("Draw cluster: " << idx);
+      //Draw cluster on image
       rs::ImageROI roi = clusters[idx].rois();
       cv::Rect cvRoi;
       rs::conversion::from(roi.roi(), cvRoi);
@@ -264,6 +267,15 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
       std::stringstream clusterName;
       clusterName << "cID_" << idx;
       cv::putText(rgb, clusterName.str(), cv::Point(cvRoi.x + 10, cvRoi.y - 10), cv::FONT_HERSHEY_COMPLEX, 0.7, rs::common::cvScalarColors[idx % rs::common::numberOfColors]);
+
+      //Color points in Point Cloud
+      pcl::PointIndicesPtr inliers(new pcl::PointIndices());
+      rs::conversion::from(((rs::ReferenceClusterPoints)clusters[idx].points()).indices(), *inliers);
+      for(unsigned int idx = 0; idx < inliers->indices.size(); ++idx)
+      {
+        dispCloud->points[inliers->indices[idx]].rgba = rs::common::colors[i % rs::common::numberOfColors];
+        dispCloud->points[inliers->indices[idx]].a = 255;
+      }
     }
     designator_integration::KeyValuePair *handleKvp = desig.childForKey("HANDLE");
     if(handleKvp != NULL)
@@ -273,8 +285,8 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
       scene.annotations.filter(handles);
       for(int i = 0; i < handles.size(); ++i)
       {
-        outInfo("Actual name: " <<handles[i].name());
-        outInfo("Queried name: "<<handleKvp->stringValue());
+        outInfo("Actual name: " << handles[i].name());
+        outInfo("Queried name: " << handleKvp->stringValue());
         if(handles[i].name() == handleKvp->stringValue())
         {
           pcl::PointIndices indices;
@@ -288,6 +300,9 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
             new_color[0] = 0;
             new_color[0] = 255;
             rgb.at<cv::Vec3b>(cv::Point(idx % 640, idx / 640)) = new_color;
+
+            dispCloud->points[indices.indices[j]].rgba = rs::common::colors[i % rs::common::numberOfColors];
+            dispCloud->points[indices.indices[j]].a = 255;
           }
         }
       }
@@ -304,10 +319,14 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
 
   std::string encoded = rs::common::base64_encode(&imageData[0], imageData.size());
 
-
   std_msgs::String strMsg;
   strMsg.data = "data:image/jpg;base64," + encoded;
   base64ImgPub.publish(strMsg);
   image_pub_.publish(outImgMsgs.toImageMsg());
+
+  dispCloud->header.frame_id = "head_mount_kinect_rgb_optical_frame";
+//  dispCloud->header.stamp = ros::Time::now().toNSec();
+  pc_pub_.publish(dispCloud);
+
 }
 

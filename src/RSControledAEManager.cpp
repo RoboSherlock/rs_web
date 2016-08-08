@@ -472,6 +472,7 @@ void RSControledAEManager::filterResults(designator_integration::Designator &req
                   {
                     std::stringstream prologQuery;
                     prologQuery << "owl_subclass_of(" << rs_kbreasoning::krNameMapping[childrenPair.stringValue()] << "," << rs_kbreasoning::krNameMapping[superclass] << ").";
+                    outInfo("Asking Query: "<<prologQuery.str());
                     json_prolog::Prolog pl;
                     json_prolog::PrologQueryProxy bdgs = pl.query(prologQuery.str());
                     if(bdgs.begin() == bdgs.end())

@@ -13,6 +13,7 @@
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/image_encodings.h>
 #include <std_msgs/String.h>
+#include <pcl_ros/point_cloud.h>
 
 #include <rs_kbreasoning/DesignatorWrapper.h>
 
@@ -43,6 +44,7 @@ private:
 
   ros::NodeHandle nh_;
   ros::Publisher base64ImgPub;
+  ros::Publisher pc_pub_;
   image_transport::Publisher image_pub_;
   image_transport::ImageTransport it_;
 
@@ -54,7 +56,7 @@ public:
     process_mutex = boost::shared_ptr<std::mutex>(new std::mutex);
     base64ImgPub = nh_.advertise<std_msgs::String>(std::string("image_base64"), 5);
     image_pub_ = it_.advertise("result_image", 1, true);
-
+    pc_pub_ = nh_.advertise<pcl::PointCloud<pcl::PointXYZRGBA> >("points", 5 );
   }
 
   ~RSControledAnalysisEngine()

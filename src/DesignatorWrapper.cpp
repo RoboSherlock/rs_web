@@ -205,6 +205,7 @@ void DesignatorWrapper::convert(rs::PoseAnnotation &input, designator_integratio
   rs::conversion::from(input.camera(), tf_stamped_pose);
   tf::poseStampedTFToMsg(tf_stamped_pose, pose_stamped_msgs);
   object->setValue("POSE", pose_stamped_msgs);
+  object->setValue("SOURCE",input.source());
 }
 
 void DesignatorWrapper::convert(rs::SemanticColor &input, designator_integration::KeyValuePair *object)

@@ -200,12 +200,16 @@ void DesignatorWrapper::convert(rs::Shape &input, designator_integration::KeyVal
 
 void DesignatorWrapper::convert(rs::PoseAnnotation &input, designator_integration::KeyValuePair *object)
 {
+  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("POSES");
+
   tf::Stamped<tf::Pose> tf_stamped_pose;
   geometry_msgs::PoseStamped pose_stamped_msgs;
   rs::conversion::from(input.camera(), tf_stamped_pose);
   tf::poseStampedTFToMsg(tf_stamped_pose, pose_stamped_msgs);
-  object->setValue("POSE", pose_stamped_msgs);
-  object->setValue("SOURCE",input.source());
+  valuePair->setValue("POSE", pose_stamped_msgs);
+  valuePair->setValue("SOURCE",input.source());
+
+  object->addChild(valuePair);
 }
 
 void DesignatorWrapper::convert(rs::SemanticColor &input, designator_integration::KeyValuePair *object)

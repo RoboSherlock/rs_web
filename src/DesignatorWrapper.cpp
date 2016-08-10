@@ -200,7 +200,7 @@ void DesignatorWrapper::convert(rs::Shape &input, designator_integration::KeyVal
 
 void DesignatorWrapper::convert(rs::PoseAnnotation &input, designator_integration::KeyValuePair *object)
 {
-  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("POSES");
+  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("POSE");
 
   tf::Stamped<tf::Pose> tf_stamped_pose;
   geometry_msgs::PoseStamped pose_stamped_msgs;

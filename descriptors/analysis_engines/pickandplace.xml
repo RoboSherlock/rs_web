@@ -381,9 +381,45 @@
           <parameter>Cluster3DGeometryAnnotator/projectOnPlane</parameter>
         </overrides>
       </configurationParameter>
+
+      <configurationParameter>
+        <name>sor_filter</name>
+        <description>Statistical Outlier removal filter. Recomended to use with Kinect 2.
+        Removes spurious points, making bb estimation more stable</description>
+        <type>Boolean</type>
+        <multiValued>false</multiValued>
+        <mandatory>false</mandatory>
+        <overrides>
+          <parameter>Cluster3DGeometryAnnotator/sor_filter</parameter>
+        </overrides>
+      </configurationParameter>
+
+      <configurationParameter>
+        <name>overwriteExistingPoseEstimate</name>
+        <type>Boolean</type>
+        <multiValued>false</multiValued>
+        <mandatory>false</mandatory>
+        <overrides>
+          <parameter>Cluster3DGeometryAnnotator/overwriteExistingPoseEstimate</parameter>
+        </overrides>
+      </configurationParameter>
+
     </configurationParameters>
 
     <configurationParameterSettings>
+    <nameValuePair>
+      <name>overwriteExistingPoseEstimate</name>
+      <value>
+        <boolean>false</boolean>
+      </value>
+    </nameValuePair>
+
+      <nameValuePair>
+        <name>sor_filter</name>
+        <value>
+          <boolean>true</boolean>
+        </value>
+      </nameValuePair>
 
       <nameValuePair>
         <name>projectOnPlane</name>
@@ -465,7 +501,7 @@
       <nameValuePair>
         <name>hsvFilter</name>
         <value>
-          <boolean>true</boolean>
+          <boolean>false</boolean>
         </value>
       </nameValuePair>
       

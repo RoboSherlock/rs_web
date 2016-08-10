@@ -279,7 +279,6 @@ bool RSControledAEManager::designatorCallbackLogic(designator_integration_msgs::
   designator_integration_msgs::DesignatorResponse topicResponse;
   for(auto & designator : filteredResponse)
   {
-    outInfo(designator.serializeToJSON());
     designator.printDesignator();
     res.response.designators.push_back(designator.serializeToMessage());
     topicResponse.designators.push_back(designator.serializeToMessage(false));

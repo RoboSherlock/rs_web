@@ -144,7 +144,7 @@ void DesignatorWrapper::convert(rs::Detection &input, designator_integration::Ke
   designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("DETECTION");
   valuePair->setValue("CONFIDENCE", input.confidence());
   valuePair->setValue("SOURCE", input.source());
-  valuePair->setValue("TYPE", input.name());
+  valuePair->setValue("CLASS", input.name());
   object->addChild(valuePair);
 }
 

@@ -29,7 +29,7 @@ bool RSControledAEManager::resetAECallback(iai_robosherlock_msgs::SetRSContext::
   if(rs::common::getAEPaths(newContextName, contextAEPath))
   {
     outInfo("Setting new context: " << newContextName);
-    this->init(contextAEPath,configFile);
+    this->init(contextAEPath, configFile);
     outInfo("releasing lock");
     processing_mutex_.unlock();
     return true;
@@ -135,10 +135,10 @@ bool RSControledAEManager::designatorCallbackLogic(designator_integration_msgs::
   if(semrecClient)
   {
     ctxRSEvent = new semrec_client::Context(this->semrecClient, "RoboSherlockEvent", "&rs_kbreasoning;", "RoboSherlockEvent");
-//    ctxRSEvent->addObject(new semrec_client::Object(rs::DesignatorWrapper::req_designator,"&rs_kbreasoning;","eventRequest"),"rs_kbreasoning:eventRequest");
-    ctxRSEvent->addDesignator(rs::DesignatorWrapper::req_designator,"rs_kbreasoning:eventRequest","&rs_kbreasoning;","eventRequest");
-//    eveReq->end();
-//    delete eveReq;
+    //    ctxRSEvent->addObject(new semrec_client::Object(rs::DesignatorWrapper::req_designator,"&rs_kbreasoning;","eventRequest"),"rs_kbreasoning:eventRequest");
+    ctxRSEvent->addDesignator(rs::DesignatorWrapper::req_designator, "rs_kbreasoning:eventRequest", "&rs_kbreasoning;", "eventRequest");
+    //    eveReq->end();
+    //    delete eveReq;
   }
 
   RSQuery *query = new RSQuery();
@@ -219,13 +219,13 @@ bool RSControledAEManager::designatorCallbackLogic(designator_integration_msgs::
     std::vector<std::string> new_pipeline_order = jsonPrologInterface_.createPipelineFromPrologResult(bdg["A"].toString());
 
     //always add Storage at the end
-    if( std::find(new_pipeline_order.begin(),new_pipeline_order.end(), "Cluster3DGeometryAnnotator") == new_pipeline_order.end())
+    if(std::find(new_pipeline_order.begin(), new_pipeline_order.end(), "Cluster3DGeometryAnnotator") == new_pipeline_order.end())
     {
-       std::vector<std::string>::iterator it= std::find(new_pipeline_order.begin(),new_pipeline_order.end(),"ClusterMerger");
-       if(it!= new_pipeline_order.end())
-       {
-           new_pipeline_order.insert(it+1,"Cluster3DGeometryAnnotator");
-       }
+      std::vector<std::string>::iterator it = std::find(new_pipeline_order.begin(), new_pipeline_order.end(), "ClusterMerger");
+      if(it != new_pipeline_order.end())
+      {
+        new_pipeline_order.insert(it + 1, "Cluster3DGeometryAnnotator");
+      }
     }
 
     new_pipeline_order.push_back("TFBroadcaster");
@@ -271,7 +271,7 @@ bool RSControledAEManager::designatorCallbackLogic(designator_integration_msgs::
 
   if(ctxRSEvent != NULL)
   {
-    ctxRSEvent->addDesignator(pipeline_action, "rs_kbreasoning:eventHandler","&rs_kbreasoning;","eventHandler");
+    ctxRSEvent->addDesignator(pipeline_action, "rs_kbreasoning:eventHandler", "&rs_kbreasoning;", "eventHandler");
   }
 
   //   Delete the allocated keyvalue pairs for the annotator names
@@ -285,7 +285,7 @@ bool RSControledAEManager::designatorCallbackLogic(designator_integration_msgs::
     if(ctxRSEvent)
     {
       //this needs to be an object->create copy constructor in Object class
-      ctxRSEvent->addObject(new semrec_client::Object(&designator,"&rs_kbreasoning;","objectPerceived"),"rs_kbreasoning:objectPerceived");
+      ctxRSEvent->addObject(new semrec_client::Object(&designator, "&rs_kbreasoning;", "objectPerceived"), "rs_kbreasoning:objectPerceived");
     }
 
   }
@@ -465,23 +465,19 @@ void RSControledAEManager::filterResults(designator_integration::Designator &req
               for(auto iter = childrenPairs.begin(); iter != childrenPairs.end(); ++iter)
               {
                 designator_integration::KeyValuePair childrenPair = **iter;
-                if(childrenPair.key() == "TYPE")
+                if(childrenPair.key() == "CLASS")
                 {
                   if(superclass != "" && rs_kbreasoning::krNameMapping.count(superclass) == 1)
                   {
                     std::stringstream prologQuery;
                     prologQuery << "owl_subclass_of(" << rs_kbreasoning::krNameMapping[childrenPair.stringValue()] << "," << rs_kbreasoning::krNameMapping[superclass] << ").";
-                    outInfo("Asking Query: "<<prologQuery.str());
+                    outInfo("Asking Query: " << prologQuery.str());
                     json_prolog::Prolog pl;
                     json_prolog::PrologQueryProxy bdgs = pl.query(prologQuery.str());
-                    if(bdgs.begin() == bdgs.end())
-                    {
-                      ok = false;
-                    }
-                    else
+                    bdgs.begin() == bdgs.end() ? ok = false : ok = true;
+                    if(ok)
                     {
                       outInfo(rs_kbreasoning::krNameMapping[childrenPair.stringValue()] << " IS " << rs_kbreasoning::krNameMapping[superclass]);
-                      ok = true;
                     }
                   }
                   else if(strcasecmp(childrenPair.stringValue().c_str(), req_kvp.stringValue().c_str()) == 0 || req_kvp.stringValue() == "")

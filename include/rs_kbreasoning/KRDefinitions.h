@@ -26,6 +26,7 @@ static std::map<std::string, std::string> krNameMapping =
   {"Knife", "rs_objects:'Knife'"},
   {"Cup", "rs_objects:'Cup'"},
   {"Bottle","knowrob:'Bottle'"},
+  {"Plate","rs_objects:'Plate'"},
 
   //OBJECTS:
   //kitchen should solve this with some conversion and naming guideline

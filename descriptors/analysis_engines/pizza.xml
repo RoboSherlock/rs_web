@@ -300,6 +300,16 @@
       </configurationParameter>
 
       <configurationParameter>
+        <name>cluster_max_size</name>
+        <type>Integer</type>
+        <multiValued>false</multiValued>
+        <mandatory>false</mandatory>
+        <overrides>
+          <parameter>PointCloudClusterExtractor/cluster_min_size</parameter>
+        </overrides>
+      </configurationParameter>
+
+      <configurationParameter>
         <name>enable_change_detection</name>
         <description>Enable filtering of frames based on changes.</description>
         <type>Boolean</type>
@@ -310,9 +320,27 @@
         </overrides>
       </configurationParameter>
 
+      <configurationParameter>
+        <name>sor_filter</name>
+        <type>Boolean</type>
+        <multiValued>false</multiValued>
+        <mandatory>false</mandatory>
+        <overrides>
+          <parameter>Cluster3DGeometryAnnotator/sor_filter</parameter>
+        </overrides>
+      </configurationParameter>
+
     </configurationParameters>
 
     <configurationParameterSettings>
+
+      <nameValuePair>
+        <name>sor_filter</name>
+        <value>
+          <boolean>true</boolean>
+        </value>
+      </nameValuePair>
+
       <nameValuePair>
         <name>wordnetGrounded</name>
         <value>        
@@ -338,8 +366,8 @@
         <name>camera_config_files</name>
         <value>
           <array>
-            <!--<string>config_mongodb_pizza.ini</string>-->
-            <string>config_kinect2_robot_filtered.ini</string>
+            <string>config_mongodb_playback.ini</string>
+            <!--<string>config_kinect2_robot.ini</string>-->
           </array>
         </value>
       </nameValuePair>
@@ -359,7 +387,7 @@
       <nameValuePair>
         <name>hsvFilter</name>
         <value>
-          <boolean>true</boolean>
+          <boolean>false</boolean>
         </value>
       </nameValuePair>
       
@@ -378,9 +406,16 @@
       </nameValuePair>
 
       <nameValuePair>
+        <name>cluster_max_size</name>
+        <value>
+          <integer>50000</integer>
+        </value>
+      </nameValuePair>
+
+      <nameValuePair>
         <name>enable_change_detection</name>
         <value>
-          <boolean>true</boolean>
+          <boolean>false</boolean>
         </value>
       </nameValuePair>
 
@@ -397,15 +432,16 @@
       <node>ImageSegmentationAnnotator</node>
       <node>ClusterMerger</node>
       <node>Cluster3DGeometryAnnotator</node>
-      <node>FeatureAnnotator</node>
-      <node>ClusterTFLocationAnnotator</node>
-      <node>ClusterColorHistogramCalculator</node>
-      <node>PrimitiveShapeAnnotator</node>
-      <node>MLNInferencer</node>
+<!--      <node>FeatureAnnotator</node>-->
+<!--      <node>ClusterTFLocationAnnotator</node>-->
+<!--      <node>ClusterColorHistogramCalculator</node>-->
+<!--      <node>PrimitiveShapeAnnotator</node>-->
+<!--      <node>MLNInferencer</node>-->
+<!--      <node>ClusterToPartsSegmenter</node>-->
+<!--      <node>PizzaDetector</node>-->
+<!--      <node>ObjectIdentityResolution</node>-->
+<!--      <node>StorageWriter</node>-->
       <node>ClusterToPartsSegmenter</node>
-      <node>PizzaDetector</node>
-      <node>ObjectIdentityResolution</node>
-      <node>StorageWriter</node>
     </fixedFlow>
     </flowConstraints>
     <typePriorities/>

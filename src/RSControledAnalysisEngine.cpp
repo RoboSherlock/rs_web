@@ -324,7 +324,8 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
   base64ImgPub.publish(strMsg);
   image_pub_.publish(outImgMsgs.toImageMsg());
 
-  dispCloud->header.frame_id = "head_mount_kinect_rgb_optical_frame";
+
+  dispCloud->header.frame_id = cam_info.header.frame_id;//"head_mount_kinect_rgb_optical_frame";
 //  dispCloud->header.stamp = ros::Time::now().toNSec();
   pc_pub_.publish(dispCloud);
 

@@ -493,8 +493,11 @@
       <node>ClusterColorHistogramCalculator</node>
       <node>PrimitiveShapeAnnotator</node>
       <node>PizzaDetector</node>
+      <node>CaffeAnnotator</node>
+      <node>PCLFeatureExtractor</node>
       <node>ObjectIdentityResolution</node>
-
+      <node>StorageWriter</node>
+      <node>TFBroadcaster</node>
     </fixedFlow>
     </flowConstraints>
     <typePriorities/>

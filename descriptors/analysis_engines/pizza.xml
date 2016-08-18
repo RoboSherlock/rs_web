@@ -190,6 +190,9 @@
     <delegateAnalysisEngine key="ToolCalibration">
       <import location="../../../robosherlock_demos/descriptors/annotators/robohow/ToolCalibration.xml"/>
     </delegateAnalysisEngine>
+    <delegateAnalysisEngine key="ToolRackDetector">
+      <import location="../../../robosherlock_demos/descriptors/annotators/robohow/ToolRackDetector.xml"/>
+    </delegateAnalysisEngine>
     <delegateAnalysisEngine key="Trigger">
       <import location="../../../robosherlock/descriptors/annotators/utils/Trigger.xml"/>
     </delegateAnalysisEngine>
@@ -327,6 +330,36 @@
         <mandatory>false</mandatory>
         <overrides>
           <parameter>Cluster3DGeometryAnnotator/sor_filter</parameter>
+          </overrides>
+      </configurationParameter>
+
+      <configurationParameter>
+        <name>DeCafH5File</name>
+        <type>String</type>
+        <multiValued>false</multiValued>
+        <mandatory>true</mandatory>
+        <overrides>
+          <parameter>DeCafClassifier/DeCafH5File</parameter>
+        </overrides>
+      </configurationParameter>
+
+      <configurationParameter>
+        <name>DeCafListFile</name>
+        <type>String</type>
+        <multiValued>false</multiValued>
+        <mandatory>true</mandatory>
+        <overrides>
+          <parameter>DeCafClassifier/DeCafListFile</parameter>
+        </overrides>
+      </configurationParameter>
+
+      <configurationParameter>
+        <name>DeCafKDTreeIndices</name>
+        <type>String</type>
+        <multiValued>false</multiValued>
+        <mandatory>true</mandatory>
+        <overrides>
+          <parameter>DeCafClassifier/DeCafKDTreeIndices</parameter>
         </overrides>
       </configurationParameter>
 
@@ -366,7 +399,8 @@
         <name>camera_config_files</name>
         <value>
           <array>
-            <string>config_mongodb_playback.ini</string>
+            <!--<string>config_mongodb_pizza.ini</string>-->
+            <string>config_kinect2_robot_filtered.ini</string>
             <!--<string>config_kinect2_robot.ini</string>-->
           </array>
         </value>
@@ -419,6 +453,27 @@
         </value>
       </nameValuePair>
 
+   <nameValuePair>
+      <name>DeCafH5File</name>
+      <value>
+        <string>/caffe/extracted_feats/rh_pizza_bvlc_fc7/CNN_robohow_2016_pizza.hdf5</string>
+      </value>
+    </nameValuePair>
+
+    <nameValuePair>
+      <name>DeCafListFile</name>
+      <value>
+        <string>/caffe/extracted_feats/rh_pizza_bvlc_fc7/CNN_robohow_2016_pizza.list</string>
+      </value>q
+    </nameValuePair>
+
+    <nameValuePair>
+      <name>DeCafKDTreeIndices</name>
+      <value>
+        <string>/caffe/extracted_feats/rh_pizza_bvlc_fc7/CNN_kdtree_robohow_2016_pizza.idx</string>
+      </value>
+    </nameValuePair>
+
     </configurationParameterSettings>
     <flowConstraints>
     <fixedFlow>
@@ -432,16 +487,14 @@
       <node>ImageSegmentationAnnotator</node>
       <node>ClusterMerger</node>
       <node>Cluster3DGeometryAnnotator</node>
-<!--      <node>FeatureAnnotator</node>-->
-<!--      <node>ClusterTFLocationAnnotator</node>-->
-<!--      <node>ClusterColorHistogramCalculator</node>-->
-<!--      <node>PrimitiveShapeAnnotator</node>-->
-<!--      <node>MLNInferencer</node>-->
-<!--      <node>ClusterToPartsSegmenter</node>-->
-<!--      <node>PizzaDetector</node>-->
-<!--      <node>ObjectIdentityResolution</node>-->
-<!--      <node>StorageWriter</node>-->
-      <node>ClusterToPartsSegmenter</node>
+      <node>DeCafClassifier</node>
+      <node>FeatureAnnotator</node>
+      <node>ClusterTFLocationAnnotator</node>
+      <node>ClusterColorHistogramCalculator</node>
+      <node>PrimitiveShapeAnnotator</node>
+      <node>PizzaDetector</node>
+      <node>ObjectIdentityResolution</node>
+
     </fixedFlow>
     </flowConstraints>
     <typePriorities/>

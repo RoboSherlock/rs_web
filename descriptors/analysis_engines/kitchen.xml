@@ -190,6 +190,9 @@
     <delegateAnalysisEngine key="ToolCalibration">
       <import location="../../../robosherlock_demos/descriptors/annotators/robohow/ToolCalibration.xml"/>
     </delegateAnalysisEngine>
+    <delegateAnalysisEngine key="ToolRackDetector">
+      <import location="../../../robosherlock_demos/descriptors/annotators/robohow/ToolRackDetector.xml"/>
+    </delegateAnalysisEngine>
     <delegateAnalysisEngine key="Trigger">
       <import location="../../../robosherlock/descriptors/annotators/utils/Trigger.xml"/>
     </delegateAnalysisEngine>

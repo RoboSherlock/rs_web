@@ -226,37 +226,7 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
 
   //very hacky for now: draws the parts of the objects if they were found
   int colorIdx=0;
-  if(requestDesignator.childForKey("OBJ-PART"))
-  {
-    for(int i = 0; i < clusters.size(); ++i)
-    {
 
-      rs::Cluster &cluster = clusters[i];
-      std::vector<rs::ClusterPart> parts;
-      cluster.annotations.filter(parts);
-      if(parts.empty())
-      {
-        continue;
-      }
-      for(int pIdx = 0; pIdx < parts.size(); ++pIdx)
-      {
-        rs::ClusterPart &part = parts[pIdx];
-        if(strcasecmp(part.name().c_str(), requestDesignator.childForKey("OBJ-PART")->stringValue().c_str()) == 0 || requestDesignator.childForKey("OBJ-PART")->stringValue()== "")
-        {
-          pcl::PointIndices indices;
-          rs::conversion::from(part.indices(), indices);
-          for(int iIdx = 0; iIdx < indices.indices.size(); ++iIdx)
-          {
-            int idx = indices.indices[iIdx];
-            rgb.at<cv::Vec3b>(cv::Point(idx % cam_info.width, idx / cam_info.width)) = rs::common::cvVec3bColors[pIdx % rs::common::numberOfColors];
-            dispCloud->points[idx].rgba = rs::common::colors[colorIdx % rs::common::numberOfColors];
-            dispCloud->points[idx].a = 255;
-          }
-          colorIdx++;
-        }
-      }
-    }
-  }
 
   for(int i = 0; i < filter.size(); ++i)
   {
@@ -315,6 +285,38 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
             dispCloud->points[indices.indices[j]].rgba = rs::common::colors[i % rs::common::numberOfColors];
             dispCloud->points[indices.indices[j]].a = 255;
           }
+        }
+      }
+    }
+  }
+
+  if(requestDesignator.childForKey("OBJ-PART"))
+  {
+    for(int i = 0; i < clusters.size(); ++i)
+    {
+
+      rs::Cluster &cluster = clusters[i];
+      std::vector<rs::ClusterPart> parts;
+      cluster.annotations.filter(parts);
+      if(parts.empty())
+      {
+        continue;
+      }
+      for(int pIdx = 0; pIdx < parts.size(); ++pIdx)
+      {
+        rs::ClusterPart &part = parts[pIdx];
+        if(strcasecmp(part.name().c_str(), requestDesignator.childForKey("OBJ-PART")->stringValue().c_str()) == 0 || requestDesignator.childForKey("OBJ-PART")->stringValue()== "")
+        {
+          pcl::PointIndices indices;
+          rs::conversion::from(part.indices(), indices);
+          for(int iIdx = 0; iIdx < indices.indices.size(); ++iIdx)
+          {
+            int idx = indices.indices[iIdx];
+            rgb.at<cv::Vec3b>(cv::Point(idx % cam_info.width, idx / cam_info.width)) = rs::common::cvVec3bColors[pIdx % rs::common::numberOfColors];
+            dispCloud->points[idx].rgba = rs::common::colors[colorIdx % rs::common::numberOfColors];
+            dispCloud->points[idx].a = 255;
+          }
+          colorIdx++;
         }
       }
     }

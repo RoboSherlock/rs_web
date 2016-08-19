@@ -294,10 +294,10 @@ void DesignatorWrapper::convert(rs::ClusterPart &input, designator_integration::
     designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("OBJ-PART");
     tf::Stamped<tf::Pose> tf_stamped_pose;
     geometry_msgs::PoseStamped pose_stamped_msgs;
-    rs::conversion::from(input.camera(), tf_stamped_pose);
+    rs::conversion::from(input.pose(), tf_stamped_pose);
     tf::poseStampedTFToMsg(tf_stamped_pose, pose_stamped_msgs);
-    valuePair->setValue("name", input.pose);
-    valuePair->setValue("pose",pose_stamped_msgs);
+    valuePair->setValue("NAME", input.name());
+    valuePair->setValue("POSE",pose_stamped_msgs);
     object->addChild(valuePair);
 
 }

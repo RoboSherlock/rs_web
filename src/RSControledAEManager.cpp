@@ -334,8 +334,6 @@ void RSControledAEManager::filterResults(designator_integration::Designator &req
     for(size_t i = 0; i < resultDesignators.size(); ++i)
     {
       designator_integration::Designator resDesig = resultDesignators[i];
-      //        resDesig.printDesignator();
-      //and here come the hacks
       std::vector<designator_integration::KeyValuePair *> resultsForRequestedKey;
       designator_integration::KeyValuePair *childForRequestedKey = NULL;
       if(resDesig.childForKey("CLUSTERID") != NULL)
@@ -389,6 +387,8 @@ void RSControledAEManager::filterResults(designator_integration::Designator &req
         else
         {
           resultsForRequestedKey.push_back(resDesig.childForKey(req_kvp.key()));
+//          resDesig.childForKey(req_kvp.key())->printPair(1);
+          outWarn("GETTING: "<<req_kvp.key());
         }
       }
       else
@@ -405,8 +405,14 @@ void RSControledAEManager::filterResults(designator_integration::Designator &req
           if(resultsForRequestedKey[j] != NULL)
           {
             //I am doing this wrong...why do I want to look at this shit again?
+
+            if(resultsForRequestedKey[j]->key() == "OBJ-PART")
+            {
+                ok=true;
+            }
+
             //treat color differently because it is nested and has every color with ration in there
-            if(resultsForRequestedKey[j]->key() == "COLOR")
+            else if(resultsForRequestedKey[j]->key() == "COLOR")
             {
               std::list<designator_integration::KeyValuePair *> colorRatioPairs = resultsForRequestedKey[j]->children();
               for(auto iter = colorRatioPairs.begin(); iter != colorRatioPairs.end(); ++iter)
@@ -422,7 +428,7 @@ void RSControledAEManager::filterResults(designator_integration::Designator &req
                 }
               }
             }
-            if(resultsForRequestedKey[j]->key() == "VOLUME")
+            else if(resultsForRequestedKey[j]->key() == "VOLUME")
             {
               float volumeofCurrentObj = resultsForRequestedKey[j]->floatValue();
               outWarn("Volume as a float: " << volumeofCurrentObj);
@@ -440,7 +446,7 @@ void RSControledAEManager::filterResults(designator_integration::Designator &req
                 }
               }
             }
-            if(resultsForRequestedKey[j]->key() == "CONTAINS")
+            else if(resultsForRequestedKey[j]->key() == "CONTAINS")
             {
               if(req_kvp.stringValue() == "")
               {
@@ -518,5 +524,5 @@ void RSControledAEManager::filterResults(designator_integration::Designator &req
       filteredResponse.push_back(resultDesignators[i]);
     }
   }
-  engine.drawResulstOnImage(keep_designator, resultDesignators);
+  engine.drawResulstOnImage(keep_designator, resultDesignators,requestDesignator);
 }

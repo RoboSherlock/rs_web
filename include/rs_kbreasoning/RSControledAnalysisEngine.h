@@ -152,6 +152,7 @@ public:
 
   //draw results on an image
   void drawResulstOnImage(const std::vector<bool> &filter,
-                          const std::vector<designator_integration::Designator> &resultDesignators);
+                          const std::vector<designator_integration::Designator> &resultDesignators,
+                          designator_integration::Designator &requestDesignator);
 };
 #endif // RSCONTROLEDANALYSISENGINE_H

@@ -289,6 +289,19 @@ void DesignatorWrapper::convert(rs::Features &input, designator_integration::Key
   object->addChild(valuePair);
 }
 
+void DesignatorWrapper::convert(rs::ClusterPart &input, designator_integration::KeyValuePair *object)
+{
+    designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("OBJ-PART");
+    tf::Stamped<tf::Pose> tf_stamped_pose;
+    geometry_msgs::PoseStamped pose_stamped_msgs;
+    rs::conversion::from(input.camera(), tf_stamped_pose);
+    tf::poseStampedTFToMsg(tf_stamped_pose, pose_stamped_msgs);
+    valuePair->setValue("name", input.pose);
+    valuePair->setValue("pose",pose_stamped_msgs);
+    object->addChild(valuePair);
+
+}
+
 void DesignatorWrapper::convert(rs_demos::Volume &input, designator_integration::KeyValuePair *object)
 {
   designator_integration::KeyValuePair *volume = new designator_integration::KeyValuePair("VOLUME");

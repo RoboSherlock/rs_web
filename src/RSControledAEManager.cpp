@@ -169,9 +169,9 @@ bool RSControledAEManager::designatorCallbackLogic(designator_integration_msgs::
         query->location = kvp->stringValue();
         outInfo("received location:" << query->location);
       }
-      if(key == "OBJ-PARTS")
+      if(key == "OBJ-PART")
       {
-        designator_integration::KeyValuePair *kvp =  rs::DesignatorWrapper::req_designator->childForKey("OBJ-PARTS");
+        designator_integration::KeyValuePair *kvp =  rs::DesignatorWrapper::req_designator->childForKey("OBJ-PART");
         query->objToInspect = kvp->stringValue();
         outInfo("received obj-part request for object: " << query->objToInspect);
       }

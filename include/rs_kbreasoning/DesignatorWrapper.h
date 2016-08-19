@@ -110,6 +110,7 @@ public:
       std::vector<rs::MLNAtoms> atoms;
       std::vector<rs::Goggles> goggles;
       std::vector<rs::Features> features;
+      std::vector<rs::ClusterPart> clusterParts;
       std::vector<rs_demos::Volume> volume;
       std::vector<rs_demos::Substance> substance;
 
@@ -123,6 +124,7 @@ public:
       element.annotations.filter(atoms);
       element.annotations.filter(goggles);
       element.annotations.filter(features);
+      element.annotations.filter(clusterParts);
       element.annotations.filter(volume);
       element.annotations.filter(substance);
 
@@ -139,6 +141,7 @@ public:
       convertAll(atoms, &objectDesignator);
       convertAll(goggles, &objectDesignator);
       convertAll(features, &objectDesignator);
+      convertAll(clusterParts, &objectDesignator);
       convertAll(volume, &objectDesignator);
       convertAll(substance, &objectDesignator);
 
@@ -191,6 +194,7 @@ public:
   void convert(rs::NamedLink &input, designator_integration::KeyValuePair *object);
   void convert(rs::Goggles &input, designator_integration::KeyValuePair *object);
   void convert(rs::Features &input, designator_integration::KeyValuePair *object);
+  void convert(rs::ClusterPart &input, designator_integration::KeyValuePair *object);
   void convert(rs_demos::Volume &input, designator_integration::KeyValuePair *object);
   void convert(rs_demos::Substance &input, designator_integration::KeyValuePair *object);
 
@@ -200,3 +204,4 @@ public:
 
 };
 }
+

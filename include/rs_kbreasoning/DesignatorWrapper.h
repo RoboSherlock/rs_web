@@ -6,13 +6,16 @@
 
 #include <uima/api.hpp>
 
+#include <rs/scene_cas.h>
 #include <rs/utils/output.h>
-#include <designators/Designator.h>
+
 #include <rs/types/all_types.h>
 #include <rs_demos/types/acat_types.h>
+#include <rs_demos/types/robohow_types.h>
+
 #include <designators/Designator.h>
 #include <designator_integration_msgs/DesignatorCommunication.h>
-#include <rs/scene_cas.h>
+
 #include <boost/bind.hpp>
 #include <boost/signals2.hpp>
 #include <map>
@@ -113,6 +116,7 @@ public:
       std::vector<rs::ClusterPart> clusterParts;
       std::vector<rs_demos::Volume> volume;
       std::vector<rs_demos::Substance> substance;
+      std::vector<rs_demos::Pizza> pizza;
 
       element.annotations.filter(geometry);
       element.annotations.filter(poses);
@@ -127,6 +131,7 @@ public:
       element.annotations.filter(clusterParts);
       element.annotations.filter(volume);
       element.annotations.filter(substance);
+      element.annotations.filter(pizza);
 
       outDebug("Number of volume annotations: " << volume.size());
       outDebug("Number of substance annotations: " << substance.size());
@@ -200,7 +205,7 @@ public:
 
   void convert(rs::ARMarker &input, designator_integration::Designator &res);
   void convert(rs::HandleAnnotation &input, designator_integration::Designator &res);
-
+  void convert(rs_demos::Pizza &input, designator_integration::KeyValuePair *object);
 
 };
 }

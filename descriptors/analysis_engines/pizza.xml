@@ -268,7 +268,7 @@
         <multiValued>false</multiValued>
         <mandatory>false</mandatory>
         <overrides>
-          <parameter>StorageWriter/db</parameter>
+          <parameter>StorageWriter/storagedb</parameter>
         </overrides>
       </configurationParameter>
 
@@ -449,7 +449,7 @@
       <nameValuePair>
         <name>enable_change_detection</name>
         <value>
-          <boolean>false</boolean>
+          <boolean>true</boolean>
         </value>
       </nameValuePair>
 
@@ -491,7 +491,7 @@
       <node>FeatureAnnotator</node>
       <node>ClusterTFLocationAnnotator</node>
       <node>ClusterColorHistogramCalculator</node>
-      <node>PrimitiveShapeAnnotator</node>
+<!--      <node>PrimitiveShapeAnnotator</node>-->
       <node>PizzaDetector</node>
       <node>CaffeAnnotator</node>
       <node>PCLFeatureExtractor</node>

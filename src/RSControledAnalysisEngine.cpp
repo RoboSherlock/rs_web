@@ -146,8 +146,8 @@ void RSControledAnalysisEngine::process(
   }
   // Make a designator from the result
   rs::DesignatorWrapper dw;
-  dw.setMode(rs::DesignatorWrapper::CLUSTER);
   dw.setCAS(cas);
+  dw.setMode(rs::DesignatorWrapper::OBJECT);
   dw.getObjectDesignators(designatorResponse);
 
   outInfo("processing finished");
@@ -235,7 +235,7 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
       continue;
     }
     designator_integration::Designator desig = resultDesignators[i];
-    designator_integration::KeyValuePair *clusterId = desig.childForKey("CLUSTERID");
+    designator_integration::KeyValuePair *clusterId = desig.childForKey("ID");
     if(clusterId != NULL)
     {
       int idx = atoi(clusterId->stringValue().c_str());

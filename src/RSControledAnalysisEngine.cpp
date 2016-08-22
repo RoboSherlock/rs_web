@@ -225,7 +225,7 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
   scene.identifiables.filter(clusters);
 
   //very hacky for now: draws the parts of the objects if they were found
-  int colorIdx=0;
+  int colorIdx = 0;
 
 
   for(int i = 0; i < filter.size(); ++i)
@@ -290,22 +290,20 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
     }
   }
 
-  if(requestDesignator.childForKey("OBJ-PART"))
+  if(requestDesignator.childForKey("OBJ-PART") || requestDesignator.childForKey("INGREDIENT"))
   {
     for(int i = 0; i < clusters.size(); ++i)
     {
-
       rs::Cluster &cluster = clusters[i];
       std::vector<rs::ClusterPart> parts;
+      std::vector<rs_demos::Pizza> pizza;
       cluster.annotations.filter(parts);
-      if(parts.empty())
-      {
-        continue;
-      }
+      cluster.annotations.filter(pizza);
+
       for(int pIdx = 0; pIdx < parts.size(); ++pIdx)
       {
         rs::ClusterPart &part = parts[pIdx];
-        if(strcasecmp(part.name().c_str(), requestDesignator.childForKey("OBJ-PART")->stringValue().c_str()) == 0 || requestDesignator.childForKey("OBJ-PART")->stringValue()== "")
+        if(strcasecmp(part.name().c_str(), requestDesignator.childForKey("OBJ-PART")->stringValue().c_str()) == 0 || requestDesignator.childForKey("OBJ-PART")->stringValue() == "")
         {
           pcl::PointIndices indices;
           rs::conversion::from(part.indices(), indices);
@@ -319,8 +317,13 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
           colorIdx++;
         }
       }
+      for(rs_demos::Pizza p:pizza)
+      {
+
+      }
     }
   }
+
   cv_bridge::CvImage outImgMsgs;
   outImgMsgs.header = cam_info.header;
   outImgMsgs.encoding = sensor_msgs::image_encodings::BGR8;

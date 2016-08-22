@@ -149,6 +149,8 @@ public:
       convertAll(clusterParts, &objectDesignator);
       convertAll(volume, &objectDesignator);
       convertAll(substance, &objectDesignator);
+      convertAll(pizza, &objectDesignator);
+
 
       iai_robosherlock_msgs::PerceivedObject object;
       if(!detections.empty() && !poses.empty())

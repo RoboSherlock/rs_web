@@ -104,7 +104,6 @@ bool DesignatorWrapper::getObjectDesignators(std::vector<designator_integration:
   }
   else
   {
-    uint64_t now = ros::Time::now().toNSec();
     std::vector<rs::Object> allObjects, objects;
     cas.get(VIEW_OBJECTS, allObjects);
     outWarn("objects found: " << allObjects.size());

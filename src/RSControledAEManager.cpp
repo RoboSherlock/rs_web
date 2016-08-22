@@ -360,7 +360,6 @@ void RSControledAEManager::filterResults(designator_integration::Designator &req
             keep_designator[i] = false;
           }
         }
-
         else if(req_kvp.key() == "CONTAINS")
         {
           childForRequestedKey = resDesig.childForKey("CONTAINS");
@@ -389,11 +388,14 @@ void RSControledAEManager::filterResults(designator_integration::Designator &req
         {
           resultsForRequestedKey.push_back(resDesig.childForKey("DETECTION"));
         }
+        else if(req_kvp.key() == "INGREDIENT" )
+        {
+            outWarn("REQUESTED INGREDIENT");
+            resultsForRequestedKey.push_back(resDesig.childForKey("PIZZA"));
+        }
         else
         {
           resultsForRequestedKey.push_back(resDesig.childForKey(req_kvp.key()));
-          //          resDesig.childForKey(req_kvp.key())->printPair(1);
-          outWarn("GETTING: " << req_kvp.key());
         }
       }
       else
@@ -415,7 +417,11 @@ void RSControledAEManager::filterResults(designator_integration::Designator &req
             {
               ok = true;
             }
-
+            if(resultsForRequestedKey[j]->key() == "PIZZA")
+            {
+              ok= true;
+              outInfo("PIZZA IS FOUND DESIGNATOR WILL STAY");
+            }
             //treat color differently because it is nested and has every color with ration in there
             else if(resultsForRequestedKey[j]->key() == "COLOR")
             {

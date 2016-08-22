@@ -314,7 +314,7 @@ bool RSControledAEManager::designatorCallbackLogic(designator_integration_msgs::
 
 
 void RSControledAEManager::filterResults(designator_integration::Designator &requestDesignator,
-    const std::vector<designator_integration::Designator> &resultDesignators,
+    std::vector<designator_integration::Designator> &resultDesignators,
     std::vector<designator_integration::Designator> &filteredResponse,
     std::string superclass)
 {
@@ -340,7 +340,6 @@ void RSControledAEManager::filterResults(designator_integration::Designator &req
       designator_integration::Designator resDesig = resultDesignators[i];
       std::vector<designator_integration::KeyValuePair *> resultsForRequestedKey;
       designator_integration::KeyValuePair *childForRequestedKey = NULL;
-      resDesig.printDesignator();
       if(resDesig.childForKey("ID") != NULL)
       {
         if(req_kvp.key() == "SIZE") //size is nested get it from the bounding box..bad design
@@ -388,10 +387,10 @@ void RSControledAEManager::filterResults(designator_integration::Designator &req
         {
           resultsForRequestedKey.push_back(resDesig.childForKey("DETECTION"));
         }
-        else if(req_kvp.key() == "INGREDIENT" )
+        else if(req_kvp.key() == "INGREDIENT")
         {
-            outWarn("REQUESTED INGREDIENT");
-            resultsForRequestedKey.push_back(resDesig.childForKey("PIZZA"));
+          outWarn("REQUESTED INGREDIENT");
+          resultsForRequestedKey.push_back(resDesig.childForKey("PIZZA"));
         }
         else
         {
@@ -419,8 +418,27 @@ void RSControledAEManager::filterResults(designator_integration::Designator &req
             }
             if(resultsForRequestedKey[j]->key() == "PIZZA")
             {
-              ok= true;
-              outInfo("PIZZA IS FOUND DESIGNATOR WILL STAY");
+              ok = true;
+              std::list<designator_integration::KeyValuePair * > kvps_ = resultDesignators[i].description();
+              std::list<designator_integration::KeyValuePair * >::iterator it = kvps_.begin();
+              outWarn("Size of list before: " << kvps_.size());
+              while(it != kvps_.end())
+              {
+                outWarn((*it)->key());
+                if((*it)->key() != "PIZZA" && (*it)->key() != "ID" && (*it)->key() != "TIMESTAMP")
+                {
+                  kvps_.erase(it++);
+                }
+                else
+                {
+                  ++it;
+                }
+
+              }
+              resultDesignators[i].setDescription(kvps_);
+              resultDesignators[i].printDesignator();
+              outWarn("Size of list after " << kvps_.size());
+
             }
             //treat color differently because it is nested and has every color with ration in there
             else if(resultsForRequestedKey[j]->key() == "COLOR")

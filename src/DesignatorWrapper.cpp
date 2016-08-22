@@ -384,6 +384,7 @@ void DesignatorWrapper::convert(rs_demos::Pizza &input, designator_integration::
     {
       ingredients->setValue(std::to_string(j), ingredientsVec[j]);
     }
+    field->setValue("TOP_INGREDIENT",ingredientsVec[ingredientsVec.size()-1]);
     field->addChild(ingredients);
     fields->addChild(field);
   }

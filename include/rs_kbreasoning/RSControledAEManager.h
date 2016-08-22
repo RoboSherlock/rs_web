@@ -153,7 +153,7 @@ public:
 
   //TODO: move to Designator wrapper or somewhere else
   void filterResults(designator_integration::Designator &requestDesignator,
-                     const std::vector<designator_integration::Designator> &resultDesignators,
+                     std::vector<designator_integration::Designator> &resultDesignators,
                      std::vector<designator_integration::Designator> &filteredResponse,
                      std::string superclass);
 

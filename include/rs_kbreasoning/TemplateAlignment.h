@@ -38,6 +38,8 @@ public:
 protected:
   // Compute the surface normals and local features
   void processInput();
+  //downsample the input
+  void downsample();
   // Compute the surface normals
   void computeSurfaceNormals();
   // Compute the local feature descriptors

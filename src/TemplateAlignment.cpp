@@ -2,8 +2,8 @@
 
 FeatureCloud::FeatureCloud() :
   search_method_(new SearchMethod),
-  normal_radius_(0.02f),
-  feature_radius_(0.05f)
+  normal_radius_(0.01f),
+  feature_radius_(0.04f)
 {
 }
 
@@ -49,8 +49,17 @@ FeatureCloud::LocalFeatures::Ptr FeatureCloud::getLocalFeatures() const
 // Compute the surface normals and local features
 void FeatureCloud::processInput()
 {
+//  downsample();
   computeSurfaceNormals();
   computeLocalFeatures();
+}
+
+void FeatureCloud::downsample()
+{
+    pcl::VoxelGrid<pcl::PointXYZRGBA> vg;
+    vg.setInputCloud(cloud_);
+    vg.setLeafSize(0.005f,0.005f,0.005f);
+    vg.filter(*cloud_);
 }
 
 // Compute the surface normals
@@ -78,14 +87,15 @@ void FeatureCloud::computeLocalFeatures()
 }
 
 TemplateAlignment::TemplateAlignment() :
-  min_sample_distance_(0.05f),
-  max_correspondence_distance_(0.01f * 0.01f),
-  nr_iterations_(500)
+  min_sample_distance_(0.001f),
+  max_correspondence_distance_(0.005f * 0.005f),
+  nr_iterations_(1500)
 {
   // Intialize the parameters in the Sample Consensus Intial Alignment (SAC-IA) algorithm
   sac_ia_.setMinSampleDistance(min_sample_distance_);
   sac_ia_.setMaxCorrespondenceDistance(max_correspondence_distance_);
   sac_ia_.setMaximumIterations(nr_iterations_);
+  sac_ia_.setCorrespondenceRandomness(3);
 }
 
 TemplateAlignment::~TemplateAlignment()

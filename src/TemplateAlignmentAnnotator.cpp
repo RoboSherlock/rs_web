@@ -4,50 +4,33 @@
 #include <pcl/filters/extract_indices.h>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/filters/passthrough.h>
+#include <pcl/filters/statistical_outlier_removal.h>
+
 #include <pcl/features/shot_omp.h>
-#include <pcl/registration/ia_ransac.h>
 #include <pcl/features/fpfh.h>
+#include <pcl/registration/ia_ransac.h>
+
 
 //RS
 #include <rs/types/all_types.h>
 #include <rs/scene_cas.h>
 #include <rs/utils/time.h>
+#include <rs/utils/common.h>
 #include <rs/DrawingAnnotator.h>
 
 #include <ros/package.h>
 
 #include <rs_kbreasoning/TemplateAlignment.h>
 
-
 #include <rapidjson/rapidjson.h>
 #include <rapidjson/document.h>
 
+#include <tf_conversions/tf_eigen.h>
+
 using namespace uima;
 
-static const cv::Scalar colors[] =
-{
-  cv::Scalar(255, 0, 0),
-  cv::Scalar(0, 255, 0),
-  cv::Scalar(0, 0, 255),
-  cv::Scalar(255, 255, 0),
-  cv::Scalar(255, 0, 255),
-  cv::Scalar(0, 255, 255),
-  cv::Scalar(191, 0, 0),
-  cv::Scalar(0, 191, 0),
-  cv::Scalar(0, 0, 191),
-  cv::Scalar(191, 191, 0),
-  cv::Scalar(191, 0, 191),
-  cv::Scalar(0, 191, 191),
-  cv::Scalar(127, 0, 0),
-  cv::Scalar(0, 127, 0),
-  cv::Scalar(0, 0, 127),
-  cv::Scalar(127, 127, 0),
-  cv::Scalar(127, 0, 127),
-  cv::Scalar(0, 127, 127)
-};
-static const size_t numberOfColors = sizeof(colors) / sizeof(colors[0]);
 
-class Matcher : public DrawingAnnotator
+class TemplateAlignmentAnnotator : public DrawingAnnotator
 {
 private:
   std::string packagePath;
@@ -55,9 +38,12 @@ private:
   cv::Mat dispImg;
   pcl::PointCloud<pcl::PointXYZRGBA>::Ptr dispCloud;
   std::vector<pcl::PointCloud<pcl::PointXYZRGBA>::Ptr> transfResults_;
+
+  tf::StampedTransform camToWorld, worldToCam;
+
 public:
 
-  Matcher(): DrawingAnnotator(__func__)
+  TemplateAlignmentAnnotator(): DrawingAnnotator(__func__)
   {
   }
 
@@ -89,16 +75,16 @@ public:
     std::string jsonQuery;
     if(cas.getFS("QUERY", qs))
     {
-      outWarn("ingredient set in query: " << qs.ingredient());
       jsonQuery = qs.asJson();
+      outWarn("json query: " << qs.asJson());
     }
 
     rapidjson::Document doc;
     doc.Parse(jsonQuery.c_str());
     std::string templateToFit;
-    if(doc.HasMember("ALIGN-CAD"))
+    if(doc.HasMember("CAD-MODEL"))
     {
-      templateToFit = doc["ALIGN-CAD"].GetString();
+      templateToFit = doc["CAD-MODEL"].GetString();
       if(templateToFit == "")
       {
         outError("No model name defined");
@@ -110,6 +96,17 @@ public:
     std::vector<rs::Cluster> clusters;
     scene.identifiables.filter(clusters);
     transfResults_.clear();
+
+    camToWorld.setIdentity();
+    if(scene.viewPoint.has())
+    {
+      rs::conversion::from(scene.viewPoint.get(), camToWorld);
+    }
+    else
+    {
+      outInfo("No camera to world transformation!!!");
+    }
+    worldToCam = tf::StampedTransform(camToWorld.inverse(), camToWorld.stamp_, camToWorld.child_frame_id_, camToWorld.frame_id_);
 
     for(int i = 0; i < clusters.size(); ++i)
     {
@@ -151,6 +148,14 @@ public:
       ei.setIndices(indices);
       ei.filter(*cluster_cloud);
 
+      outInfo("Before SOR filter: " << cluster_cloud->points.size());
+      pcl::StatisticalOutlierRemoval<pcl::PointXYZRGBA> sor;
+      sor.setInputCloud(cluster_cloud);
+      sor.setMeanK(100);
+      sor.setStddevMulThresh(1.0);
+      sor.filter(*cluster_cloud);
+      outInfo("After SOR filter: " << cluster_cloud->points.size());
+
       // ... and downsampling the point cloud
       const float voxel_grid_size = 0.005f;
       pcl::VoxelGrid<pcl::PointXYZRGBA> vox_grid;
@@ -163,12 +168,13 @@ public:
       FeatureCloud target_cloud;
       target_cloud.setInputCloud(tempCloud);
 
+
       template_align.addTemplateCloud(object_template);
       template_align.setTargetCloud(target_cloud);
       TemplateAlignment::Result best_alignment;
       template_align.findBestAlignment(best_alignment);
 
-      Eigen::Matrix3f rotation  = best_alignment.final_transformation.block<3, 3>(0, 0);
+      Eigen::Matrix3f rotation  =  best_alignment.final_transformation.block<3, 3>(0, 0);
       Eigen::Vector3f translation = best_alignment.final_transformation.block<3, 1>(0, 3);
       outInfo("=======================");
       printf("    | %6.3f %6.3f %6.3f | \n", rotation(0, 0), rotation(0, 1), rotation(0, 2));
@@ -178,6 +184,25 @@ public:
       printf("t = < %0.3f, %0.3f, %0.3f >\n", translation(0), translation(1), translation(2));
       outInfo("=======================");
 
+      tf::Stamped<tf::Pose> poseCam;
+      tf::Matrix3x3 tfRotation;
+      tf::Vector3 tfVector;
+      tf::matrixEigenToTF(rotation.cast<double>(),tfRotation);
+      tf::vectorEigenToTF(translation.cast<double>(),tfVector);
+      poseCam.setBasis(tfRotation);
+      poseCam.setOrigin(tfVector);
+      poseCam.frame_id_ = camToWorld.child_frame_id_;
+      poseCam.stamp_ = camToWorld.stamp_;
+
+
+      tf::Stamped<tf::Pose> poseWorld(camToWorld*poseCam, camToWorld.stamp_, camToWorld.frame_id_);
+
+      rs::PoseAnnotation poseAnnotation = rs::create<rs::PoseAnnotation>(tcas);
+      poseAnnotation.source.set("TemplateAlignment");
+      poseAnnotation.camera.set(rs::conversion::to(tcas,poseCam));
+      poseAnnotation.world.set(rs::conversion::to(tcas,poseWorld));
+
+      cluster.annotations.append(poseAnnotation);
       transfResults_.push_back(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBA>()));
       pcl::transformPointCloud(*object_template.getPointCloud(), *transfResults_.back(), best_alignment.final_transformation);
     }
@@ -196,31 +221,31 @@ public:
     if(firstRun)
     {
       visualizer.addPointCloud(dispCloud, "original");
-      visualizer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1.0, "original");
+      visualizer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3.0, "original");
       for(size_t i = 0; i < transfResults_.size(); ++i)
       {
-        const cv::Scalar &c = colors[i % numberOfColors];
+        const cv::Scalar &c =rs::common::cvScalarColors[i % rs::common::numberOfColors];
         const std::string &name = "match" + std::to_string(i);
         pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZRGBA> color(transfResults_[i], c.val[2], c.val[1], c.val[0]);
         visualizer.addPointCloud(transfResults_[i], color, name);
-        visualizer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1.0, name);
+        visualizer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3.0, name);
       }
     }
     else
     {
       visualizer.removeAllPointClouds();
       visualizer.addPointCloud(dispCloud, "original");
-      visualizer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1.0, "original");
+      visualizer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3.0, "original");
       for(size_t i = 0; i < transfResults_.size(); ++i)
       {
-        const cv::Scalar &c = colors[i % numberOfColors];
+        const cv::Scalar &c =rs::common::cvScalarColors[i % rs::common::numberOfColors];
         const std::string &name = "match" + std::to_string(i);
         pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZRGBA> color(transfResults_[i], c.val[2], c.val[1], c.val[0]);
         visualizer.addPointCloud(transfResults_[i], color, name);
-        visualizer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1.0, name);
+        visualizer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3.0, name);
       }
     }
   }
 };
 
-MAKE_AE(Matcher)
+MAKE_AE(TemplateAlignmentAnnotator)

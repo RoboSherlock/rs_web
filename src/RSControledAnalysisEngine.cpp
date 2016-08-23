@@ -291,7 +291,7 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
     }
   }
 
-  if(requestDesignator.childForKey("OBJ-PART") || requestDesignator.childForKey("INGREDIENT"))
+  if(requestDesignator.childForKey("OBJ-PART"))
   {
     for(int i = 0; i < clusters.size(); ++i)
     {
@@ -318,10 +318,13 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
           colorIdx++;
         }
       }
-      for(rs_demos::Pizza p:pizza)
-      {
-
-      }
+    }
+  }
+  if(requestDesignator.childForKey("INGREDIENT"))
+  {
+    if(sceneCas.has("VIEW_DISPLAY_IMAGE"))
+    {
+      sceneCas.get("VIEW_DISPLAY_IMAGE", rgb);
     }
   }
 

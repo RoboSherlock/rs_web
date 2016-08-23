@@ -396,7 +396,6 @@ void RSControledAEManager::filterResults(designator_integration::Designator &req
         }
         else if(req_kvp.key() == "INGREDIENT")
         {
-          outWarn("REQUESTED INGREDIENT");
           resultsForRequestedKey.push_back(resDesig.childForKey("PIZZA"));
         }
         else
@@ -465,17 +464,14 @@ void RSControledAEManager::filterResults(designator_integration::Designator &req
                 }
               }
               resultDesignators[i].setDescription(kvps_);
-              outWarn("Size of list after " << kvps_.size());
             }
             if(resultsForRequestedKey[j]->key() == "PIZZA")
             {
               ok = true;
               std::list<designator_integration::KeyValuePair * > kvps_ = resultDesignators[i].description();
               std::list<designator_integration::KeyValuePair * >::iterator it = kvps_.begin();
-              outWarn("Size of list before: " << kvps_.size());
               while(it != kvps_.end())
               {
-                outWarn((*it)->key());
                 if((*it)->key() != "PIZZA" && (*it)->key() != "ID" && (*it)->key() != "TIMESTAMP")
                 {
                   kvps_.erase(it++);
@@ -488,7 +484,6 @@ void RSControledAEManager::filterResults(designator_integration::Designator &req
               }
               resultDesignators[i].setDescription(kvps_);
               resultDesignators[i].printDesignator();
-              outWarn("Size of list after " << kvps_.size());
             }
             //treat color differently because it is nested and has every color with ration in there
             else if(resultsForRequestedKey[j]->key() == "COLOR")

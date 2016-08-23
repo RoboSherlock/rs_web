@@ -137,7 +137,9 @@ public:
       }
       //Fit result of drill using local features/template matching
       FeatureCloud object_template;
-      object_template.loadInputCloud(packagePath + "/objects_dataset/cad_models/" + templateToFit + "/" + templateToFit + ".pcd");
+      std::string templateCloudPath= packagePath + "/objects_dataset/cad_models/" + templateToFit + "/" + templateToFit + ".pcd";
+      outInfo("Template cloud name: "<<templateCloudPath);
+      object_template.loadInputCloud(templateCloudPath);
 
       pcl::PointIndicesPtr indices(new pcl::PointIndices());
       rs::conversion::from(((rs::ReferenceClusterPoints)cluster.points.get()).indices.get(), *indices);
@@ -173,6 +175,7 @@ public:
       template_align.setTargetCloud(target_cloud);
       TemplateAlignment::Result best_alignment;
       template_align.findBestAlignment(best_alignment);
+
 
       Eigen::Matrix3f rotation  =  best_alignment.final_transformation.block<3, 3>(0, 0);
       Eigen::Vector3f translation = best_alignment.final_transformation.block<3, 1>(0, 3);

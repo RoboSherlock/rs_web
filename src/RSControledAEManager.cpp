@@ -348,6 +348,12 @@ void RSControledAEManager::filterResults(designator_integration::Designator &req
           childForRequestedKey = resDesig.childForKey("BOUNDINGBOX")->childForKey("SIZE");
           resultsForRequestedKey.push_back(childForRequestedKey);
         }
+        else if(req_kvp.key() == "CAD-MODEL")
+        {
+          childForRequestedKey = resDesig.childForKey("POSE");
+          childForRequestedKey->printPair(1);
+          resultsForRequestedKey.push_back(childForRequestedKey);
+        }
         else if(req_kvp.key() == "VOLUME")
         {
           childForRequestedKey = resDesig.childForKey("VOLUME");
@@ -411,8 +417,31 @@ void RSControledAEManager::filterResults(designator_integration::Designator &req
         {
           if(resultsForRequestedKey[j] != NULL)
           {
-            //I am doing this wrong...why do I want to look at this shit again?
-
+            if(resultsForRequestedKey[j]->key() == "POSE")
+            {
+              std::list<designator_integration::KeyValuePair * > kvps_ = resultDesignators[i].description();
+              std::list<designator_integration::KeyValuePair * >::iterator it = kvps_.begin();
+              bool hasCadPose = false;
+              while(it != kvps_.end())
+              {
+                if((*it)->key() == "POSE")
+                {
+                  if((*it)->childForKey("SOURCE")->stringValue() == "TemplateAlignment")
+                  {
+                    hasCadPose = true;
+                    ++it;
+                  }
+                  else
+                  {
+                    kvps_.erase(it++);
+                  }
+                }
+                else
+                  ++it;
+              }
+              ok = hasCadPose;
+              resultDesignators[i].setDescription(kvps_);
+            }
             if(resultsForRequestedKey[j]->key() == "OBJ-PART")
             {
               ok = true;
@@ -421,26 +450,18 @@ void RSControledAEManager::filterResults(designator_integration::Designator &req
               while(it != kvps_.end())
               {
                 if((*it)->key() != "OBJ-PART" && (*it)->key() != "ID" && (*it)->key() != "TIMESTAMP")
-                {
                   kvps_.erase(it++);
-                }
                 else
                 {
                   if((*it)->key() == "OBJ-PART")
                   {
-                    if( (strcasecmp((*it)->childForKey("NAME")->stringValue().c_str(), req_kvp.stringValue().c_str())==0) || (req_kvp.stringValue() =="") )
-                    {
+                    if((strcasecmp((*it)->childForKey("NAME")->stringValue().c_str(), req_kvp.stringValue().c_str()) == 0) || (req_kvp.stringValue() == ""))
                       ++it;
-                    }
                     else
-                    {
                       kvps_.erase(it++);
-                    }
                   }
                   else
-                  {
                     ++it;
-                  }
                 }
               }
               resultDesignators[i].setDescription(kvps_);

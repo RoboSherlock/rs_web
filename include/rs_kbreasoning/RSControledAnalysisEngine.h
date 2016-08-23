@@ -30,6 +30,7 @@ struct RSQuery
   std::string location = "";
   std::string objToInspect = "";
   std::string ingredient ="";
+  std::string asJson="";
 };
 
 class RSControledAnalysisEngine: public RSAnalysisEngine

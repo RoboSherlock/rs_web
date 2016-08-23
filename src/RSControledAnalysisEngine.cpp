@@ -83,6 +83,7 @@ void RSControledAnalysisEngine::process(
     {
       rs::SceneCas sceneCas(*cas);
       rs::Query query = rs::create<rs::Query>(*cas);
+      query.asJson.set(q->asJson);
       if(q->timestamp != 0)
       {
         query.timestamp.set(q->timestamp);

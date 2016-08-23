@@ -258,6 +258,8 @@ annotators_for_predicate(ingredient,A) :-
   annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsdemosRobohowPizza' ).
 annotators_for_predicate(type,A) :-
   annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsAnnotationDetection' ).
+annotators_for_predicate(cad-model,A) :-
+  annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsAnnotationPoseannotation' ).
 
 
 % Detection Clue Annotators. Pick specific Annotators, not based on their inputs/outputs

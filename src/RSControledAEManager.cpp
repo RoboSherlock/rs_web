@@ -151,6 +151,7 @@ bool RSControledAEManager::designatorCallbackLogic(designator_integration_msgs::
   }
 
   //these are hacks,, where we need the
+  query->asJson = rs::DesignatorWrapper::req_designator->serializeToJSON();
   if(rs::DesignatorWrapper::req_designator != NULL)
   {
     std::list<std::string> keys =  rs::DesignatorWrapper::req_designator->keys();

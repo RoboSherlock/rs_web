@@ -187,6 +187,9 @@
     <delegateAnalysisEngine key="TFBroadcaster">
       <import location="../../../robosherlock/descriptors/annotators/io/TFBroadcaster.xml"/>
     </delegateAnalysisEngine>
+    <delegateAnalysisEngine key="TemplateAlignmentAnnotator">
+      <import location="../annotators/TemplateAlignmentAnnotator.xml"/>
+    </delegateAnalysisEngine>
     <delegateAnalysisEngine key="ToolCalibration">
       <import location="../../../robosherlock_demos/descriptors/annotators/robohow/ToolCalibration.xml"/>
     </delegateAnalysisEngine>

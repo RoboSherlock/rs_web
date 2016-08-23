@@ -18,6 +18,10 @@
 
 #include <rs_kbreasoning/TemplateAlignment.h>
 
+
+#include <rapidjson/rapidjson.h>
+#include <rapidjson/document.h>
+
 using namespace uima;
 
 static const cv::Scalar colors[] =
@@ -81,10 +85,32 @@ public:
     cas.get(VIEW_COLOR_IMAGE_HD, dispImg);
     dispCloud = cloud_ptr;
 
+    rs::Query qs = rs::create<rs::Query>(tcas);
+    std::string jsonQuery;
+    if(cas.getFS("QUERY", qs))
+    {
+      outWarn("ingredient set in query: " << qs.ingredient());
+      jsonQuery = qs.asJson();
+    }
+
+    rapidjson::Document doc;
+    doc.Parse(jsonQuery.c_str());
+    std::string templateToFit;
+    if(doc.HasMember("ALIGN-CAD"))
+    {
+      templateToFit = doc["ALIGN-CAD"].GetString();
+      if(templateToFit == "")
+      {
+        outError("No model name defined");
+        return UIMA_ERR_NONE;
+      }
+    }
+
     rs::Scene scene = cas.getScene();
-    transfResults_.clear();
     std::vector<rs::Cluster> clusters;
     scene.identifiables.filter(clusters);
+    transfResults_.clear();
+
     for(int i = 0; i < clusters.size(); ++i)
     {
       rs::Cluster &cluster = clusters[i];
@@ -92,9 +118,26 @@ public:
       {
         continue;
       }
+      std::vector<rs::Detection> detections;
+      cluster.annotations.filter(detections);
+      if(detections.empty())
+      {
+        continue;
+      }
+      bool foundObjectForTemplate = false;
 
-      const std::string &templateToFit="";// = query.get name of object to fit
-
+      for(auto d : detections)
+      {
+        if(d.name() == templateToFit)
+        {
+          foundObjectForTemplate = true;
+          break;
+        }
+      }
+      if(!foundObjectForTemplate)
+      {
+        continue;
+      }
       //Fit result of drill using local features/template matching
       FeatureCloud object_template;
       object_template.loadInputCloud(packagePath + "/objects_dataset/cad_models/" + templateToFit + "/" + templateToFit + ".pcd");

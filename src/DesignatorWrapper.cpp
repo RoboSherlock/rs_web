@@ -104,9 +104,9 @@ bool DesignatorWrapper::getObjectDesignators(std::vector<designator_integration:
   }
   else
   {
-    uint64_t now = ros::Time::now().toNSec();
     std::vector<rs::Object> allObjects, objects;
     cas.get(VIEW_OBJECTS, allObjects);
+    outWarn("objects found: " << allObjects.size());
     for(size_t i = 0; i < allObjects.size(); ++i)
     {
       rs::Object &object = allObjects[i];
@@ -121,22 +121,18 @@ bool DesignatorWrapper::getObjectDesignators(std::vector<designator_integration:
   return true;
 }
 
-void DesignatorWrapper::filterClusters(const std::vector<rs::Cluster> input, const designator_integration::Designator *output) const
-{
-
-}
-
 void DesignatorWrapper::convert(rs::Cluster &input, const size_t id, designator_integration::KeyValuePair *object)
 {
-  object->setValue("CLUSTERID", id);
+  object->setValue("ID", id);
 }
 
 void DesignatorWrapper::convert(rs::Object &input, const size_t id, designator_integration::KeyValuePair *object)
 {
-  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("RESOLUTION");
-  valuePair->setValue("OBJECTID", id);
-  valuePair->setValue("LASTSEEN", now - input.lastSeen());
-  object->addChild(valuePair);
+//  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("RESOLUTION");
+//  valuePair->setValue("ID", id);
+//  valuePair->setValue("LASTSEEN", now - input.lastSeen());
+//  object->addChild(valuePair);
+  object->setValue("ID", id);
 }
 
 void DesignatorWrapper::convert(rs::Detection &input, designator_integration::KeyValuePair *object)
@@ -207,7 +203,7 @@ void DesignatorWrapper::convert(rs::PoseAnnotation &input, designator_integratio
   rs::conversion::from(input.camera(), tf_stamped_pose);
   tf::poseStampedTFToMsg(tf_stamped_pose, pose_stamped_msgs);
   valuePair->setValue("POSE", pose_stamped_msgs);
-  valuePair->setValue("SOURCE",input.source());
+  valuePair->setValue("SOURCE", input.source());
 
   object->addChild(valuePair);
 }
@@ -289,6 +285,19 @@ void DesignatorWrapper::convert(rs::Features &input, designator_integration::Key
   object->addChild(valuePair);
 }
 
+void DesignatorWrapper::convert(rs::ClusterPart &input, designator_integration::KeyValuePair *object)
+{
+  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("OBJ-PART");
+  tf::Stamped<tf::Pose> tf_stamped_pose;
+  geometry_msgs::PoseStamped pose_stamped_msgs;
+  rs::conversion::from(input.pose(), tf_stamped_pose);
+  tf::poseStampedTFToMsg(tf_stamped_pose, pose_stamped_msgs);
+  valuePair->setValue("NAME", input.name());
+  valuePair->setValue("POSE", pose_stamped_msgs);
+  object->addChild(valuePair);
+
+}
+
 void DesignatorWrapper::convert(rs_demos::Volume &input, designator_integration::KeyValuePair *object)
 {
   designator_integration::KeyValuePair *volume = new designator_integration::KeyValuePair("VOLUME");
@@ -324,12 +333,62 @@ void DesignatorWrapper::convert(rs::ARMarker &input, designator_integration::Des
 }
 
 void DesignatorWrapper::convert(rs::HandleAnnotation &input,
-    designator_integration::Designator &handleDesignator)
+                                designator_integration::Designator &handleDesignator)
 {
-  handleDesignator.setValue("HANDLE",input.name());
+  handleDesignator.setValue("HANDLE", input.name());
   tf::Stamped<tf::Pose> tf_stamped_pose;
   geometry_msgs::PoseStamped pose_stamped_msgs;
   rs::conversion::from(input.pose(), tf_stamped_pose);
   tf::poseStampedTFToMsg(tf_stamped_pose, pose_stamped_msgs);
   handleDesignator.setValue("POSE", pose_stamped_msgs);
 }
+
+void DesignatorWrapper::convert(rs_demos::Pizza &input, designator_integration::KeyValuePair *object)
+{
+  designator_integration::KeyValuePair *pizza = new designator_integration::KeyValuePair("PIZZA");
+
+  rs::PoseAnnotation pose = input.pose();
+  convert(pose, pizza);
+
+  designator_integration::KeyValuePair *size = new designator_integration::KeyValuePair("SIZE");
+  size->setValue("WIDTH", input.size().width());
+  size->setValue("HEIGHT", input.size().height());
+  pizza->addChild(size);
+
+  designator_integration::KeyValuePair *gridSize = new designator_integration::KeyValuePair("DIMENSIONS");
+  gridSize->setValue("WIDTH", input.dimensions().width());
+  gridSize->setValue("HEIGHT", input.dimensions().height());
+  pizza->addChild(gridSize);
+
+  designator_integration::KeyValuePair *fieldSize = new designator_integration::KeyValuePair("FIELD_SIZE");
+  fieldSize->setValue("WIDTH", input.fieldSize().width());
+  fieldSize->setValue("HEIGHT", input.fieldSize().height());
+  pizza->addChild(fieldSize);
+
+  designator_integration::KeyValuePair *fields = new designator_integration::KeyValuePair("FIELDS");
+  std::vector<rs_demos::PizzaField> fieldsVec = input.fields();
+  for(size_t i = 0; i < fieldsVec.size(); ++i)
+  {
+    rs_demos::PizzaField &inputF = fieldsVec[i];
+    designator_integration::KeyValuePair *field = new designator_integration::KeyValuePair(std::to_string(i));
+
+    rs::PoseAnnotation pose = inputF.pose();
+    convert(pose, field);
+
+    field->setValue("X", inputF.position().x());
+    field->setValue("Y", inputF.position().y());
+
+    designator_integration::KeyValuePair *ingredients = new designator_integration::KeyValuePair("INGREDIENT");
+    std::vector<std::string> ingredientsVec = inputF.ingredients();
+    for(size_t j = 0; j < ingredientsVec.size(); ++j)
+    {
+      ingredients->setValue(std::to_string(j), ingredientsVec[j]);
+    }
+    field->setValue("TOP_INGREDIENT",ingredientsVec[ingredientsVec.size()-1]);
+    field->addChild(ingredients);
+    fields->addChild(field);
+  }
+  pizza->addChild(fields);
+  object->addChild(pizza);
+}
+

@@ -101,3 +101,9 @@ target_link_libraries(rs_prologrulescpp
   ${SWIPL_LIBRARIES}
   ${catkin_LIBRARIES}
 )
+
+add_library(rs_templateMatcher src/TemplateAlignment.cpp)
+target_link_libraries(rs_templateMatcher ${catkin_LIBRARIES})
+
+rs_add_library(rs_templateAlignmentAnnotator src/TemplateAlignmentAnnotator.cpp)
+target_link_libraries(rs_templateAlignmentAnnotator rs_templateMatcher ${catkin_LIBRARIES})

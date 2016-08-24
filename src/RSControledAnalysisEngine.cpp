@@ -83,6 +83,7 @@ void RSControledAnalysisEngine::process(
     {
       rs::SceneCas sceneCas(*cas);
       rs::Query query = rs::create<rs::Query>(*cas);
+      query.asJson.set(q->asJson);
       if(q->timestamp != 0)
       {
         query.timestamp.set(q->timestamp);
@@ -146,8 +147,8 @@ void RSControledAnalysisEngine::process(
   }
   // Make a designator from the result
   rs::DesignatorWrapper dw;
-  dw.setMode(rs::DesignatorWrapper::CLUSTER);
   dw.setCAS(cas);
+  dw.setMode(rs::DesignatorWrapper::OBJECT);
   dw.getObjectDesignators(designatorResponse);
 
   outInfo("processing finished");
@@ -207,7 +208,8 @@ void RSControledAnalysisEngine::process(std::vector<std::string> annotators, boo
 }
 
 void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filter,
-    const std::vector<designator_integration::Designator> &resultDesignators)
+    const std::vector<designator_integration::Designator> &resultDesignators,
+    designator_integration::Designator &requestDesignator)
 {
   rs::SceneCas sceneCas(*cas);
   rs::Scene scene = sceneCas.getScene();
@@ -224,38 +226,17 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
   scene.identifiables.filter(clusters);
 
   //very hacky for now: draws the parts of the objects if they were found
-  for(int i = 0; i < clusters.size(); ++i)
-  {
-    rs::Cluster &cluster = clusters[i];
-    std::vector<rs::ClusterPart> parts;
-    cluster.annotations.filter(parts);
-    if(parts.empty())
-    {
-      continue;
-    }
-    for(int pIdx = 0; pIdx < parts.size(); ++pIdx)
-    {
-      rs::ClusterPart &part = parts[pIdx];
-      pcl::PointIndices indices;
-      rs::conversion::from(part.indices(), indices);
-      for(int iIdx = 0; iIdx < indices.indices.size(); ++iIdx)
-      {
-        int idx = indices.indices[iIdx];
-        rgb.at<cv::Vec3b>(cv::Point(idx % 640, idx / 640)) = rs::common::cvVec3bColors[pIdx % rs::common::numberOfColors];
-      }
-    }
-  }
+  int colorIdx = 0;
+
 
   for(int i = 0; i < filter.size(); ++i)
   {
-
     if(!filter[i])
     {
       continue;
     }
-
     designator_integration::Designator desig = resultDesignators[i];
-    designator_integration::KeyValuePair *clusterId = desig.childForKey("CLUSTERID");
+    designator_integration::KeyValuePair *clusterId = desig.childForKey("ID");
     if(clusterId != NULL)
     {
       int idx = atoi(clusterId->stringValue().c_str());
@@ -273,9 +254,10 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
       rs::conversion::from(((rs::ReferenceClusterPoints)clusters[idx].points()).indices(), *inliers);
       for(unsigned int idx = 0; idx < inliers->indices.size(); ++idx)
       {
-        dispCloud->points[inliers->indices[idx]].rgba = rs::common::colors[i % rs::common::numberOfColors];
+        dispCloud->points[inliers->indices[idx]].rgba = rs::common::colors[colorIdx % rs::common::numberOfColors];
         dispCloud->points[inliers->indices[idx]].a = 255;
       }
+      colorIdx++;
     }
     designator_integration::KeyValuePair *handleKvp = desig.childForKey("HANDLE");
     if(handleKvp != NULL)
@@ -308,6 +290,44 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
       }
     }
   }
+
+  if(requestDesignator.childForKey("OBJ-PART"))
+  {
+    for(int i = 0; i < clusters.size(); ++i)
+    {
+      rs::Cluster &cluster = clusters[i];
+      std::vector<rs::ClusterPart> parts;
+      std::vector<rs_demos::Pizza> pizza;
+      cluster.annotations.filter(parts);
+      cluster.annotations.filter(pizza);
+
+      for(int pIdx = 0; pIdx < parts.size(); ++pIdx)
+      {
+        rs::ClusterPart &part = parts[pIdx];
+        if(strcasecmp(part.name().c_str(), requestDesignator.childForKey("OBJ-PART")->stringValue().c_str()) == 0 || requestDesignator.childForKey("OBJ-PART")->stringValue() == "")
+        {
+          pcl::PointIndices indices;
+          rs::conversion::from(part.indices(), indices);
+          for(int iIdx = 0; iIdx < indices.indices.size(); ++iIdx)
+          {
+            int idx = indices.indices[iIdx];
+            rgb.at<cv::Vec3b>(cv::Point(idx % cam_info.width, idx / cam_info.width)) = rs::common::cvVec3bColors[pIdx % rs::common::numberOfColors];
+            dispCloud->points[idx].rgba = rs::common::colors[colorIdx % rs::common::numberOfColors];
+            dispCloud->points[idx].a = 255;
+          }
+          colorIdx++;
+        }
+      }
+    }
+  }
+  if(requestDesignator.childForKey("INGREDIENT"))
+  {
+    if(sceneCas.has("VIEW_DISPLAY_IMAGE"))
+    {
+      sceneCas.get("VIEW_DISPLAY_IMAGE", rgb);
+    }
+  }
+
   cv_bridge::CvImage outImgMsgs;
   outImgMsgs.header = cam_info.header;
   outImgMsgs.encoding = sensor_msgs::image_encodings::BGR8;
@@ -326,7 +346,7 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
 
 
   dispCloud->header.frame_id = cam_info.header.frame_id;//"head_mount_kinect_rgb_optical_frame";
-//  dispCloud->header.stamp = ros::Time::now().toNSec();
+  //  dispCloud->header.stamp = ros::Time::now().toNSec();
   pc_pub_.publish(dispCloud);
 
 }

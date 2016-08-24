@@ -6,13 +6,16 @@
 
 #include <uima/api.hpp>
 
+#include <rs/scene_cas.h>
 #include <rs/utils/output.h>
-#include <designators/Designator.h>
+
 #include <rs/types/all_types.h>
 #include <rs_demos/types/acat_types.h>
+#include <rs_demos/types/robohow_types.h>
+
 #include <designators/Designator.h>
 #include <designator_integration_msgs/DesignatorCommunication.h>
-#include <rs/scene_cas.h>
+
 #include <boost/bind.hpp>
 #include <boost/signals2.hpp>
 #include <map>
@@ -110,8 +113,10 @@ public:
       std::vector<rs::MLNAtoms> atoms;
       std::vector<rs::Goggles> goggles;
       std::vector<rs::Features> features;
+      std::vector<rs::ClusterPart> clusterParts;
       std::vector<rs_demos::Volume> volume;
       std::vector<rs_demos::Substance> substance;
+      std::vector<rs_demos::Pizza> pizza;
 
       element.annotations.filter(geometry);
       element.annotations.filter(poses);
@@ -123,8 +128,10 @@ public:
       element.annotations.filter(atoms);
       element.annotations.filter(goggles);
       element.annotations.filter(features);
+      element.annotations.filter(clusterParts);
       element.annotations.filter(volume);
       element.annotations.filter(substance);
+      element.annotations.filter(pizza);
 
       outDebug("Number of volume annotations: " << volume.size());
       outDebug("Number of substance annotations: " << substance.size());
@@ -139,8 +146,11 @@ public:
       convertAll(atoms, &objectDesignator);
       convertAll(goggles, &objectDesignator);
       convertAll(features, &objectDesignator);
+      convertAll(clusterParts, &objectDesignator);
       convertAll(volume, &objectDesignator);
       convertAll(substance, &objectDesignator);
+      convertAll(pizza, &objectDesignator);
+
 
       iai_robosherlock_msgs::PerceivedObject object;
       if(!detections.empty() && !poses.empty())
@@ -191,12 +201,14 @@ public:
   void convert(rs::NamedLink &input, designator_integration::KeyValuePair *object);
   void convert(rs::Goggles &input, designator_integration::KeyValuePair *object);
   void convert(rs::Features &input, designator_integration::KeyValuePair *object);
+  void convert(rs::ClusterPart &input, designator_integration::KeyValuePair *object);
   void convert(rs_demos::Volume &input, designator_integration::KeyValuePair *object);
   void convert(rs_demos::Substance &input, designator_integration::KeyValuePair *object);
 
   void convert(rs::ARMarker &input, designator_integration::Designator &res);
   void convert(rs::HandleAnnotation &input, designator_integration::Designator &res);
-
+  void convert(rs_demos::Pizza &input, designator_integration::KeyValuePair *object);
 
 };
 }
+

@@ -106,8 +106,8 @@ static std::map<std::string, std::string> krNameMapping =
 
 static std::vector<std::string> rsQueryTerms =
   { "shape","volume","contains","color","size",
-    "location","logo","text","product","obj-parts",
-    "detection","type","handle","ingredient"
+    "location","logo","text","product","obj-part",
+    "detection","type","handle","ingredient","cad-model"
   };
 }
 

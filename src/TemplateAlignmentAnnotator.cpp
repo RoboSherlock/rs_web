@@ -10,6 +10,8 @@
 #include <pcl/features/fpfh.h>
 #include <pcl/registration/ia_ransac.h>
 
+#include <pcl/io/vtk_lib_io.h>
+
 
 //RS
 #include <rs/types/all_types.h>
@@ -137,7 +139,7 @@ public:
       }
       //Fit result of drill using local features/template matching
       FeatureCloud object_template;
-      std::string templateCloudPath= packagePath + "/objects_dataset/cad_models/" + templateToFit + "/" + templateToFit + ".pcd";
+      std::string templateCloudPath = packagePath + "/objects_dataset/cad_models/" + templateToFit + "/" + templateToFit + ".pcd";
       outInfo("Template cloud name: "<<templateCloudPath);
       object_template.loadInputCloud(templateCloudPath);
 
@@ -208,9 +210,18 @@ public:
       cluster.annotations.append(poseAnnotation);
       transfResults_.push_back(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBA>()));
       pcl::transformPointCloud(*object_template.getPointCloud(), *transfResults_.back(), best_alignment.final_transformation);
+
+      drawCADModelonImage(templateCloudPath.substr(0,templateCloudPath.find_last_of("."))+".ply");
     }
 
     return UIMA_ERR_NONE;
+  }
+  void drawCADModelonImage(std::string pathToCAD)
+  {
+    outInfo("Drawing "<<pathToCAD);
+    pcl::PolygonMesh polyMesh;
+    pcl::io::loadPolygonFilePLY(pathToCAD,polyMesh);
+    outInfo("Number of vertices :"<<polyMesh.polygons.size());
   }
 
   void drawImageWithLock(cv::Mat &disp)

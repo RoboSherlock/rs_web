@@ -221,7 +221,12 @@ public:
     outInfo("Drawing "<<pathToCAD);
     pcl::PolygonMesh polyMesh;
     pcl::io::loadPolygonFilePLY(pathToCAD,polyMesh);
-    outInfo("Number of vertices :"<<polyMesh.polygons.size());
+    outInfo("Number of vertices :"<<polyMesh.polygons.size());\
+    outInfo(polyMesh);
+//    for(int i = 0;i<polyMesh.polygons.size();++i)
+//    {
+//        polyMesh.cloud.
+//    }
   }
 
   void drawImageWithLock(cv::Mat &disp)

@@ -320,6 +320,13 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
       }
     }
   }
+  if(requestDesignator.childForKey("CAD-MODEL"))
+  {
+    if(sceneCas.has("VIEW_DISPLAY_IMAGE"))
+    {
+      sceneCas.get("VIEW_DISPLAY_IMAGE", rgb);
+    }
+  }
   if(requestDesignator.childForKey("INGREDIENT"))
   {
     if(sceneCas.has("VIEW_DISPLAY_IMAGE"))

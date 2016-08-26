@@ -410,9 +410,31 @@
         </overrides>
       </configurationParameter>
 
+      <configurationParameter>
+        <name>defaultRegions</name>
+        <description>Region entry from the semantic map based on which to filter the cloud (e.g. CounterTop or Drawers etc.) </description>
+        <type>String</type>
+        <multiValued>true</multiValued>
+        <mandatory>false</mandatory>
+        <overrides>
+          <parameter>RegionFilter/defaultRegions</parameter>
+        </overrides>
+      </configurationParameter>
+
     </configurationParameters>
 
     <configurationParameterSettings>
+
+      <nameValuePair>
+        <name>defaultRegions</name>
+        <value>
+        <array>
+          <string>kitchen_sink_block_counter_top</string>
+          <string>kitchen_meal_table_counter_top</string>
+        </array>
+        </value>
+      </nameValuePair>
+
     <nameValuePair>
       <name>overwriteExistingPoseEstimate</name>
       <value>
@@ -549,7 +571,6 @@
     </configurationParameterSettings>
     <flowConstraints>
     <fixedFlow>
-<!--      <node>Trigger</node>-->
       <node>CollectionReader</node>
       <node>ImagePreprocessor</node>
       <node>HandleAnnotator</node>
@@ -568,19 +589,12 @@
       <node>ClusterColorHistogramCalculator</node>
       <node>PrimitiveShapeAnnotator</node>
       <node>TemplateAlignmentAnnotator</node>
-<!--      <node>SacModelAnnotator</node>-->
-<!--      <node>LinemodAnnotator</node>-->
-<!--      <node>MLNInferencer</node>-->
+
       <node>ClusterToPartsSegmenter</node>
       <node>DeCafClassifier</node>
-<!--      <node>ClusterTracker</node>-->
-<!--      <node>ClusterGogglesAnnotator</node>-->
-<!--      <node>GroundTruthAnnotator</node>-->
-<node>TFBroadcaster</node>
+      <node>TFBroadcaster</node>
       <node>ObjectIdentityResolution</node>
       <node>StorageWriter</node>
-
-
     </fixedFlow>
     </flowConstraints>
     <typePriorities/>

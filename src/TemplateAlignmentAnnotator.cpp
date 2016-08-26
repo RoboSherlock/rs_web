@@ -67,6 +67,7 @@ public:
     return UIMA_ERR_NONE;
   }
 
+
   TyErrorId processWithLock(CAS &tcas, ResultSpecification const &res_spec)
   {
     MEASURE_TIME;
@@ -110,7 +111,15 @@ public:
 
     rs::Scene scene = cas.getScene();
     std::vector<rs::Cluster> clusters;
+    std::vector<rs::Plane> planes;
     scene.identifiables.filter(clusters);
+    scene.annotations.filter(planes);
+
+    if(planes.empty())
+    {
+      return UIMA_ERR_ANNOTATOR_MISSING_INFO;
+    }
+
     transfResults_.clear();
 
     camToWorld.setIdentity();
@@ -227,6 +236,7 @@ public:
       _P_matrix.at<double>(1, 3) = translation(1);
       _P_matrix.at<double>(2, 3) = translation(2);
 
+      rs::common::projectPointOnPlane(poseCam,planes[0].model());
       tf::Stamped<tf::Pose> poseWorld(camToWorld * poseCam, camToWorld.stamp_, camToWorld.frame_id_);
 
       rs::PoseAnnotation poseAnnotation = rs::create<rs::PoseAnnotation>(tcas);
@@ -237,9 +247,6 @@ public:
       cluster.annotations.append(poseAnnotation);
       transfResults_.push_back(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBA>()));
       pcl::transformPointCloud(*object_template.getPointCloud(), *transfResults_.back(), best_alignment.final_transformation);
-
-
-
 
       cv::Mat dispQuery;
 

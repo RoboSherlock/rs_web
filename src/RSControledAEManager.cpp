@@ -335,7 +335,7 @@ void RSControledAEManager::filterResults(designator_integration::Designator &req
       continue;
     }
 
-    outInfo("No. of result Designators: " << resultDesignators.size());
+    outInfo("No. of resulting Object Designators: " << resultDesignators.size());
     for(size_t i = 0; i < resultDesignators.size(); ++i)
     {
       designator_integration::Designator resDesig = resultDesignators[i];
@@ -351,7 +351,6 @@ void RSControledAEManager::filterResults(designator_integration::Designator &req
         else if(req_kvp.key() == "CAD-MODEL")
         {
           childForRequestedKey = resDesig.childForKey("POSE");
-          childForRequestedKey->printPair(1);
           resultsForRequestedKey.push_back(childForRequestedKey);
         }
         else if(req_kvp.key() == "VOLUME")

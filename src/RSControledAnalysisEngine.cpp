@@ -30,7 +30,6 @@ void RSControledAnalysisEngine::init(const std::string &AEFile, const std::strin
   outInfo("*** Number of Annotators in AnnotatorManager: " << rspm->aengine->getNbrOfAnnotators());
 
   // After all annotators have been initialized, pick the default pipeline
-  std::string pathToPackage = ros::package::getPath("rs_kbreasoning");
   cv::FileStorage fs(configFile, cv::FileStorage::READ);
 
   std::vector<std::string> lowLvlPipeline;
@@ -148,7 +147,10 @@ void RSControledAnalysisEngine::process(
   // Make a designator from the result
   rs::DesignatorWrapper dw;
   dw.setCAS(cas);
-  dw.setMode(rs::DesignatorWrapper::OBJECT);
+  if(useIdentityResolution_)
+    dw.setMode(rs::DesignatorWrapper::OBJECT);
+  else
+    dw.setMode(rs::DesignatorWrapper::CLUSTER);
   dw.getObjectDesignators(designatorResponse);
 
   outInfo("processing finished");
@@ -320,14 +322,7 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
       }
     }
   }
-  if(requestDesignator.childForKey("CAD-MODEL"))
-  {
-    if(sceneCas.has("VIEW_DISPLAY_IMAGE"))
-    {
-      sceneCas.get("VIEW_DISPLAY_IMAGE", rgb);
-    }
-  }
-  if(requestDesignator.childForKey("INGREDIENT"))
+  if(requestDesignator.childForKey("INGREDIENT")||requestDesignator.childForKey("CAD-MODEL"))
   {
     if(sceneCas.has("VIEW_DISPLAY_IMAGE"))
     {

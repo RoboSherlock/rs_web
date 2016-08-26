@@ -35,6 +35,7 @@ private:
   const bool waitForServiceCall_;
   const bool useVisualizer_;
   const bool useCWAssumption_;
+  bool useIdentityResolution_;
 
   std::mutex processing_mutex_;
 
@@ -50,7 +51,7 @@ public:
   RSControledAEManager(const bool useVisualizer, const std::string &savePath,
                        const bool &waitForServiceCall, const bool useCWAssumption, ros::NodeHandle n):
     jsonPrologInterface_(), nh_(n), waitForServiceCall_(waitForServiceCall),
-    useVisualizer_(useVisualizer),useCWAssumption_(useCWAssumption), visualizer_(savePath)
+    useVisualizer_(useVisualizer),useCWAssumption_(useCWAssumption), useIdentityResolution_(false), visualizer_(savePath)
   {
 
     outInfo("Creating resource manager"); // TODO: DEBUG
@@ -156,6 +157,14 @@ public:
                      std::vector<designator_integration::Designator> &resultDesignators,
                      std::vector<designator_integration::Designator> &filteredResponse,
                      std::string superclass);
+
+  inline void setUseIdentityResolution(bool useIdentityResoltuion)
+  {
+        useIdentityResolution_ = useIdentityResoltuion;
+        engine.useIdentityResolution(useIdentityResoltuion);
+  }
+
+
 
 };
 

@@ -1,5 +1,7 @@
 #include <rs_kbreasoning/RSControledAEManager.h>
 
+using namespace designator_integration;
+
 void RSControledAEManager::run()
 {
   for(; ros::ok();)
@@ -88,7 +90,7 @@ bool RSControledAEManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryServi
   }
   else
   {
-    designator_integration::Designator reqDesig;
+    Designator reqDesig;
     reqDesig.fillFromJSON(std::string(req.query));
 
     designator_integration_msgs::DesignatorCommunication::Request reqMsg;
@@ -99,8 +101,8 @@ bool RSControledAEManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryServi
 
     for(auto resp : respMsg.response.designators)
     {
-      designator_integration::Designator d(resp);
-      d.setType(designator_integration::Designator::OBJECT);
+      Designator d(resp);
+      d.setType(Designator::OBJECT);
       res.answer.push_back(d.serializeToJSON());
     }
   }
@@ -126,8 +128,8 @@ bool RSControledAEManager::designatorCallbackLogic(designator_integration_msgs::
   {
     delete rs::DesignatorWrapper::req_designator;
   }
-  rs::DesignatorWrapper::req_designator = new designator_integration::Designator(req.request.designator);
-  rs::DesignatorWrapper::req_designator->setType(designator_integration::Designator::ACTION);
+  rs::DesignatorWrapper::req_designator = new Designator(req.request.designator);
+  rs::DesignatorWrapper::req_designator->setType(Designator::ACTION);
   rs::DesignatorWrapper::req_designator->printDesignator();
 
   //log the req desig with semrec
@@ -144,7 +146,7 @@ bool RSControledAEManager::designatorCallbackLogic(designator_integration_msgs::
   RSQuery *query = new RSQuery();
   std::string superClass = "";
 
-  if(rs::DesignatorWrapper::req_designator->type() != designator_integration::Designator::ACTION)
+  if(rs::DesignatorWrapper::req_designator->type() != Designator::ACTION)
   {
     outInfo(" ***** RECEIVED SERVICE CALL WITH UNHANDELED DESIGNATOR TYPE (everything != ACTION) ! Aborting... ****** ");
     return false;
@@ -159,32 +161,32 @@ bool RSControledAEManager::designatorCallbackLogic(designator_integration_msgs::
     {
       if(key == "TIMESTAMP")
       {
-        designator_integration::KeyValuePair *kvp = rs::DesignatorWrapper::req_designator->childForKey("TIMESTAMP");
+        KeyValuePair *kvp = rs::DesignatorWrapper::req_designator->childForKey("TIMESTAMP");
         std::string ts = kvp->stringValue();
         query->timestamp = std::stoll(ts);
         outInfo("received timestamp:" << query->timestamp);
       }
       if(key == "LOCATION")
       {
-        designator_integration::KeyValuePair *kvp = rs::DesignatorWrapper::req_designator->childForKey("LOCATION");
+        KeyValuePair *kvp = rs::DesignatorWrapper::req_designator->childForKey("LOCATION");
         query->location = kvp->stringValue();
         outInfo("received location:" << query->location);
       }
       if(key == "OBJ-PART")
       {
-        designator_integration::KeyValuePair *kvp =  rs::DesignatorWrapper::req_designator->childForKey("OBJ-PART");
+        KeyValuePair *kvp =  rs::DesignatorWrapper::req_designator->childForKey("OBJ-PART");
         query->objToInspect = kvp->stringValue();
         outInfo("received obj-part request for object: " << query->objToInspect);
       }
       if(key == "INGREDIENT")
       {
-        designator_integration::KeyValuePair *kvp =  rs::DesignatorWrapper::req_designator->childForKey("INGREDIENT");
+        KeyValuePair *kvp =  rs::DesignatorWrapper::req_designator->childForKey("INGREDIENT");
         query->ingredient = kvp->stringValue();
         outInfo("received request for detection ingredient: " << query->ingredient);
       }
       if(key == "TYPE")
       {
-        designator_integration::KeyValuePair *kvp =  rs::DesignatorWrapper::req_designator->childForKey("TYPE");
+        KeyValuePair *kvp =  rs::DesignatorWrapper::req_designator->childForKey("TYPE");
         superClass = kvp->stringValue();
       }
     }
@@ -213,10 +215,9 @@ bool RSControledAEManager::designatorCallbackLogic(designator_integration_msgs::
   processing_mutex_.lock();
   outInfo(FG_CYAN << "LOCK ACQUIRED");
 
-  std::vector<designator_integration::Designator> resultDesignators;
+  std::vector<Designator> resultDesignators;
   for(auto bdg : bdgs)
   {
-    std::string prologResult = bdg["A"].toString();
     std::vector<std::string> new_pipeline_order = jsonPrologInterface_.createPipelineFromPrologResult(bdg["A"].toString());
 
     //always add Storage at the end
@@ -249,7 +250,7 @@ bool RSControledAEManager::designatorCallbackLogic(designator_integration_msgs::
   }
 
 
-  std::vector<designator_integration::Designator> filteredResponse;
+  std::vector<Designator> filteredResponse;
   filterResults(*rs::DesignatorWrapper::req_designator, resultDesignators, filteredResponse, superClass);
   outInfo("The filteredResponse size:" << filteredResponse.size());
 
@@ -261,17 +262,17 @@ bool RSControledAEManager::designatorCallbackLogic(designator_integration_msgs::
   }
 
   // Define an ACTION designator with the planned pipeline
-  designator_integration::Designator *pipeline_action = new designator_integration::Designator();
-  pipeline_action->setType(designator_integration::Designator::ACTION);
-  std::list<designator_integration::KeyValuePair *> lstDescription;
+  Designator *pipeline_action = new Designator();
+  pipeline_action->setType(Designator::ACTION);
+  std::list<KeyValuePair *> lstDescription;
   for(auto & annotatorName : executedPipeline)
   {
-    designator_integration::KeyValuePair *oneAnno = new designator_integration::KeyValuePair();
+    KeyValuePair *oneAnno = new KeyValuePair();
     oneAnno->setValue(annotatorName);
     lstDescription.push_back(oneAnno);
   }
   pipeline_action->setValue("PIPELINEID", pipelineId);
-  pipeline_action->setValue("ANNOTATORS", designator_integration::KeyValuePair::LIST, lstDescription);
+  pipeline_action->setValue("ANNOTATORS", KeyValuePair::LIST, lstDescription);
   //  filteredResponse.push_back(pipeline_action);
 
   if(ctxRSEvent != NULL)
@@ -314,9 +315,9 @@ bool RSControledAEManager::designatorCallbackLogic(designator_integration_msgs::
 }
 
 
-void RSControledAEManager::filterResults(designator_integration::Designator &requestDesignator,
-    std::vector<designator_integration::Designator> &resultDesignators,
-    std::vector<designator_integration::Designator> &filteredResponse,
+void RSControledAEManager::filterResults(Designator &requestDesignator,
+    std::vector<Designator> &resultDesignators,
+    std::vector<Designator> &filteredResponse,
     std::string superclass)
 {
   outInfo("filtering the results based on the designator request");
@@ -325,11 +326,11 @@ void RSControledAEManager::filterResults(designator_integration::Designator &req
   keep_designator.resize(resultDesignators.size(), true);
 
   //    requestDesignator.printDesignator();
-  std::list<designator_integration::KeyValuePair *> requested_kvps = requestDesignator.description();
+  std::list<KeyValuePair *> requested_kvps = requestDesignator.description();
 
-  for(std::list<designator_integration::KeyValuePair *>::iterator it = requested_kvps.begin(); it != requested_kvps.end(); ++it)
+  for(std::list<KeyValuePair *>::iterator it = requested_kvps.begin(); it != requested_kvps.end(); ++it)
   {
-    designator_integration::KeyValuePair req_kvp = **it;
+    KeyValuePair req_kvp = **it;
     if(req_kvp.key() == "TIMESTAMP" || req_kvp.key() == "LOCATION")
     {
       continue;
@@ -338,9 +339,9 @@ void RSControledAEManager::filterResults(designator_integration::Designator &req
     outInfo("No. of resulting Object Designators: " << resultDesignators.size());
     for(size_t i = 0; i < resultDesignators.size(); ++i)
     {
-      designator_integration::Designator resDesig = resultDesignators[i];
-      std::vector<designator_integration::KeyValuePair *> resultsForRequestedKey;
-      designator_integration::KeyValuePair *childForRequestedKey = NULL;
+      Designator resDesig = resultDesignators[i];
+      std::vector<KeyValuePair *> resultsForRequestedKey;
+      KeyValuePair *childForRequestedKey = NULL;
       if(resDesig.childForKey("ID") != NULL)
       {
         if(req_kvp.key() == "SIZE") //size is nested get it from the bounding box..bad design
@@ -379,10 +380,10 @@ void RSControledAEManager::filterResults(designator_integration::Designator &req
         }
         else if(req_kvp.key() == "SHAPE") //there can be multiple shapes and these are not nested
         {
-          std::list<designator_integration::KeyValuePair *> resKvPs = resDesig.description();
-          for(std::list<designator_integration::KeyValuePair *>::iterator it2 = resKvPs.begin(); it2 != resKvPs.end(); ++it2)
+          std::list<KeyValuePair *> resKvPs = resDesig.description();
+          for(std::list<KeyValuePair *>::iterator it2 = resKvPs.begin(); it2 != resKvPs.end(); ++it2)
           {
-            designator_integration::KeyValuePair res_kvp = **it2;
+            KeyValuePair res_kvp = **it2;
             if(res_kvp.key() == "SHAPE")
             {
               resultsForRequestedKey.push_back(*it2);
@@ -417,8 +418,8 @@ void RSControledAEManager::filterResults(designator_integration::Designator &req
           {
             if(resultsForRequestedKey[j]->key() == "POSE")
             {
-              std::list<designator_integration::KeyValuePair * > kvps_ = resultDesignators[i].description();
-              std::list<designator_integration::KeyValuePair * >::iterator it = kvps_.begin();
+              std::list<KeyValuePair * > kvps_ = resultDesignators[i].description();
+              std::list<KeyValuePair * >::iterator it = kvps_.begin();
               bool hasCadPose = false;
               while(it != kvps_.end())
               {
@@ -443,8 +444,8 @@ void RSControledAEManager::filterResults(designator_integration::Designator &req
             if(resultsForRequestedKey[j]->key() == "OBJ-PART")
             {
               ok = true;
-              std::list<designator_integration::KeyValuePair * > kvps_ = resultDesignators[i].description();
-              std::list<designator_integration::KeyValuePair * >::iterator it = kvps_.begin();
+              std::list<KeyValuePair * > kvps_ = resultDesignators[i].description();
+              std::list<KeyValuePair * >::iterator it = kvps_.begin();
               while(it != kvps_.end())
               {
                 if((*it)->key() != "OBJ-PART" && (*it)->key() != "ID" && (*it)->key() != "TIMESTAMP")
@@ -467,8 +468,8 @@ void RSControledAEManager::filterResults(designator_integration::Designator &req
             if(resultsForRequestedKey[j]->key() == "PIZZA")
             {
               ok = true;
-              std::list<designator_integration::KeyValuePair * > kvps_ = resultDesignators[i].description();
-              std::list<designator_integration::KeyValuePair * >::iterator it = kvps_.begin();
+              std::list<KeyValuePair * > kvps_ = resultDesignators[i].description();
+              std::list<KeyValuePair * >::iterator it = kvps_.begin();
               while(it != kvps_.end())
               {
                 if((*it)->key() != "PIZZA" && (*it)->key() != "ID" && (*it)->key() != "TIMESTAMP")
@@ -487,10 +488,10 @@ void RSControledAEManager::filterResults(designator_integration::Designator &req
             //treat color differently because it is nested and has every color with ration in there
             else if(resultsForRequestedKey[j]->key() == "COLOR")
             {
-              std::list<designator_integration::KeyValuePair *> colorRatioPairs = resultsForRequestedKey[j]->children();
+              std::list<KeyValuePair *> colorRatioPairs = resultsForRequestedKey[j]->children();
               for(auto iter = colorRatioPairs.begin(); iter != colorRatioPairs.end(); ++iter)
               {
-                designator_integration::KeyValuePair colorRatioKvp = **iter;
+                KeyValuePair colorRatioKvp = **iter;
                 if(strcasecmp(colorRatioKvp.key().c_str(), req_kvp.stringValue().c_str()) == 0 || req_kvp.stringValue() == "")
                 {
                   outInfo("Color name mathces, ratio is: " << colorRatioKvp.floatValue());
@@ -540,10 +541,10 @@ void RSControledAEManager::filterResults(designator_integration::Designator &req
             //another nested kv-p...we need a new interface...this one sux
             if(resultsForRequestedKey[j]->key() == "DETECTION")
             {
-              std::list<designator_integration::KeyValuePair *> childrenPairs = resultsForRequestedKey[j]->children();
+              std::list<KeyValuePair *> childrenPairs = resultsForRequestedKey[j]->children();
               for(auto iter = childrenPairs.begin(); iter != childrenPairs.end(); ++iter)
               {
-                designator_integration::KeyValuePair childrenPair = **iter;
+                KeyValuePair childrenPair = **iter;
                 if(childrenPair.key() == "CLASS")
                 {
                   if(superclass != "" && rs_kbreasoning::krNameMapping.count(superclass) == 1)

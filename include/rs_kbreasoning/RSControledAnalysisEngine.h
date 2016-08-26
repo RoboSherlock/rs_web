@@ -49,10 +49,12 @@ private:
   image_transport::Publisher image_pub_;
   image_transport::ImageTransport it_;
 
+  bool useIdentityResolution_;
+
 public:
 
   RSControledAnalysisEngine() : RSAnalysisEngine(),
-    rspm(NULL),currentAEName(""),nh_("~"),it_(nh_)
+    rspm(NULL),currentAEName(""),nh_("~"),it_(nh_),useIdentityResolution_(false)
   {
     process_mutex = boost::shared_ptr<std::mutex>(new std::mutex);
     base64ImgPub = nh_.advertise<std_msgs::String>(std::string("image_base64"), 5);
@@ -126,6 +128,12 @@ public:
   void init(const std::string &file,const std::string &configFile);
 
   void setCWAssumption(const std::vector<std::string>&);
+
+  inline void useIdentityResolution(const bool useIDres)
+  {
+      useIdentityResolution_=useIDres;
+  }
+
   void process();
 
   void process(std::vector<designator_integration::Designator> &designator_response,

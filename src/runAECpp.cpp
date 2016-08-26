@@ -86,6 +86,7 @@ int main(int argc, char *argv[])
   bool useVisualizer = false;
   bool waitForServiceCall = false;
   bool useCWAssumption = false;
+  bool useObjIDRes = false;
   std::string savePath = getenv("HOME");
 
   size_t argO = 0;
@@ -104,6 +105,10 @@ int main(int argc, char *argv[])
     else if(arg == "-cwa")
     {
       useCWAssumption = true;
+    }
+    else if(arg == "-idres")
+    {
+      useObjIDRes = true;
     }
     else if(arg == "-save")
     {
@@ -149,6 +154,7 @@ int main(int argc, char *argv[])
   try
   {
     RSControledAEManager manager(useVisualizer, savePath, waitForServiceCall,useCWAssumption, n);
+    manager.setUseIdentityResolution(useObjIDRes);
     manager.init(analysisEngineFile,configFile);
     manager.run();
     manager.stop();

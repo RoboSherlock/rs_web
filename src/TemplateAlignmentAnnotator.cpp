@@ -214,13 +214,21 @@ public:
 
       tf::Stamped<tf::Pose> poseCam;
       tf::Matrix3x3 tfRotation;
-      tf::Vector3 tfVector;
+      tf::Vector3 tfVector,objectNormal,
+          zNorm(0.0f,0.0f,1.0),
+          planeNormal(planes[i].model()[0],planes[i].model()[1],planes[i].model()[2]);
       tf::matrixEigenToTF(rotation.cast<double>(), tfRotation);
       tf::vectorEigenToTF(translation.cast<double>(), tfVector);
+
+
       poseCam.setBasis(tfRotation);
       poseCam.setOrigin(tfVector);
       poseCam.frame_id_ = camToWorld.child_frame_id_;
       poseCam.stamp_ = camToWorld.stamp_;
+
+      objectNormal = poseCam * zNorm;
+      tfScalar dProduct =  objectNormal.dot(planeNormal);
+      outInfo("Dot Product: "<<dProduct);
 
       _P_matrix = cv::Mat::zeros(3, 4, CV_64FC1);
       _P_matrix.at<double>(0, 0) = rotation(0, 0);

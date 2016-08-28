@@ -46,12 +46,13 @@ private:
 
   std::string configFile;
   std::vector<std::string> closedWorldAssumption;
+  std::vector<std::string> lowLvlPipeline_;
 
 public:
   RSControledAEManager(const bool useVisualizer, const std::string &savePath,
                        const bool &waitForServiceCall, const bool useCWAssumption, ros::NodeHandle n):
     jsonPrologInterface_(), nh_(n), waitForServiceCall_(waitForServiceCall),
-    useVisualizer_(useVisualizer),useCWAssumption_(useCWAssumption), useIdentityResolution_(false), visualizer_(savePath)
+    useVisualizer_(useVisualizer), useCWAssumption_(useCWAssumption), useIdentityResolution_(false), visualizer_(savePath)
   {
 
     outInfo("Creating resource manager"); // TODO: DEBUG
@@ -86,8 +87,8 @@ public:
 
     jsonService = n.advertiseService("json_query", &RSControledAEManager::jsonQueryCallback, this);
 
-    semrecClient=NULL;
-    ctxMain=NULL;
+    semrecClient = NULL;
+    ctxMain = NULL;
   }
   ~RSControledAEManager()
   {
@@ -100,26 +101,23 @@ public:
   /*brief
    * init the AE Manager
    **/
-  void init(std::string &xmlFile,std::string configFile)
+  void init(std::string &xmlFile, std::string configFile)
   {
     this->configFile = configFile;
     cv::FileStorage fs(configFile, cv::FileStorage::READ);
-    fs["cw_assumption"] >>closedWorldAssumption;
-    engine.init(xmlFile,configFile);
-    outInfo("Number of objects in closed world assumption: "<<closedWorldAssumption.size());
+    fs["cw_assumption"] >> closedWorldAssumption;
+    fs["annotators"] >> lowLvlPipeline_;
+    engine.init(xmlFile, lowLvlPipeline_);
+
+    outInfo("Number of objects in closed world assumption: " << closedWorldAssumption.size());
     if(!closedWorldAssumption.empty() && useCWAssumption_)
     {
-
-      for(auto cwa:closedWorldAssumption)
-      {
+      for(auto cwa : closedWorldAssumption)
         outInfo(cwa);
-      }
       engine.setCWAssumption(closedWorldAssumption);
     }
     if(useVisualizer_)
-    {
       visualizer_.start();
-    }
   }
 
   /* brief
@@ -130,12 +128,11 @@ public:
   void stop()
   {
     if(useVisualizer_)
-    {
       visualizer_.stop();
-    }
     engine.resetCas();
     engine.stop();
   }
+
 
   bool resetAECallback(iai_robosherlock_msgs::SetRSContext::Request &req,
                        iai_robosherlock_msgs::SetRSContext::Response &res);
@@ -160,10 +157,14 @@ public:
 
   inline void setUseIdentityResolution(bool useIdentityResoltuion)
   {
-        useIdentityResolution_ = useIdentityResoltuion;
-        engine.useIdentityResolution(useIdentityResoltuion);
+    useIdentityResolution_ = useIdentityResoltuion;
+    engine.useIdentityResolution(useIdentityResoltuion);
   }
 
+  /* *
+   * returns true if the planed Pipeline is not a subset of the lowLvl Pipeline
+   * */
+  bool subsetOfLowLvl(const std::vector<std::string> &plannedPipeline);
 
 
 };

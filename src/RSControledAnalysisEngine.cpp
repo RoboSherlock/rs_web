@@ -1,6 +1,6 @@
 #include <rs_kbreasoning/RSControledAnalysisEngine.h>
 
-void RSControledAnalysisEngine::init(const std::string &AEFile, const std::string &configFile)
+void RSControledAnalysisEngine::init(const std::string &AEFile, const std::vector<std::string> &lowLvlPipeline)
 {
   uima::ErrorInfo errorInfo;
 
@@ -30,10 +30,6 @@ void RSControledAnalysisEngine::init(const std::string &AEFile, const std::strin
   outInfo("*** Number of Annotators in AnnotatorManager: " << rspm->aengine->getNbrOfAnnotators());
 
   // After all annotators have been initialized, pick the default pipeline
-  cv::FileStorage fs(configFile, cv::FileStorage::READ);
-
-  std::vector<std::string> lowLvlPipeline;
-  fs["annotators"] >> lowLvlPipeline;
 
   rspm->setDefaultPipelineOrdering(lowLvlPipeline);
   rspm->setPipelineOrdering(lowLvlPipeline);
@@ -215,15 +211,13 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
 {
   rs::SceneCas sceneCas(*cas);
   rs::Scene scene = sceneCas.getScene();
-
-  cv::Mat rgb;
+  cv::Mat rgb = cv::Mat::zeros(480,640,CV_64FC3);
   pcl::PointCloud<pcl::PointXYZRGBA>::Ptr dispCloud(new pcl::PointCloud<pcl::PointXYZRGBA>());
   sensor_msgs::CameraInfo cam_info;
 
   sceneCas.get(VIEW_COLOR_IMAGE, rgb);
   sceneCas.get(VIEW_CAMERA_INFO, cam_info);
   sceneCas.get(VIEW_CLOUD, *dispCloud);
-
   std::vector<rs::Cluster> clusters;
   scene.identifiables.filter(clusters);
 
@@ -322,10 +316,11 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
       }
     }
   }
-  if(requestDesignator.childForKey("INGREDIENT")||requestDesignator.childForKey("CAD-MODEL"))
+  if(requestDesignator.childForKey("INGREDIENT") || requestDesignator.childForKey("CAD-MODEL"))
   {
     if(sceneCas.has("VIEW_DISPLAY_IMAGE"))
     {
+      outInfo("Scene has a display image");
       sceneCas.get("VIEW_DISPLAY_IMAGE", rgb);
     }
   }

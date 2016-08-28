@@ -76,7 +76,7 @@ std::vector< std::string > JsonPrologInterface::createPipelineFromPrologResult(s
   {
     // erase leading whitespaces
     token.erase(token.begin(), std::find_if(token.begin(), token.end(), std::bind1st(std::not_equal_to<char>(), ' ')));
-    outInfo("Planned Annotator " << token);
+    outDebug("Planned Annotator by Prolog Planner " << token);
 
     // From the extracted tokens, remove the prefix
     std::string prefix("http://knowrob.org/kb/rs_components.owl#");

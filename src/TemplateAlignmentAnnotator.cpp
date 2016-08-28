@@ -136,6 +136,7 @@ public:
 
     if(planes.empty())
     {
+      outInfo("No Planes, quitting");
       return UIMA_ERR_ANNOTATOR_MISSING_INFO;
     }
 
@@ -164,6 +165,7 @@ public:
       cluster.annotations.filter(detections);
       if(detections.empty())
       {
+        outInfo("No detections, skipping");
         continue;
       }
       bool foundObjectForTemplate = false;
@@ -178,7 +180,7 @@ public:
       }
       if(!foundObjectForTemplate)
       {
-        continue;
+          continue;
       }
       //Fit result of drill using local features/template matching
       FeatureCloud object_template;

@@ -74,7 +74,7 @@ PREDICATE(change_context, 1)
       std::string currentPipeline = ae_Proxy->getCurrentAEName();
       if(currentPipeline != newPipelinePath)
       {
-        ae_Proxy->init(newPipelinePath,"");
+        ae_Proxy->init(newPipelinePath,std::vector<std::string>());
         return TRUE;
       }
       else

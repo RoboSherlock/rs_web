@@ -125,7 +125,7 @@ public:
     return false;
   }
 
-  void init(const std::string &file,const std::string &configFile);
+  void init(const std::string &file,const std::vector<std::string> &lowLvLPipeline);
 
   void setCWAssumption(const std::vector<std::string>&);
 

@@ -580,7 +580,7 @@
       <node>PointCloudClusterExtractor</node>
       <node>ImageSegmentationAnnotator</node>
       <node>ClusterMerger</node>
-
+      <node>ClusterFilter</node>
       <node>Cluster3DGeometryAnnotator</node>
       <node>CaffeAnnotator</node>
       <node>FeatureAnnotator</node>

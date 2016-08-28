@@ -8,12 +8,13 @@ annotators:
     - PointCloudClusterExtractor
     - ImageSegmentationAnnotator
     - ClusterMerger
+    - ClusterFilter
     - Cluster3DGeometryAnnotator
-    - PrimitiveShapeAnnotator
     - ClusterColorHistogramCalculator
     - FeatureAnnotator
     - CaffeAnnotator
     - PCLFeatureExtractor
+    - TFBroadcaster
     - ObjectIdentityResolution
     - StorageWriter
 

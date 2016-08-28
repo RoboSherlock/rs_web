@@ -19,8 +19,7 @@
 #include <rapidjson/rapidjson.h>
 #include <rapidjson/document.h>
 
-class RSControledAEManager
-  //  public RSAnalysisEngineManager<RSControledAnalysisEngine>
+class RSProcessManager
 {
 
 private:
@@ -49,8 +48,9 @@ private:
   std::vector<std::string> lowLvlPipeline_;
 
 public:
-  RSControledAEManager(const bool useVisualizer, const std::string &savePath,
-                       const bool &waitForServiceCall, const bool useCWAssumption, ros::NodeHandle n):
+
+  RSProcessManager(const bool useVisualizer, const std::string &savePath,
+                   const bool &waitForServiceCall, const bool useCWAssumption, ros::NodeHandle n):
     jsonPrologInterface_(), nh_(n), waitForServiceCall_(waitForServiceCall),
     useVisualizer_(useVisualizer), useCWAssumption_(useCWAssumption), useIdentityResolution_(false), visualizer_(savePath)
   {
@@ -74,23 +74,23 @@ public:
 
     desig_pub_ = nh_.advertise<designator_integration_msgs::DesignatorResponse>(std::string("result_advertiser"), 5);
 
-    service = n.advertiseService("designator_request/all_solutions",
-                                 &RSControledAEManager::designatorAllSolutionsCallback, this);
+    service = n.advertiseService("RSProcessManagerest/all_solutions",
+                                 &RSProcessManager::designatorAllSolutionsCallback, this);
 
     // Call this service, if RoboSherlock should try out only
     // the pipeline with all Annotators, that provide the requested types (for example shape)
-    singleService = n.advertiseService("designator_request/single_solution",
-                                       &RSControledAEManager::designatorSingleSolutionCallback, this);
+    singleService = n.advertiseService("RSProcessManagerest/single_solution",
+                                       &RSProcessManager::designatorSingleSolutionCallback, this);
 
     // Call this service to switch between AEs
-    setContextService = n.advertiseService("set_context", &RSControledAEManager::resetAECallback, this);
+    setContextService = n.advertiseService("set_context", &RSProcessManager::resetAECallback, this);
 
-    jsonService = n.advertiseService("json_query", &RSControledAEManager::jsonQueryCallback, this);
+    jsonService = n.advertiseService("json_query", &RSProcessManager::jsonQueryCallback, this);
 
     semrecClient = NULL;
     ctxMain = NULL;
   }
-  ~RSControledAEManager()
+  ~RSProcessManager()
   {
     delete semrecClient;
     delete ctxMain;
@@ -113,11 +113,15 @@ public:
     if(!closedWorldAssumption.empty() && useCWAssumption_)
     {
       for(auto cwa : closedWorldAssumption)
+      {
         outInfo(cwa);
+      }
       engine.setCWAssumption(closedWorldAssumption);
     }
     if(useVisualizer_)
+    {
       visualizer_.start();
+    }
   }
 
   /* brief
@@ -128,7 +132,9 @@ public:
   void stop()
   {
     if(useVisualizer_)
+    {
       visualizer_.stop();
+    }
     engine.resetCas();
     engine.stop();
   }

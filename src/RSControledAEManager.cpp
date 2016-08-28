@@ -2,7 +2,7 @@
 
 using namespace designator_integration;
 
-void RSControledAEManager::run()
+void RSProcessManager::run()
 {
   for(; ros::ok();)
   {
@@ -20,7 +20,7 @@ void RSControledAEManager::run()
   }
 }
 
-bool RSControledAEManager::resetAECallback(iai_robosherlock_msgs::SetRSContext::Request &req,
+bool RSProcessManager::resetAECallback(iai_robosherlock_msgs::SetRSContext::Request &req,
     iai_robosherlock_msgs::SetRSContext::Response &res)
 {
   outInfo("acquiring lock");
@@ -50,7 +50,7 @@ bool RSControledAEManager::resetAECallback(iai_robosherlock_msgs::SetRSContext::
   }
 }
 
-bool RSControledAEManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::Request &req,
+bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::Request &req,
     iai_robosherlock_msgs::RSQueryService::Response &res)
 {
   outInfo("JSON Reuqest: " << req.query);
@@ -114,19 +114,19 @@ bool RSControledAEManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryServi
   return true;
 }
 
-bool RSControledAEManager::designatorAllSolutionsCallback(designator_integration_msgs::DesignatorCommunication::Request &req,
+bool RSProcessManager::designatorAllSolutionsCallback(designator_integration_msgs::DesignatorCommunication::Request &req,
     designator_integration_msgs::DesignatorCommunication::Response &res)
 {
   return designatorCallbackLogic(req, res, true);
 }
 
-bool RSControledAEManager::designatorSingleSolutionCallback(designator_integration_msgs::DesignatorCommunication::Request &req,
+bool RSProcessManager::designatorSingleSolutionCallback(designator_integration_msgs::DesignatorCommunication::Request &req,
     designator_integration_msgs::DesignatorCommunication::Response &res)
 {
   return designatorCallbackLogic(req, res, false);
 }
 
-bool RSControledAEManager::designatorCallbackLogic(designator_integration_msgs::DesignatorCommunication::Request &req,
+bool RSProcessManager::designatorCallbackLogic(designator_integration_msgs::DesignatorCommunication::Request &req,
     designator_integration_msgs::DesignatorCommunication::Response &res, bool allSolutions)
 {
   if(rs::DesignatorWrapper::req_designator)
@@ -328,7 +328,7 @@ bool RSControledAEManager::designatorCallbackLogic(designator_integration_msgs::
 }
 
 
-void RSControledAEManager::filterResults(Designator &requestDesignator,
+void RSProcessManager::filterResults(Designator &requestDesignator,
     std::vector<Designator> &resultDesignators,
     std::vector<Designator> &filteredResponse,
     std::string superclass)
@@ -614,7 +614,7 @@ void RSControledAEManager::filterResults(Designator &requestDesignator,
   engine.drawResulstOnImage(keep_designator, resultDesignators, requestDesignator);
 }
 
-bool RSControledAEManager::subsetOfLowLvl(const std::vector<std::string> &plannedPipeline)
+bool RSProcessManager::subsetOfLowLvl(const std::vector<std::string> &plannedPipeline)
 {
   std::vector<std::string> intersection;
   std::set_intersection(lowLvlPipeline_.begin(), lowLvlPipeline_.end(), plannedPipeline.begin(), plannedPipeline.end(),  std::back_inserter(intersection));

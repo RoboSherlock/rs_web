@@ -153,7 +153,7 @@ int main(int argc, char *argv[])
   ros::NodeHandle n("~");
   try
   {
-    RSControledAEManager manager(useVisualizer, savePath, waitForServiceCall,useCWAssumption, n);
+    RSProcessManager manager(useVisualizer, savePath, waitForServiceCall,useCWAssumption, n);
     manager.setUseIdentityResolution(useObjIDRes);
     manager.init(analysisEngineFile,configFile);
     manager.run();

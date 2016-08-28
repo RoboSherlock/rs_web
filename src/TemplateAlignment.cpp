@@ -89,13 +89,13 @@ void FeatureCloud::computeLocalFeatures()
 TemplateAlignment::TemplateAlignment() :
   min_sample_distance_(0.001f),
   max_correspondence_distance_(0.005f * 0.005f),
-  nr_iterations_(1500)
+  nr_iterations_(500)
 {
   // Intialize the parameters in the Sample Consensus Intial Alignment (SAC-IA) algorithm
   sac_ia_.setMinSampleDistance(min_sample_distance_);
   sac_ia_.setMaxCorrespondenceDistance(max_correspondence_distance_);
   sac_ia_.setMaximumIterations(nr_iterations_);
-  sac_ia_.setCorrespondenceRandomness(3);
+  sac_ia_.setCorrespondenceRandomness(1);
 }
 
 TemplateAlignment::~TemplateAlignment()

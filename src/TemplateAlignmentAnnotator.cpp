@@ -11,8 +11,8 @@
 #include <pcl/registration/ia_ransac.h>
 
 #include <pcl/io/vtk_lib_io.h>
-
 #include <pcl_conversions/pcl_conversions.h>
+#include <pcl/registration/icp.h>
 
 
 //RS
@@ -37,11 +37,14 @@ using namespace uima;
 class TemplateAlignmentAnnotator : public DrawingAnnotator
 {
 private:
-  std::string packagePath;
 
+  typedef pcl::PointXYZRGBA PointT;
+
+  std::string packagePath;
   cv::Mat dispImg;
-  pcl::PointCloud<pcl::PointXYZRGBA>::Ptr dispCloud;
-  std::vector<pcl::PointCloud<pcl::PointXYZRGBA>::Ptr> transfResults_;
+  pcl::PointCloud<PointT>::Ptr dispCloud;
+  std::vector<pcl::PointCloud<PointT>::Ptr> transfSACIAResults_;
+  std::vector<pcl::PointCloud<PointT>::Ptr> transfICPResults_;
 
   tf::StampedTransform camToWorld, worldToCam;
   sensor_msgs::CameraInfo camInfo_;
@@ -66,14 +69,30 @@ public:
     outInfo("destroy");
     return UIMA_ERR_NONE;
   }
-
+  cv::Mat toCVMat(const Eigen::Matrix3f &rotation, const  Eigen::Vector3f &translation)
+  {
+    cv::Mat mat = cv::Mat::zeros(3, 4, CV_64FC1);
+    mat.at<double>(0, 0) = rotation(0, 0);
+    mat.at<double>(0, 1) = rotation(0, 1);
+    mat.at<double>(0, 2) = rotation(0, 2);
+    mat.at<double>(1, 0) = rotation(1, 0);
+    mat.at<double>(1, 1) = rotation(1, 1);
+    mat.at<double>(1, 2) = rotation(1, 2);
+    mat.at<double>(2, 0) = rotation(2, 0);
+    mat.at<double>(2, 1) = rotation(2, 1);
+    mat.at<double>(2, 2) = rotation(2, 2);
+    mat.at<double>(0, 3) = translation(0);
+    mat.at<double>(1, 3) = translation(1);
+    mat.at<double>(2, 3) = translation(2);
+    return mat;
+  }
 
   TyErrorId processWithLock(CAS &tcas, ResultSpecification const &res_spec)
   {
     MEASURE_TIME;
     outInfo("process start");
     rs::SceneCas cas(tcas);
-    pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cloud_ptr(new pcl::PointCloud<pcl::PointXYZRGBA>);
+    pcl::PointCloud<PointT>::Ptr cloud_ptr(new pcl::PointCloud<PointT>);
 
     cas.get(VIEW_CLOUD, *cloud_ptr);
     cas.get(VIEW_COLOR_IMAGE, dispImg);
@@ -120,7 +139,8 @@ public:
       return UIMA_ERR_ANNOTATOR_MISSING_INFO;
     }
 
-    transfResults_.clear();
+    transfSACIAResults_.clear();
+    transfICPResults_.clear();
 
     camToWorld.setIdentity();
     if(scene.viewPoint.has())
@@ -168,15 +188,15 @@ public:
 
       pcl::PointIndicesPtr indices(new pcl::PointIndices());
       rs::conversion::from(((rs::ReferenceClusterPoints)cluster.points.get()).indices.get(), *indices);
-      pcl::PointCloud<pcl::PointXYZRGBA>::Ptr cluster_cloud(new pcl::PointCloud<pcl::PointXYZRGBA>());
+      pcl::PointCloud<PointT>::Ptr cluster_cloud(new pcl::PointCloud<PointT>());
 
-      pcl::ExtractIndices<pcl::PointXYZRGBA> ei;
+      pcl::ExtractIndices<PointT> ei;
       ei.setInputCloud(cloud_ptr);
       ei.setIndices(indices);
       ei.filter(*cluster_cloud);
 
       outInfo("Before SOR filter: " << cluster_cloud->points.size());
-      pcl::StatisticalOutlierRemoval<pcl::PointXYZRGBA> sor;
+      pcl::StatisticalOutlierRemoval<PointT> sor;
       sor.setInputCloud(cluster_cloud);
       sor.setMeanK(100);
       sor.setStddevMulThresh(1.0);
@@ -185,10 +205,10 @@ public:
 
       // ... and downsampling the point cloud
       const float voxel_grid_size = 0.005f;
-      pcl::VoxelGrid<pcl::PointXYZRGBA> vox_grid;
+      pcl::VoxelGrid<PointT> vox_grid;
       vox_grid.setInputCloud(cluster_cloud);
       vox_grid.setLeafSize(voxel_grid_size, voxel_grid_size, voxel_grid_size);
-      pcl::PointCloud<pcl::PointXYZRGBA>::Ptr tempCloud(new pcl::PointCloud<pcl::PointXYZRGBA>);
+      pcl::PointCloud<PointT>::Ptr tempCloud(new pcl::PointCloud<PointT>);
       vox_grid.filter(*tempCloud);
 
       TemplateAlignment template_align;
@@ -199,52 +219,48 @@ public:
       template_align.addTemplateCloud(object_template);
       template_align.setTargetCloud(target_cloud);
       TemplateAlignment::Result best_alignment;
-      template_align.findBestAlignment(best_alignment);
-
-
-      Eigen::Matrix3f rotation  =  best_alignment.final_transformation.block<3, 3>(0, 0);
-      Eigen::Vector3f translation = best_alignment.final_transformation.block<3, 1>(0, 3);
-      outInfo("=======================");
-      printf("    | %6.3f %6.3f %6.3f | \n", rotation(0, 0), rotation(0, 1), rotation(0, 2));
-      printf("R = | %6.3f %6.3f %6.3f | \n", rotation(1, 0), rotation(1, 1), rotation(1, 2));
-      printf("    | %6.3f %6.3f %6.3f | \n", rotation(2, 0), rotation(2, 1), rotation(2, 2));
-      printf("\n");
-      printf("t = < %0.3f, %0.3f, %0.3f >\n", translation(0), translation(1), translation(2));
-      outInfo("=======================");
+      pcl::IterativeClosestPoint<PointT, PointT> icp;
+      tfScalar dp = 2.0d;
 
       tf::Stamped<tf::Pose> poseCam;
-      tf::Matrix3x3 tfRotation;
-      tf::Vector3 tfVector,objectNormal,
-          zNorm(0.0f,0.0f,1.0),
-          planeNormal(planes[i].model()[0],planes[i].model()[1],planes[i].model()[2]);
-      tf::matrixEigenToTF(rotation.cast<double>(), tfRotation);
-      tf::vectorEigenToTF(translation.cast<double>(), tfVector);
+      Eigen::Matrix3f rotation;
+      Eigen::Vector3f translation;
 
+      while(dp > 0 || dp < -0.15)
+      {
+        template_align.findBestAlignment(best_alignment);
 
-      poseCam.setBasis(tfRotation);
-      poseCam.setOrigin(tfVector);
-      poseCam.frame_id_ = camToWorld.child_frame_id_;
-      poseCam.stamp_ = camToWorld.stamp_;
+        icp.setInputSource(object_template.getPointCloud());
+        icp.setInputTarget(cluster_cloud);
+        icp.setTransformationEpsilon(0.001);
+        icp.setMaxCorrespondenceDistance(0.03);
+        icp.setMaximumIterations(50);
 
-      objectNormal = poseCam * zNorm;
-      tfScalar dProduct =  objectNormal.dot(planeNormal);
-      outInfo("Dot Product: "<<dProduct);
+        pcl::PointCloud<PointT>::Ptr final(new pcl::PointCloud<PointT>);
+        icp.align(*final, best_alignment.final_transformation);
 
-      _P_matrix = cv::Mat::zeros(3, 4, CV_64FC1);
-      _P_matrix.at<double>(0, 0) = rotation(0, 0);
-      _P_matrix.at<double>(0, 1) = rotation(0, 1);
-      _P_matrix.at<double>(0, 2) = rotation(0, 2);
-      _P_matrix.at<double>(1, 0) = rotation(1, 0);
-      _P_matrix.at<double>(1, 1) = rotation(1, 1);
-      _P_matrix.at<double>(1, 2) = rotation(1, 2);
-      _P_matrix.at<double>(2, 0) = rotation(2, 0);
-      _P_matrix.at<double>(2, 1) = rotation(2, 1);
-      _P_matrix.at<double>(2, 2) = rotation(2, 2);
-      _P_matrix.at<double>(0, 3) = translation(0);
-      _P_matrix.at<double>(1, 3) = translation(1);
-      _P_matrix.at<double>(2, 3) = translation(2);
+        rotation  =  icp.getFinalTransformation().block<3, 3>(0, 0);
+        translation = icp.getFinalTransformation().block<3, 1>(0, 3);
 
-      rs::common::projectPointOnPlane(poseCam,planes[0].model());
+        tf::Matrix3x3 tfRotation;
+        tf::Vector3 tfVector, objectNormal,
+        zNorm(0.0f, 0.0f, 1.0f),
+        planeNormal(planes[0].model()[0], planes[0].model()[1], planes[0].model()[2]);
+        tf::matrixEigenToTF(rotation.cast<double>(), tfRotation);
+        tf::vectorEigenToTF(translation.cast<double>(), tfVector);
+
+        poseCam.setBasis(tfRotation);
+        poseCam.setOrigin(tfVector);
+        poseCam.frame_id_ = camToWorld.child_frame_id_;
+        poseCam.stamp_ = camToWorld.stamp_;
+
+        objectNormal = poseCam * zNorm;
+        dp = (objectNormal.normalize()).dot((planeNormal.normalize()));
+        outInfo("Dot Product: " << dp);
+      }
+      _P_matrix = toCVMat(rotation, translation);
+
+      rs::common::projectPointOnPlane(poseCam, planes[0].model());
       tf::Stamped<tf::Pose> poseWorld(camToWorld * poseCam, camToWorld.stamp_, camToWorld.frame_id_);
 
       rs::PoseAnnotation poseAnnotation = rs::create<rs::PoseAnnotation>(tcas);
@@ -253,8 +269,10 @@ public:
       poseAnnotation.world.set(rs::conversion::to(tcas, poseWorld));
 
       cluster.annotations.append(poseAnnotation);
-      transfResults_.push_back(pcl::PointCloud<pcl::PointXYZRGBA>::Ptr(new pcl::PointCloud<pcl::PointXYZRGBA>()));
-      pcl::transformPointCloud(*object_template.getPointCloud(), *transfResults_.back(), best_alignment.final_transformation);
+      transfICPResults_.push_back(pcl::PointCloud<PointT>::Ptr(new pcl::PointCloud<PointT>()));
+      pcl::transformPointCloud(*object_template.getPointCloud(), *transfICPResults_.back(), icp.getFinalTransformation());
+      transfSACIAResults_.push_back(pcl::PointCloud<PointT>::Ptr(new pcl::PointCloud<PointT>()));
+      pcl::transformPointCloud(*object_template.getPointCloud(), *transfSACIAResults_.back(), best_alignment.final_transformation);
 
       cv::Mat dispQuery;
 
@@ -266,7 +284,7 @@ public:
       {
         dispQuery = dispImg.clone();
       }
-      drawCADModelonImage(templateCloudPath.substr(0, templateCloudPath.find_last_of(".")) + ".ply",dispQuery);
+      drawCADModelonImage(templateCloudPath.substr(0, templateCloudPath.find_last_of(".")) + ".ply", dispQuery);
       cas.set("VIEW_DISPLAY_IMAGE", dispQuery);
       dispImg = dispQuery.clone();
     }
@@ -295,7 +313,7 @@ public:
   }
 
 
-  void drawCADModelonImage(std::string pathToCAD,cv::Mat &img)
+  void drawCADModelonImage(std::string pathToCAD, cv::Mat &img)
   {
     outInfo("Drawing " << pathToCAD);
     pcl::PolygonMesh polyMesh;
@@ -305,7 +323,7 @@ public:
     pcl::PointCloud<pcl::PointXYZ>::Ptr meshPoints(new pcl::PointCloud<pcl::PointXYZ>());
     pcl::fromPCLPointCloud2(polyMesh.cloud, *meshPoints);
 
-    outInfo("MeshPoints: "<<meshPoints->points.size());
+    outInfo("MeshPoints: " << meshPoints->points.size());
     outInfo("Number of vertices :" << polyMesh.polygons.size());
 
     for(int i = 0; i < polyMesh.polygons.size(); ++i)
@@ -324,17 +342,17 @@ public:
       cv::Point3f point_3d_1(meshPoints->points[p2Idx].x, meshPoints->points[p2Idx].y, meshPoints->points[p2Idx].z);
       cv::Point3f point_3d_2(meshPoints->points[p3Idx].x, meshPoints->points[p3Idx].y, meshPoints->points[p3Idx].z);
 
-      outDebug(point_3d_0<<point_3d_1<<point_3d_2);
+      outDebug(point_3d_0 << point_3d_1 << point_3d_2);
 
       cv::Point2f point_2d_0 = backproject3DPoint(point_3d_0);
       cv::Point2f point_2d_1 = backproject3DPoint(point_3d_1);
       cv::Point2f point_2d_2 = backproject3DPoint(point_3d_2);
 
-      outDebug(point_2d_0<<point_2d_1<<point_2d_2);
+      outDebug(point_2d_0 << point_2d_1 << point_2d_2);
 
-      cv::line(img, point_2d_0, point_2d_1, cv::Scalar(255, 255, 255), 1,CV_AA);
-      cv::line(img, point_2d_1, point_2d_2, cv::Scalar(255, 255, 255), 1,CV_AA);
-      cv::line(img, point_2d_2, point_2d_0, cv::Scalar(255, 255, 255), 1,CV_AA);
+      cv::line(img, point_2d_0, point_2d_1, cv::Scalar(255, 255, 255), 1, CV_AA);
+      cv::line(img, point_2d_1, point_2d_2, cv::Scalar(255, 255, 255), 1, CV_AA);
+      cv::line(img, point_2d_2, point_2d_0, cv::Scalar(255, 255, 255), 1, CV_AA);
 
     }
   }
@@ -346,18 +364,35 @@ public:
 
   void fillVisualizerWithLock(pcl::visualization::PCLVisualizer &visualizer, bool firstRun)
   {
+    int v1(0);
+    int v2(0);
+    visualizer.createViewPort(0.0, 0.0, 0.5, 1.0, v1);
+    visualizer.setBackgroundColor(0, 0, 0, v1);
+    visualizer.addText("SAC-IA", 10, 10, "v1 text", v1);
+
+    visualizer.createViewPort(0.5, 0.0, 1.0, 1.0, v2);
+    visualizer.setBackgroundColor(0, 0, 0, v2);
+    visualizer.addText("SAC-IA+ICP", 10, 10, "v2 text", v2);
 
     if(firstRun)
     {
       visualizer.addPointCloud(dispCloud, "original");
       visualizer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3.0, "original");
-      for(size_t i = 0; i < transfResults_.size(); ++i)
+      for(size_t i = 0; i < transfICPResults_.size(); ++i)
       {
         const cv::Scalar &c = rs::common::cvScalarColors[i % rs::common::numberOfColors];
-        const std::string &name = "match" + std::to_string(i);
-        pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZRGBA> color(transfResults_[i], c.val[2], c.val[1], c.val[0]);
-        visualizer.addPointCloud(transfResults_[i], color, name);
-        visualizer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3.0, name);
+        const std::string &name = "matchICP" + std::to_string(i);
+        pcl::visualization::PointCloudColorHandlerCustom<PointT> color(transfICPResults_[i], c.val[2], c.val[1], c.val[0]);
+        visualizer.addPointCloud(transfICPResults_[i], color, name, v2);
+        visualizer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3.0, name, v2);
+      }
+      for(size_t i = 0; i < transfSACIAResults_.size(); ++i)
+      {
+        const cv::Scalar &c = rs::common::cvScalarColors[i % rs::common::numberOfColors];
+        const std::string &name = "matchSAC" + std::to_string(i);
+        pcl::visualization::PointCloudColorHandlerCustom<PointT> color(transfSACIAResults_[i], c.val[2], c.val[1], c.val[0]);
+        visualizer.addPointCloud(transfSACIAResults_[i], color, name, v1);
+        visualizer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3.0, name, v1);
       }
     }
     else
@@ -365,13 +400,21 @@ public:
       visualizer.removeAllPointClouds();
       visualizer.addPointCloud(dispCloud, "original");
       visualizer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3.0, "original");
-      for(size_t i = 0; i < transfResults_.size(); ++i)
+      for(size_t i = 0; i < transfICPResults_.size(); ++i)
       {
         const cv::Scalar &c = rs::common::cvScalarColors[i % rs::common::numberOfColors];
-        const std::string &name = "match" + std::to_string(i);
-        pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZRGBA> color(transfResults_[i], c.val[2], c.val[1], c.val[0]);
-        visualizer.addPointCloud(transfResults_[i], color, name);
-        visualizer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3.0, name);
+        const std::string &name = "matchICP" + std::to_string(i);
+        pcl::visualization::PointCloudColorHandlerCustom<PointT> color(transfICPResults_[i], c.val[2], c.val[1], c.val[0]);
+        visualizer.addPointCloud(transfICPResults_[i], color, name, v2);
+        visualizer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3.0, name, v2);
+      }
+      for(size_t i = 0; i < transfSACIAResults_.size(); ++i)
+      {
+        const cv::Scalar &c = rs::common::cvScalarColors[i % rs::common::numberOfColors];
+        const std::string &name = "matchSAC" + std::to_string(i);
+        pcl::visualization::PointCloudColorHandlerCustom<PointT> color(transfSACIAResults_[i], c.val[2], c.val[1], c.val[0]);
+        visualizer.addPointCloud(transfSACIAResults_[i], color, name, v1);
+        visualizer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 3.0, name, v1);
       }
     }
   }

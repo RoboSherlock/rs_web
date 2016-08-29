@@ -294,8 +294,8 @@ void DesignatorWrapper::convert(rs::ClusterPart &input, designator_integration::
   tf::poseStampedTFToMsg(tf_stamped_pose, pose_stamped_msgs);
   valuePair->setValue("NAME", input.name());
   valuePair->setValue("POSE", pose_stamped_msgs);
+  valuePair->setValue("CLUSTER-ID", input.clID());
   object->addChild(valuePair);
-
 }
 
 void DesignatorWrapper::convert(rs_demos::Volume &input, designator_integration::KeyValuePair *object)

@@ -228,7 +228,8 @@ public:
       Eigen::Matrix3f rotation;
       Eigen::Vector3f translation;
 
-      while(dp > 0 || dp < -0.15)
+      int iteration = 0;
+      while(dp > 0 || dp < -0.15 && iteration++ < 30)
       {
         template_align.findBestAlignment(best_alignment);
 

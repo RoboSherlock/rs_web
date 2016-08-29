@@ -229,7 +229,7 @@ public:
       Eigen::Vector3f translation;
 
       int iteration = 0;
-      while((dp > 0 || dp < -0.15) && (iteration++ < 30))
+      while((dp > -0.995f) && (iteration++ < 30))
       {
         template_align.findBestAlignment(best_alignment);
 
@@ -246,20 +246,20 @@ public:
         translation = icp.getFinalTransformation().block<3, 1>(0, 3);
 
         tf::Matrix3x3 tfRotation;
-        tf::Vector3 tfVector, objectNormal,
+        tf::Vector3 tfVector, objectZAxis,
         zNorm(0.0f, 0.0f, 1.0f),
         planeNormal(planes[0].model()[0], planes[0].model()[1], planes[0].model()[2]);
         tf::matrixEigenToTF(rotation.cast<double>(), tfRotation);
         tf::vectorEigenToTF(translation.cast<double>(), tfVector);
-
         poseCam.setBasis(tfRotation);
         poseCam.setOrigin(tfVector);
         poseCam.frame_id_ = camToWorld.child_frame_id_;
         poseCam.stamp_ = camToWorld.stamp_;
 
-        objectNormal = poseCam * zNorm;
-        dp = (objectNormal.normalize()).dot((planeNormal.normalize()));
-        outInfo("Dot Product: " << dp);
+        objectZAxis = tfRotation * zNorm;
+
+        dp = (objectZAxis.normalize()).dot((planeNormal.normalize()));
+        outInfo("Dot Product: Z obj and PlaneNorm: " << dp);
       }
       _P_matrix = toCVMat(rotation, translation);
 

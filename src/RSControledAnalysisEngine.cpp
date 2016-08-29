@@ -144,9 +144,13 @@ void RSControledAnalysisEngine::process(
   rs::DesignatorWrapper dw;
   dw.setCAS(cas);
   if(useIdentityResolution_)
+  {
     dw.setMode(rs::DesignatorWrapper::OBJECT);
+  }
   else
+  {
     dw.setMode(rs::DesignatorWrapper::CLUSTER);
+  }
   dw.getObjectDesignators(designatorResponse);
 
   outInfo("processing finished");
@@ -232,7 +236,9 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
       rs::Object &object = allObjects[i];
       double lastSeen = (now - (uint64_t)object.lastSeen()) / 1000000000.0;
       if(lastSeen < 100)
+      {
         objects.push_back(object);
+      }
     }
   }
 
@@ -267,6 +273,29 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
         //Color points in Point Cloud
         pcl::PointIndicesPtr inliers(new pcl::PointIndices());
         rs::conversion::from(((rs::ReferenceClusterPoints)clusters[idx].points()).indices(), *inliers);
+        for(unsigned int idx = 0; idx < inliers->indices.size(); ++idx)
+        {
+          dispCloud->points[inliers->indices[idx]].rgba = rs::common::colors[colorIdx % rs::common::numberOfColors];
+          dispCloud->points[inliers->indices[idx]].a = 255;
+        }
+        colorIdx++;
+      }
+      else
+      {
+        outInfo("Using objects to draw: ");
+        int idx = atoi(clusterId->stringValue().c_str());
+        //Draw cluster on image
+        rs::ImageROI roi = objects[idx].rois();
+        cv::Rect cvRoi;
+        rs::conversion::from(roi.roi(), cvRoi);
+        cv::rectangle(rgb, cvRoi, rs::common::cvScalarColors[idx % rs::common::numberOfColors], 1.5);
+        std::stringstream clusterName;
+        clusterName << "cID_" << idx;
+        cv::putText(rgb, clusterName.str(), cv::Point(cvRoi.x + 10, cvRoi.y - 10), cv::FONT_HERSHEY_COMPLEX, 0.7, rs::common::cvScalarColors[idx % rs::common::numberOfColors]);
+
+        //Color points in Point Cloud
+        pcl::PointIndicesPtr inliers(new pcl::PointIndices());
+        rs::conversion::from(((rs::ReferenceClusterPoints)objects[idx].points()).indices(), *inliers);
         for(unsigned int idx = 0; idx < inliers->indices.size(); ++idx)
         {
           dispCloud->points[inliers->indices[idx]].rgba = rs::common::colors[colorIdx % rs::common::numberOfColors];
@@ -314,6 +343,36 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
       for(int i = 0; i < clusters.size(); ++i)
       {
         rs::Cluster &cluster = clusters[i];
+        std::vector<rs::ClusterPart> parts;
+        std::vector<rs_demos::Pizza> pizza;
+        cluster.annotations.filter(parts);
+        cluster.annotations.filter(pizza);
+
+        for(int pIdx = 0; pIdx < parts.size(); ++pIdx)
+        {
+          rs::ClusterPart &part = parts[pIdx];
+          if(strcasecmp(part.name().c_str(), requestDesignator.childForKey("OBJ-PART")->stringValue().c_str()) == 0 || requestDesignator.childForKey("OBJ-PART")->stringValue() == "")
+          {
+            pcl::PointIndices indices;
+            rs::conversion::from(part.indices(), indices);
+            for(int iIdx = 0; iIdx < indices.indices.size(); ++iIdx)
+            {
+              int idx = indices.indices[iIdx];
+              rgb.at<cv::Vec3b>(cv::Point(idx % cam_info.width, idx / cam_info.width)) = rs::common::cvVec3bColors[pIdx % rs::common::numberOfColors];
+              dispCloud->points[idx].rgba = rs::common::colors[colorIdx % rs::common::numberOfColors];
+              dispCloud->points[idx].a = 255;
+            }
+            colorIdx++;
+          }
+        }
+      }
+    }
+    else
+    {
+        outInfo("Using objects to draw: ");
+      for(int i = 0; i < objects.size(); ++i)
+      {
+        rs::Object &cluster = objects[i];
         std::vector<rs::ClusterPart> parts;
         std::vector<rs_demos::Pizza> pizza;
         cluster.annotations.filter(parts);

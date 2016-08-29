@@ -21,7 +21,7 @@ void RSProcessManager::run()
 }
 
 bool RSProcessManager::resetAECallback(iai_robosherlock_msgs::SetRSContext::Request &req,
-    iai_robosherlock_msgs::SetRSContext::Response &res)
+                                       iai_robosherlock_msgs::SetRSContext::Response &res)
 {
   outInfo("acquiring lock");
   processing_mutex_.lock();
@@ -329,9 +329,9 @@ bool RSProcessManager::designatorCallbackLogic(designator_integration_msgs::Desi
 
 
 void RSProcessManager::filterResults(Designator &requestDesignator,
-    std::vector<Designator> &resultDesignators,
-    std::vector<Designator> &filteredResponse,
-    std::string superclass)
+                                     std::vector<Designator> &resultDesignators,
+                                     std::vector<Designator> &filteredResponse,
+                                     std::string superclass)
 {
   outInfo("filtering the results based on the designator request");
 

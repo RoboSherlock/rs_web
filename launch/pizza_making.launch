@@ -4,8 +4,8 @@
   <node name="json_prolog" pkg="json_prolog" type="json_prolog_node" cwd="node" output="screen" />
 
   <arg name="wait" default="false" />
-  <node if="$(arg wait)"  name="RoboSherlock" pkg="rs_kbreasoning" type="runAE" output="screen" args="pizza -wait " />
-  <node unless="$(arg wait)"  name="RoboSherlock" pkg="rs_kbreasoning" type="runAE" output="screen" args="pizza " />
+  <node if="$(arg wait)"  name="RoboSherlock" pkg="rs_kbreasoning" type="runAE" output="screen" args="pizza -idres -wait" />
+  <node unless="$(arg wait)"  name="RoboSherlock" pkg="rs_kbreasoning" type="runAE" output="screen" args="pizza -idres" />
 
   <!-- realtime filter -->
   <node pkg="realtime_urdf_filter" type="realtime_urdf_filter" name="$(anon realtime_urdf_filter)" output="log">

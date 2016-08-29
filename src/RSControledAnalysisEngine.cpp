@@ -211,7 +211,7 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
 {
   rs::SceneCas sceneCas(*cas);
   rs::Scene scene = sceneCas.getScene();
-  cv::Mat rgb = cv::Mat::zeros(480,640,CV_64FC3);
+  cv::Mat rgb = cv::Mat::zeros(480, 640, CV_64FC3);
   pcl::PointCloud<pcl::PointXYZRGBA>::Ptr dispCloud(new pcl::PointCloud<pcl::PointXYZRGBA>());
   sensor_msgs::CameraInfo cam_info;
 
@@ -220,6 +220,21 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
   sceneCas.get(VIEW_CLOUD, *dispCloud);
   std::vector<rs::Cluster> clusters;
   scene.identifiables.filter(clusters);
+  uint64_t now = sceneCas.getScene().timestamp();
+  std::vector<rs::Object> allObjects, objects;
+
+  if(useIdentityResolution_)
+  {
+    sceneCas.get(VIEW_OBJECTS, allObjects);
+    outWarn("objects found: " << allObjects.size());
+    for(size_t i = 0; i < allObjects.size(); ++i)
+    {
+      rs::Object &object = allObjects[i];
+      double lastSeen = (now - (uint64_t)object.lastSeen()) / 1000000000.0;
+      if(lastSeen < 100)
+        objects.push_back(object);
+    }
+  }
 
   //very hacky for now: draws the parts of the objects if they were found
   int colorIdx = 0;
@@ -235,25 +250,30 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
     designator_integration::KeyValuePair *clusterId = desig.childForKey("ID");
     if(clusterId != NULL)
     {
-      int idx = atoi(clusterId->stringValue().c_str());
-      //Draw cluster on image
-      rs::ImageROI roi = clusters[idx].rois();
-      cv::Rect cvRoi;
-      rs::conversion::from(roi.roi(), cvRoi);
-      cv::rectangle(rgb, cvRoi, rs::common::cvScalarColors[idx % rs::common::numberOfColors], 1.5);
-      std::stringstream clusterName;
-      clusterName << "cID_" << idx;
-      cv::putText(rgb, clusterName.str(), cv::Point(cvRoi.x + 10, cvRoi.y - 10), cv::FONT_HERSHEY_COMPLEX, 0.7, rs::common::cvScalarColors[idx % rs::common::numberOfColors]);
+      //very uglyu quick hack for now just so it does not crash
 
-      //Color points in Point Cloud
-      pcl::PointIndicesPtr inliers(new pcl::PointIndices());
-      rs::conversion::from(((rs::ReferenceClusterPoints)clusters[idx].points()).indices(), *inliers);
-      for(unsigned int idx = 0; idx < inliers->indices.size(); ++idx)
+      if(!useIdentityResolution_)
       {
-        dispCloud->points[inliers->indices[idx]].rgba = rs::common::colors[colorIdx % rs::common::numberOfColors];
-        dispCloud->points[inliers->indices[idx]].a = 255;
+        int idx = atoi(clusterId->stringValue().c_str());
+        //Draw cluster on image
+        rs::ImageROI roi = clusters[idx].rois();
+        cv::Rect cvRoi;
+        rs::conversion::from(roi.roi(), cvRoi);
+        cv::rectangle(rgb, cvRoi, rs::common::cvScalarColors[idx % rs::common::numberOfColors], 1.5);
+        std::stringstream clusterName;
+        clusterName << "cID_" << idx;
+        cv::putText(rgb, clusterName.str(), cv::Point(cvRoi.x + 10, cvRoi.y - 10), cv::FONT_HERSHEY_COMPLEX, 0.7, rs::common::cvScalarColors[idx % rs::common::numberOfColors]);
+
+        //Color points in Point Cloud
+        pcl::PointIndicesPtr inliers(new pcl::PointIndices());
+        rs::conversion::from(((rs::ReferenceClusterPoints)clusters[idx].points()).indices(), *inliers);
+        for(unsigned int idx = 0; idx < inliers->indices.size(); ++idx)
+        {
+          dispCloud->points[inliers->indices[idx]].rgba = rs::common::colors[colorIdx % rs::common::numberOfColors];
+          dispCloud->points[inliers->indices[idx]].a = 255;
+        }
+        colorIdx++;
       }
-      colorIdx++;
     }
     designator_integration::KeyValuePair *handleKvp = desig.childForKey("HANDLE");
     if(handleKvp != NULL)
@@ -289,29 +309,32 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
 
   if(requestDesignator.childForKey("OBJ-PART"))
   {
-    for(int i = 0; i < clusters.size(); ++i)
+    if(!useIdentityResolution_)
     {
-      rs::Cluster &cluster = clusters[i];
-      std::vector<rs::ClusterPart> parts;
-      std::vector<rs_demos::Pizza> pizza;
-      cluster.annotations.filter(parts);
-      cluster.annotations.filter(pizza);
-
-      for(int pIdx = 0; pIdx < parts.size(); ++pIdx)
+      for(int i = 0; i < clusters.size(); ++i)
       {
-        rs::ClusterPart &part = parts[pIdx];
-        if(strcasecmp(part.name().c_str(), requestDesignator.childForKey("OBJ-PART")->stringValue().c_str()) == 0 || requestDesignator.childForKey("OBJ-PART")->stringValue() == "")
+        rs::Cluster &cluster = clusters[i];
+        std::vector<rs::ClusterPart> parts;
+        std::vector<rs_demos::Pizza> pizza;
+        cluster.annotations.filter(parts);
+        cluster.annotations.filter(pizza);
+
+        for(int pIdx = 0; pIdx < parts.size(); ++pIdx)
         {
-          pcl::PointIndices indices;
-          rs::conversion::from(part.indices(), indices);
-          for(int iIdx = 0; iIdx < indices.indices.size(); ++iIdx)
+          rs::ClusterPart &part = parts[pIdx];
+          if(strcasecmp(part.name().c_str(), requestDesignator.childForKey("OBJ-PART")->stringValue().c_str()) == 0 || requestDesignator.childForKey("OBJ-PART")->stringValue() == "")
           {
-            int idx = indices.indices[iIdx];
-            rgb.at<cv::Vec3b>(cv::Point(idx % cam_info.width, idx / cam_info.width)) = rs::common::cvVec3bColors[pIdx % rs::common::numberOfColors];
-            dispCloud->points[idx].rgba = rs::common::colors[colorIdx % rs::common::numberOfColors];
-            dispCloud->points[idx].a = 255;
+            pcl::PointIndices indices;
+            rs::conversion::from(part.indices(), indices);
+            for(int iIdx = 0; iIdx < indices.indices.size(); ++iIdx)
+            {
+              int idx = indices.indices[iIdx];
+              rgb.at<cv::Vec3b>(cv::Point(idx % cam_info.width, idx / cam_info.width)) = rs::common::cvVec3bColors[pIdx % rs::common::numberOfColors];
+              dispCloud->points[idx].rgba = rs::common::colors[colorIdx % rs::common::numberOfColors];
+              dispCloud->points[idx].a = 255;
+            }
+            colorIdx++;
           }
-          colorIdx++;
         }
       }
     }

@@ -152,7 +152,8 @@ void RSControledAnalysisEngine::process(
     dw.setMode(rs::DesignatorWrapper::CLUSTER);
   }
   dw.getObjectDesignators(designatorResponse);
-
+  designator_integration::Designator hDesig;
+  dw.getHumanDesignator(hDesig);
   outInfo("processing finished");
 }
 

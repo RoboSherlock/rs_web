@@ -62,6 +62,32 @@ designator_integration_msgs::DesignatorResponse DesignatorWrapper::getDesignator
   outInfo("designatorResponseMsg.designators.size= " << designatorResponseMsg.designators.size());
   return designatorResponseMsg;
 }
+bool DesignatorWrapper::getHumanDesignator(designator_integration::Designator &designator)
+{
+  if(!tcas)
+  {
+    std::cout << "NULL Pointer in DesignatorWrapper::getDesignatorResponse. tcas is not set! Use DesignatorWrapper::setCAS before calling this method" << std::endl;
+    designator_integration::Designator d;
+    return false;
+  }
+  rs::SceneCas cas(*tcas);
+  rs::Scene scene = cas.getScene();
+
+  now = scene.timestamp();
+
+  designator_integration::Designator *res;
+  std::vector<rs::Human> humans;
+  designator_integration::Designator *hDesig;
+  convertAll(humans, hDesig);
+
+  if(!humans.empty())
+  {
+      designator.setValue("HUMAN","FOUND");
+  }
+  else{
+      designator.setValue("HUMAN","NOT_FOUND");
+  }
+}
 
 bool DesignatorWrapper::getObjectDesignators(std::vector<designator_integration::Designator> &objectDesignators)
 {
@@ -128,10 +154,10 @@ void DesignatorWrapper::convert(rs::Cluster &input, const size_t id, designator_
 
 void DesignatorWrapper::convert(rs::Object &input, const size_t id, designator_integration::KeyValuePair *object)
 {
-//  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("RESOLUTION");
-//  valuePair->setValue("ID", id);
-//  valuePair->setValue("LASTSEEN", now - input.lastSeen());
-//  object->addChild(valuePair);
+  //  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("RESOLUTION");
+  //  valuePair->setValue("ID", id);
+  //  valuePair->setValue("LASTSEEN", now - input.lastSeen());
+  //  object->addChild(valuePair);
   object->setValue("ID", id);
 }
 
@@ -384,11 +410,16 @@ void DesignatorWrapper::convert(rs_demos::Pizza &input, designator_integration::
     {
       ingredients->setValue(std::to_string(j), ingredientsVec[j]);
     }
-    field->setValue("TOP_INGREDIENT",ingredientsVec[ingredientsVec.size()-1]);
+    field->setValue("TOP_INGREDIENT", ingredientsVec[ingredientsVec.size() - 1]);
     field->addChild(ingredients);
     fields->addChild(field);
   }
   pizza->addChild(fields);
   object->addChild(pizza);
+}
+
+void convert(rs::Human &human,designator_integration::KeyValuePair *object)
+{
+//    human.joints3D.get()
 }
 

@@ -260,7 +260,8 @@ annotators_for_predicate(type,A) :-
   annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsAnnotationDetection' ).
 annotators_for_predicate(cad-model,A) :-
   annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsAnnotationPoseannotation' ).
-
+annotators_for_predicate(human,A) :- 
+  annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsHumanHuman' ).
 
 % Detection Clue Annotators. Pick specific Annotators, not based on their inputs/outputs
 annotators_for_predicate(blort,A) :- 

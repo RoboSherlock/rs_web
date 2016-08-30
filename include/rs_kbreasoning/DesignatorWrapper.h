@@ -79,6 +79,7 @@ public:
   iai_robosherlock_msgs::PerceivedObjects getObjectsMsgs();
 
   bool getObjectDesignators(std::vector<designator_integration::Designator> &);
+  bool getHumanDesignator(designator_integration::Designator &d);
 
   template<class T>
   void process(std::vector<T> &elements, std::vector<designator_integration::Designator> &objectDesignators)
@@ -208,6 +209,8 @@ public:
   void convert(rs::ARMarker &input, designator_integration::Designator &res);
   void convert(rs::HandleAnnotation &input, designator_integration::Designator &res);
   void convert(rs_demos::Pizza &input, designator_integration::KeyValuePair *object);
+
+  void convert(rs::Human &human,designator_integration::KeyValuePair *object);
 
 };
 }

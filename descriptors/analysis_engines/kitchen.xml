@@ -34,6 +34,9 @@
     <delegateAnalysisEngine key="BottleAnnotator">
       <import location="../../../robosherlock_demos/descriptors/annotators/acat/BottleAnnotator.xml"/>
     </delegateAnalysisEngine>
+    <delegateAnalysisEngine key="CWObjectIdentityResolution">
+      <import location="../../../rs_human/descriptors/annotators/tracking/CWObjectIdentityResolution.xml"/>
+    </delegateAnalysisEngine>
     <delegateAnalysisEngine key="CaffeAnnotator">
       <import location="../../../robosherlock/descriptors/annotators/annotation/CaffeAnnotator.xml"/>
     </delegateAnalysisEngine>
@@ -82,6 +85,12 @@
     <delegateAnalysisEngine key="DoughDetector">
       <import location="../../../robosherlock_demos/descriptors/annotators/robohow/DoughDetector.xml"/>
     </delegateAnalysisEngine>
+    <delegateAnalysisEngine key="FORTHSkeletonDetector">
+      <import location="../../../rs_human/descriptors/annotators/tracking/FORTHSkeletonDetector.xml"/>
+    </delegateAnalysisEngine>
+    <delegateAnalysisEngine key="FaceTracker">
+      <import location="../../../rs_human/descriptors/annotators/tracking/FaceTracker.xml"/>
+    </delegateAnalysisEngine>
     <delegateAnalysisEngine key="FeatureAnnotator">
       <import location="../../../robosherlock/descriptors/annotators/annotation/FeatureAnnotator.xml"/>
     </delegateAnalysisEngine>
@@ -91,8 +100,17 @@
     <delegateAnalysisEngine key="GogglesAnnotator">
       <import location="../../../robosherlock/descriptors/annotators/annotation/GogglesAnnotator.xml"/>
     </delegateAnalysisEngine>
+    <delegateAnalysisEngine key="HaarCascadeClassifier">
+      <import location="../../../rs_human/descriptors/annotators/detection/HaarCascadeClassifier.xml"/>
+    </delegateAnalysisEngine>
     <delegateAnalysisEngine key="HandleAnnotator">
       <import location="../annotators/HandleAnnotator.xml"/>
+    </delegateAnalysisEngine>
+    <delegateAnalysisEngine key="HumanBroadcaster">
+      <import location="../../../rs_human/descriptors/annotators/other/HumanBroadcaster.xml"/>
+    </delegateAnalysisEngine>
+    <delegateAnalysisEngine key="HumanFilter">
+      <import location="../../../rs_human/descriptors/annotators/other/HumanFilter.xml"/>
     </delegateAnalysisEngine>
     <delegateAnalysisEngine key="ImagePreprocessor">
       <import location="../../../robosherlock/descriptors/annotators/utils/ImagePreprocessor.xml"/>
@@ -102,6 +120,9 @@
     </delegateAnalysisEngine>
     <delegateAnalysisEngine key="JIRAnnotator">
       <import location="../../../robosherlock_demos/descriptors/annotators/shopping/JIRAnnotator.xml"/>
+    </delegateAnalysisEngine>
+    <delegateAnalysisEngine key="JointAnalyzer">
+      <import location="../../../rs_human/descriptors/annotators/activityRecognition/JointAnalyzer.xml"/>
     </delegateAnalysisEngine>
     <delegateAnalysisEngine key="KNNClassifier">
       <import location="../../../robosherlock/descriptors/annotators/recognition/KNNClassifier.xml"/>

@@ -64,7 +64,7 @@ bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::
       if(!semrecClient)
       {
         outInfo("Starting Semantic Logging");
-        semrecClient = new semrec_client::BeliefstateClient("semrec_client");
+        semrecClient = new semrec_client::BeliefstateClient("robosherlock");
         semrecClient->setMetaDataField("experiment", "ex1");
         semrecClient->startNewExperiment();
         semrecClient->registerOWLNamespace("rs_kbreasoning", "http://robosherlock.org/#");

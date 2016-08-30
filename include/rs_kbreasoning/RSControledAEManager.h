@@ -74,12 +74,12 @@ public:
 
     desig_pub_ = nh_.advertise<designator_integration_msgs::DesignatorResponse>(std::string("result_advertiser"), 5);
 
-    service = n.advertiseService("RSProcessManagerest/all_solutions",
+    service = n.advertiseService("designator_request/all_solutions",
                                  &RSProcessManager::designatorAllSolutionsCallback, this);
 
     // Call this service, if RoboSherlock should try out only
     // the pipeline with all Annotators, that provide the requested types (for example shape)
-    singleService = n.advertiseService("RSProcessManagerest/single_solution",
+    singleService = n.advertiseService("designator_request/single_solution",
                                        &RSProcessManager::designatorSingleSolutionCallback, this);
 
     // Call this service to switch between AEs

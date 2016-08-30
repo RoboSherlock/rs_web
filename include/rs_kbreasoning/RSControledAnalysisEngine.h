@@ -160,8 +160,11 @@ public:
   void process(std::vector<std::string> annotators, bool reset_pipeline_after_process);
 
   //draw results on an image
+  template <class T>
   void drawResulstOnImage(const std::vector<bool> &filter,
                           const std::vector<designator_integration::Designator> &resultDesignators,
                           designator_integration::Designator &requestDesignator);
+
+
 };
 #endif // RSCONTROLEDANALYSISENGINE_H

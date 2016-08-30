@@ -152,8 +152,11 @@ void RSControledAnalysisEngine::process(
     dw.setMode(rs::DesignatorWrapper::CLUSTER);
   }
   dw.getObjectDesignators(designatorResponse);
+
   designator_integration::Designator hDesig;
   dw.getHumanDesignator(hDesig);
+  designatorResponse.push_back(hDesig);
+
   outInfo("processing finished");
 }
 
@@ -210,6 +213,7 @@ void RSControledAnalysisEngine::process(std::vector<std::string> annotators, boo
   process(annotators, reset_pipeline_after_process, d);
 }
 
+template <class T>
 void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filter,
     const std::vector<designator_integration::Designator> &resultDesignators,
     designator_integration::Designator &requestDesignator)
@@ -223,13 +227,15 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
   sceneCas.get(VIEW_COLOR_IMAGE, rgb);
   sceneCas.get(VIEW_CAMERA_INFO, cam_info);
   sceneCas.get(VIEW_CLOUD, *dispCloud);
-  std::vector<rs::Cluster> clusters;
-  scene.identifiables.filter(clusters);
   uint64_t now = sceneCas.getScene().timestamp();
-  std::vector<rs::Object> allObjects, objects;
-
-  if(useIdentityResolution_)
+  std::vector<T> clusters;
+  if(std::is_same<T, rs::Cluster>::value)
   {
+    scene.identifiables.filter(clusters);
+  }
+  else
+  {
+    std::vector<rs::Object> allObjects;
     sceneCas.get(VIEW_OBJECTS, allObjects);
     outWarn("objects found: " << allObjects.size());
     for(size_t i = 0; i < allObjects.size(); ++i)
@@ -238,14 +244,12 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
       double lastSeen = (now - (uint64_t)object.lastSeen()) / 1000000000.0;
       if(lastSeen < 100)
       {
-        objects.push_back(object);
+        clusters.push_back(object);
       }
     }
   }
 
-  //very hacky for now: draws the parts of the objects if they were found
   int colorIdx = 0;
-
 
   for(int i = 0; i < filter.size(); ++i)
   {
@@ -258,52 +262,25 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
     if(clusterId != NULL)
     {
       //very uglyu quick hack for now just so it does not crash
+      int idx = atoi(clusterId->stringValue().c_str());
+      //Draw cluster on image
+      rs::ImageROI roi = clusters[idx].rois();
+      cv::Rect cvRoi;
+      rs::conversion::from(roi.roi(), cvRoi);
+      cv::rectangle(rgb, cvRoi, rs::common::cvScalarColors[idx % rs::common::numberOfColors], 1.5);
+      std::stringstream clusterName;
+      clusterName << "cID_" << idx;
+      cv::putText(rgb, clusterName.str(), cv::Point(cvRoi.x + 10, cvRoi.y - 10), cv::FONT_HERSHEY_COMPLEX, 0.7, rs::common::cvScalarColors[idx % rs::common::numberOfColors]);
 
-      if(!useIdentityResolution_)
+      //Color points in Point Cloud
+      pcl::PointIndicesPtr inliers(new pcl::PointIndices());
+      rs::conversion::from(((rs::ReferenceClusterPoints)clusters[idx].points()).indices(), *inliers);
+      for(unsigned int idx = 0; idx < inliers->indices.size(); ++idx)
       {
-        int idx = atoi(clusterId->stringValue().c_str());
-        //Draw cluster on image
-        rs::ImageROI roi = clusters[idx].rois();
-        cv::Rect cvRoi;
-        rs::conversion::from(roi.roi(), cvRoi);
-        cv::rectangle(rgb, cvRoi, rs::common::cvScalarColors[idx % rs::common::numberOfColors], 1.5);
-        std::stringstream clusterName;
-        clusterName << "cID_" << idx;
-        cv::putText(rgb, clusterName.str(), cv::Point(cvRoi.x + 10, cvRoi.y - 10), cv::FONT_HERSHEY_COMPLEX, 0.7, rs::common::cvScalarColors[idx % rs::common::numberOfColors]);
-
-        //Color points in Point Cloud
-        pcl::PointIndicesPtr inliers(new pcl::PointIndices());
-        rs::conversion::from(((rs::ReferenceClusterPoints)clusters[idx].points()).indices(), *inliers);
-        for(unsigned int idx = 0; idx < inliers->indices.size(); ++idx)
-        {
-          dispCloud->points[inliers->indices[idx]].rgba = rs::common::colors[colorIdx % rs::common::numberOfColors];
-          dispCloud->points[inliers->indices[idx]].a = 255;
-        }
-        colorIdx++;
+        dispCloud->points[inliers->indices[idx]].rgba = rs::common::colors[colorIdx % rs::common::numberOfColors];
+        dispCloud->points[inliers->indices[idx]].a = 255;
       }
-      else
-      {
-        outInfo("Using objects to draw: ");
-        int idx = atoi(clusterId->stringValue().c_str());
-        //Draw cluster on image
-        rs::ImageROI roi = objects[idx].rois();
-        cv::Rect cvRoi;
-        rs::conversion::from(roi.roi(), cvRoi);
-        cv::rectangle(rgb, cvRoi, rs::common::cvScalarColors[idx % rs::common::numberOfColors], 1.5);
-        std::stringstream clusterName;
-        clusterName << "cID_" << idx;
-        cv::putText(rgb, clusterName.str(), cv::Point(cvRoi.x + 10, cvRoi.y - 10), cv::FONT_HERSHEY_COMPLEX, 0.7, rs::common::cvScalarColors[idx % rs::common::numberOfColors]);
-
-        //Color points in Point Cloud
-        pcl::PointIndicesPtr inliers(new pcl::PointIndices());
-        rs::conversion::from(((rs::ReferenceClusterPoints)objects[idx].points()).indices(), *inliers);
-        for(unsigned int idx = 0; idx < inliers->indices.size(); ++idx)
-        {
-          dispCloud->points[inliers->indices[idx]].rgba = rs::common::colors[colorIdx % rs::common::numberOfColors];
-          dispCloud->points[inliers->indices[idx]].a = 255;
-        }
-        colorIdx++;
-      }
+      colorIdx++;
     }
     designator_integration::KeyValuePair *handleKvp = desig.childForKey("HANDLE");
     if(handleKvp != NULL)
@@ -339,62 +316,29 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
 
   if(requestDesignator.childForKey("OBJ-PART"))
   {
-    if(!useIdentityResolution_)
+    for(int i = 0; i < clusters.size(); ++i)
     {
-      for(int i = 0; i < clusters.size(); ++i)
-      {
-        rs::Cluster &cluster = clusters[i];
-        std::vector<rs::ClusterPart> parts;
-        std::vector<rs_demos::Pizza> pizza;
-        cluster.annotations.filter(parts);
-        cluster.annotations.filter(pizza);
+      rs::Cluster &cluster = clusters[i];
+      std::vector<rs::ClusterPart> parts;
+      std::vector<rs_demos::Pizza> pizza;
+      cluster.annotations.filter(parts);
+      cluster.annotations.filter(pizza);
 
-        for(int pIdx = 0; pIdx < parts.size(); ++pIdx)
-        {
-          rs::ClusterPart &part = parts[pIdx];
-          if(strcasecmp(part.name().c_str(), requestDesignator.childForKey("OBJ-PART")->stringValue().c_str()) == 0 || requestDesignator.childForKey("OBJ-PART")->stringValue() == "")
-          {
-            pcl::PointIndices indices;
-            rs::conversion::from(part.indices(), indices);
-            for(int iIdx = 0; iIdx < indices.indices.size(); ++iIdx)
-            {
-              int idx = indices.indices[iIdx];
-              rgb.at<cv::Vec3b>(cv::Point(idx % cam_info.width, idx / cam_info.width)) = rs::common::cvVec3bColors[pIdx % rs::common::numberOfColors];
-              dispCloud->points[idx].rgba = rs::common::colors[colorIdx % rs::common::numberOfColors];
-              dispCloud->points[idx].a = 255;
-            }
-            colorIdx++;
-          }
-        }
-      }
-    }
-    else
-    {
-        outInfo("Using objects to draw: ");
-      for(int i = 0; i < objects.size(); ++i)
+      for(int pIdx = 0; pIdx < parts.size(); ++pIdx)
       {
-        rs::Object &cluster = objects[i];
-        std::vector<rs::ClusterPart> parts;
-        std::vector<rs_demos::Pizza> pizza;
-        cluster.annotations.filter(parts);
-        cluster.annotations.filter(pizza);
-
-        for(int pIdx = 0; pIdx < parts.size(); ++pIdx)
+        rs::ClusterPart &part = parts[pIdx];
+        if(strcasecmp(part.name().c_str(), requestDesignator.childForKey("OBJ-PART")->stringValue().c_str()) == 0 || requestDesignator.childForKey("OBJ-PART")->stringValue() == "")
         {
-          rs::ClusterPart &part = parts[pIdx];
-          if(strcasecmp(part.name().c_str(), requestDesignator.childForKey("OBJ-PART")->stringValue().c_str()) == 0 || requestDesignator.childForKey("OBJ-PART")->stringValue() == "")
+          pcl::PointIndices indices;
+          rs::conversion::from(part.indices(), indices);
+          for(int iIdx = 0; iIdx < indices.indices.size(); ++iIdx)
           {
-            pcl::PointIndices indices;
-            rs::conversion::from(part.indices(), indices);
-            for(int iIdx = 0; iIdx < indices.indices.size(); ++iIdx)
-            {
-              int idx = indices.indices[iIdx];
-              rgb.at<cv::Vec3b>(cv::Point(idx % cam_info.width, idx / cam_info.width)) = rs::common::cvVec3bColors[pIdx % rs::common::numberOfColors];
-              dispCloud->points[idx].rgba = rs::common::colors[colorIdx % rs::common::numberOfColors];
-              dispCloud->points[idx].a = 255;
-            }
-            colorIdx++;
+            int idx = indices.indices[iIdx];
+            rgb.at<cv::Vec3b>(cv::Point(idx % cam_info.width, idx / cam_info.width)) = rs::common::cvVec3bColors[pIdx % rs::common::numberOfColors];
+            dispCloud->points[idx].rgba = rs::common::colors[colorIdx % rs::common::numberOfColors];
+            dispCloud->points[idx].a = 255;
           }
+          colorIdx++;
         }
       }
     }
@@ -431,3 +375,10 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
 
 }
 
+template void RSControledAnalysisEngine::drawResulstOnImage<rs::Object>(const std::vector<bool> &filter,
+    const std::vector<designator_integration::Designator> &resultDesignators,
+    designator_integration::Designator &requestDesignator);
+
+template void RSControledAnalysisEngine::drawResulstOnImage<rs::Cluster>(const std::vector<bool> &filter,
+    const std::vector<designator_integration::Designator> &resultDesignators,
+    designator_integration::Designator &requestDesignator);

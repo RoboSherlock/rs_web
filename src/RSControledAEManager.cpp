@@ -306,8 +306,8 @@ bool RSProcessManager::designatorCallbackLogic(designator_integration_msgs::Desi
       //this needs to be an object->create copy constructor in Object class
       ctxRSEvent->addObject(new semrec_client::Object(&designator, "&rs_kbreasoning;", "objectPerceived"), "rs_kbreasoning:objectPerceived");
     }
-
   }
+
   if(ctxRSEvent != NULL)
   {
     ctxRSEvent->end();
@@ -611,7 +611,15 @@ void RSProcessManager::filterResults(Designator &requestDesignator,
       filteredResponse.push_back(resultDesignators[i]);
     }
   }
-  engine.drawResulstOnImage(keep_designator, resultDesignators, requestDesignator);
+
+  if(useIdentityResolution_)
+  {
+    engine.drawResulstOnImage<rs::Object>(keep_designator, resultDesignators, requestDesignator);
+  }
+  else
+  {
+    engine.drawResulstOnImage<rs::Cluster>(keep_designator, resultDesignators, requestDesignator);
+  }
 }
 
 bool RSProcessManager::subsetOfLowLvl(const std::vector<std::string> &plannedPipeline)

@@ -293,9 +293,8 @@ public:
         }
         drawCADModelonImage(templateCloudPath.substr(0, templateCloudPath.find_last_of(".")) + ".ply", dispQuery);
         cas.set("VIEW_DISPLAY_IMAGE", dispQuery);
-         dispImg = dispQuery.clone();
+        dispImg = dispQuery.clone();
       }
-
     }
 
     return UIMA_ERR_NONE;
@@ -334,7 +333,7 @@ public:
 
     outInfo("MeshPoints: " << meshPoints->points.size());
     outInfo("Number of vertices :" << polyMesh.polygons.size());
-
+    cv::Mat negative = cv::Mat::zeros(img.rows, img.cols, CV_8U);
     for(int i = 0; i < polyMesh.polygons.size(); ++i)
     {
       pcl::Vertices vertices = polyMesh.polygons[i];
@@ -359,11 +358,22 @@ public:
 
       outDebug(point_2d_0 << point_2d_1 << point_2d_2);
 
-      cv::line(img, point_2d_0, point_2d_1, cv::Scalar(255, 255, 255), 1, CV_AA);
-      cv::line(img, point_2d_1, point_2d_2, cv::Scalar(255, 255, 255), 1, CV_AA);
-      cv::line(img, point_2d_2, point_2d_0, cv::Scalar(255, 255, 255), 1, CV_AA);
 
+      cv::line(negative, point_2d_0, point_2d_1, cv::Scalar(255), 1, CV_AA);
+      cv::line(negative, point_2d_1, point_2d_2, cv::Scalar(255), 1, CV_AA);
+      cv::line(negative, point_2d_2, point_2d_0, cv::Scalar(255), 1, CV_AA);
+
+      //      cv::cvtColor(negative, negative, CV_BGR2GRAY);
     }
+
+//    cv::Mat element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3), cv::Point(2, 2));
+//    cv::morphologyEx(negative, negative, cv::MORPH_CLOSE, element, cv::Point(-1, -1), 5);
+
+//    cv::Canny(negative, negative, 25, 75);
+//    cv::dilate(negative, negative, element);
+
+//    dispImg = negative.clone();
+    img.setTo(cv::Scalar(0, 0, 200), negative);
   }
 
   void drawImageWithLock(cv::Mat &disp)

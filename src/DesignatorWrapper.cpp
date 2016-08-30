@@ -128,10 +128,10 @@ void DesignatorWrapper::convert(rs::Cluster &input, const size_t id, designator_
 
 void DesignatorWrapper::convert(rs::Object &input, const size_t id, designator_integration::KeyValuePair *object)
 {
-//  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("RESOLUTION");
-//  valuePair->setValue("ID", id);
-//  valuePair->setValue("LASTSEEN", now - input.lastSeen());
-//  object->addChild(valuePair);
+  //  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("RESOLUTION");
+  //  valuePair->setValue("ID", id);
+  //  valuePair->setValue("LASTSEEN", now - input.lastSeen());
+  //  object->addChild(valuePair);
   object->setValue("ID", id);
 }
 
@@ -182,6 +182,7 @@ void DesignatorWrapper::convert(rs::Geometry &input, designator_integration::Key
   designator_integration::KeyValuePair *box = new designator_integration::KeyValuePair("BOUNDINGBOX");
   box->setValue("POSE", pose_stamped_msgs);
   box->setValue("SIZE", input.size());
+  box->setValue("DIST-TO-PLANE",input.distanceToPlane());
   box->addChild(dimensions);
 
   object->addChild(box);
@@ -204,7 +205,6 @@ void DesignatorWrapper::convert(rs::PoseAnnotation &input, designator_integratio
   tf::poseStampedTFToMsg(tf_stamped_pose, pose_stamped_msgs);
   valuePair->setValue("POSE", pose_stamped_msgs);
   valuePair->setValue("SOURCE", input.source());
-
   object->addChild(valuePair);
 }
 
@@ -384,7 +384,7 @@ void DesignatorWrapper::convert(rs_demos::Pizza &input, designator_integration::
     {
       ingredients->setValue(std::to_string(j), ingredientsVec[j]);
     }
-    field->setValue("TOP_INGREDIENT",ingredientsVec[ingredientsVec.size()-1]);
+    field->setValue("TOP_INGREDIENT", ingredientsVec[ingredientsVec.size() - 1]);
     field->addChild(ingredients);
     fields->addChild(field);
   }

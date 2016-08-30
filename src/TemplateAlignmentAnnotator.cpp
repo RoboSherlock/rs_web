@@ -180,7 +180,7 @@ public:
       }
       if(!foundObjectForTemplate)
       {
-          continue;
+        continue;
       }
       //Fit result of drill using local features/template matching
       FeatureCloud object_template;
@@ -264,32 +264,38 @@ public:
       _P_matrix = toCVMat(rotation, translation);
 
       rs::common::projectPointOnPlane(poseCam, planes[0].model());
+      poseCam.setRotation(poseCam.getRotation().normalize());
       tf::Stamped<tf::Pose> poseWorld(camToWorld * poseCam, camToWorld.stamp_, camToWorld.frame_id_);
 
-      rs::PoseAnnotation poseAnnotation = rs::create<rs::PoseAnnotation>(tcas);
-      poseAnnotation.source.set("TemplateAlignment");
-      poseAnnotation.camera.set(rs::conversion::to(tcas, poseCam));
-      poseAnnotation.world.set(rs::conversion::to(tcas, poseWorld));
-
-      cluster.annotations.append(poseAnnotation);
-      transfICPResults_.push_back(pcl::PointCloud<PointT>::Ptr(new pcl::PointCloud<PointT>()));
-      pcl::transformPointCloud(*object_template.getPointCloud(), *transfICPResults_.back(), icp.getFinalTransformation());
-      transfSACIAResults_.push_back(pcl::PointCloud<PointT>::Ptr(new pcl::PointCloud<PointT>()));
-      pcl::transformPointCloud(*object_template.getPointCloud(), *transfSACIAResults_.back(), best_alignment.final_transformation);
-
-      cv::Mat dispQuery;
-
-      if(cas.has("VIEW_DISPLAY_IMAGE"))
+      if(iteration < 30)
       {
-        cas.get("VIEW_DISPLAY_IMAGE", dispQuery);
+        rs::PoseAnnotation poseAnnotation = rs::create<rs::PoseAnnotation>(tcas);
+        poseAnnotation.source.set("TemplateAlignment");
+        poseAnnotation.camera.set(rs::conversion::to(tcas, poseCam));
+        poseAnnotation.world.set(rs::conversion::to(tcas, poseWorld));
+
+
+        cluster.annotations.append(poseAnnotation);
+        transfICPResults_.push_back(pcl::PointCloud<PointT>::Ptr(new pcl::PointCloud<PointT>()));
+        pcl::transformPointCloud(*object_template.getPointCloud(), *transfICPResults_.back(), icp.getFinalTransformation());
+        transfSACIAResults_.push_back(pcl::PointCloud<PointT>::Ptr(new pcl::PointCloud<PointT>()));
+        pcl::transformPointCloud(*object_template.getPointCloud(), *transfSACIAResults_.back(), best_alignment.final_transformation);
+
+        cv::Mat dispQuery;
+
+        if(cas.has("VIEW_DISPLAY_IMAGE"))
+        {
+          cas.get("VIEW_DISPLAY_IMAGE", dispQuery);
+        }
+        else
+        {
+          dispQuery = dispImg.clone();
+        }
+        drawCADModelonImage(templateCloudPath.substr(0, templateCloudPath.find_last_of(".")) + ".ply", dispQuery);
+        cas.set("VIEW_DISPLAY_IMAGE", dispQuery);
+         dispImg = dispQuery.clone();
       }
-      else
-      {
-        dispQuery = dispImg.clone();
-      }
-      drawCADModelonImage(templateCloudPath.substr(0, templateCloudPath.find_last_of(".")) + ".ply", dispQuery);
-      cas.set("VIEW_DISPLAY_IMAGE", dispQuery);
-      dispImg = dispQuery.clone();
+
     }
 
     return UIMA_ERR_NONE;

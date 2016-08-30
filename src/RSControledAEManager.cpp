@@ -416,6 +416,10 @@ void RSProcessManager::filterResults(Designator &requestDesignator,
           resultsForRequestedKey.push_back(resDesig.childForKey(req_kvp.key()));
         }
       }
+      else if(req_kvp.key() == "HUMAN")
+      {
+        resultsForRequestedKey.push_back(resDesig.childForKey(req_kvp.key()));
+      }
       else
       {
         resultsForRequestedKey.push_back(resDesig.childForKey(req_kvp.key()));
@@ -429,6 +433,11 @@ void RSProcessManager::filterResults(Designator &requestDesignator,
         {
           if(resultsForRequestedKey[j] != NULL)
           {
+            if(resultsForRequestedKey[j]->key() == "HUMAN")
+            {
+              if(resultsForRequestedKey[j]->stringValue() == "FOUND")
+                ok = true;
+            }
             if(resultsForRequestedKey[j]->key() == "POSE")
             {
               std::list<KeyValuePair * > kvps_ = resultDesignators[i].description();

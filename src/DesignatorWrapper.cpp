@@ -1,6 +1,7 @@
 #include <rs_kbreasoning/DesignatorWrapper.h>
 
-using namespace rs;
+namespace rs
+{
 
 designator_integration::Designator *DesignatorWrapper::req_designator = NULL;
 designator_integration::Designator *DesignatorWrapper::res_designator = NULL;
@@ -111,7 +112,7 @@ bool DesignatorWrapper::getObjectDesignators(std::vector<designator_integration:
     {
       rs::Object &object = allObjects[i];
       double lastSeen = (now - (uint64_t)object.lastSeen()) / 1000000000.0;
-      if(lastSeen < 600)
+      if(lastSeen < 5)
       {
         objects.push_back(object);
       }
@@ -182,7 +183,7 @@ void DesignatorWrapper::convert(rs::Geometry &input, designator_integration::Key
   designator_integration::KeyValuePair *box = new designator_integration::KeyValuePair("BOUNDINGBOX");
   box->setValue("POSE", pose_stamped_msgs);
   box->setValue("SIZE", input.size());
-  box->setValue("DIST-TO-PLANE",input.distanceToPlane());
+  box->setValue("DIST-TO-PLANE", input.distanceToPlane());
   box->addChild(dimensions);
 
   object->addChild(box);
@@ -287,15 +288,15 @@ void DesignatorWrapper::convert(rs::Features &input, designator_integration::Key
 
 void DesignatorWrapper::convert(rs::ClusterPart &input, designator_integration::KeyValuePair *object)
 {
-  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("OBJ-PART");
+  designator_integration::KeyValuePair *part = new designator_integration::KeyValuePair(std::to_string(input.clID()));
+
   tf::Stamped<tf::Pose> tf_stamped_pose;
   geometry_msgs::PoseStamped pose_stamped_msgs;
   rs::conversion::from(input.pose(), tf_stamped_pose);
   tf::poseStampedTFToMsg(tf_stamped_pose, pose_stamped_msgs);
-  valuePair->setValue("NAME", input.name());
-  valuePair->setValue("POSE", pose_stamped_msgs);
-  valuePair->setValue("CLUSTER-ID", input.clID());
-  object->addChild(valuePair);
+  part->setValue("NAME", input.name());
+  part->setValue("POSE", pose_stamped_msgs);
+  object->addChild(part);
 }
 
 void DesignatorWrapper::convert(rs_demos::Volume &input, designator_integration::KeyValuePair *object)
@@ -328,7 +329,6 @@ void DesignatorWrapper::convert(rs::ARMarker &input, designator_integration::Des
   tf::poseStampedTFToMsg(tf_stamped_pose, pose_stamped_msgs);
   arDesignator.setValue("POSE", pose_stamped_msgs);
   //  res.designators.push_back(arDesignator.serializeToMessage());
-
 
 }
 
@@ -392,3 +392,17 @@ void DesignatorWrapper::convert(rs_demos::Pizza &input, designator_integration::
   object->addChild(pizza);
 }
 
+template<>
+void DesignatorWrapper::convertAll(std::vector<rs::ClusterPart> &all, designator_integration::KeyValuePair *object)
+{
+  if(!all.empty())
+  {
+    designator_integration::KeyValuePair *objParts = new designator_integration::KeyValuePair("OBJ-PART");
+    for(rs::ClusterPart input : all)
+    {
+      convert(input, objParts);
+    }
+    object->addChild(objParts);
+  }
+}
+}

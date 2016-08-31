@@ -2,7 +2,6 @@
 #ifndef DESIGNATORSTORAGE_H
 #define DESIGNATORSTORAGE_H
 
-#endif // DESIGNATORSTORAGE_H
 
 #include <uima/api.hpp>
 
@@ -210,5 +209,7 @@ public:
   void convert(rs_demos::Pizza &input, designator_integration::KeyValuePair *object);
 
 };
+
 }
 
+#endif // DESIGNATORSTORAGE_H

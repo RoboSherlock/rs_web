@@ -456,27 +456,28 @@ void RSProcessManager::filterResults(Designator &requestDesignator,
             }
             if(resultsForRequestedKey[j]->key() == "OBJ-PART")
             {
-              ok = true;
-              std::list<KeyValuePair * > kvps_ = resultDesignators[i].description();
-              std::list<KeyValuePair * >::iterator it = kvps_.begin();
-              while(it != kvps_.end())
-              {
-                if((*it)->key() != "OBJ-PART" && (*it)->key() != "ID" && (*it)->key() != "TIMESTAMP")
-                  kvps_.erase(it++);
-                else
-                {
-                  if((*it)->key() == "OBJ-PART")
-                  {
-                    if((strcasecmp((*it)->childForKey("NAME")->stringValue().c_str(), req_kvp.stringValue().c_str()) == 0) || (req_kvp.stringValue() == ""))
-                      ++it;
-                    else
-                      kvps_.erase(it++);
-                  }
-                  else
-                    ++it;
-                }
-              }
-              resultDesignators[i].setDescription(kvps_);
+             ok = true;
+             Designator  desig = resultDesignators[i];
+             desig.printDesignator();
+//              std::list<KeyValuePair * >::iterator it = kvps_.begin();
+//              while(it != kvps_.end())
+//              {
+//                if((*it)->key() != "OBJ-PART" && (*it)->key() != "ID" && (*it)->key() != "TIMESTAMP")
+//                  kvps_.erase(it++);
+//                else
+//                {
+//                  if((*it)->key() == "OBJ-PART")
+//                  {
+//                    if((strcasecmp((*it)->childForKey("NAME")->stringValue().c_str(), req_kvp.stringValue().c_str()) == 0) || (req_kvp.stringValue() == ""))
+//                      ++it;
+//                    else
+//                      kvps_.erase(it++);
+//                  }
+//                  else
+//                    ++it;
+//                }
+//              }
+//              resultDesignators[i].setDescription(kvps_);
             }
             if(resultsForRequestedKey[j]->key() == "PIZZA")
             {

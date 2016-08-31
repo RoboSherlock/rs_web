@@ -237,7 +237,7 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
     {
       rs::Object &object = allObjects[i];
       double lastSeen = (now - (uint64_t)object.lastSeen()) / 1000000000.0;
-      if(lastSeen < 100)
+      if(lastSeen == 0)
       {
         clusters.push_back(object);
       }

@@ -112,7 +112,7 @@ bool DesignatorWrapper::getObjectDesignators(std::vector<designator_integration:
     {
       rs::Object &object = allObjects[i];
       double lastSeen = (now - (uint64_t)object.lastSeen()) / 1000000000.0;
-      if(lastSeen < 5)
+      if(lastSeen == 0)
       {
         objects.push_back(object);
       }

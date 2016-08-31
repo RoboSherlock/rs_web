@@ -457,8 +457,6 @@ void RSProcessManager::filterResults(Designator &requestDesignator,
             if(resultsForRequestedKey[j]->key() == "OBJ-PART")
             {
              ok = true;
-             Designator  desig = resultDesignators[i];
-             desig.printDesignator();
 //              std::list<KeyValuePair * >::iterator it = kvps_.begin();
 //              while(it != kvps_.end())
 //              {

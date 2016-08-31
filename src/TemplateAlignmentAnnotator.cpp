@@ -180,7 +180,7 @@ public:
       }
       if(!foundObjectForTemplate)
       {
-          continue;
+        continue;
       }
       //Fit result of drill using local features/template matching
       FeatureCloud object_template;
@@ -264,32 +264,37 @@ public:
       _P_matrix = toCVMat(rotation, translation);
 
       rs::common::projectPointOnPlane(poseCam, planes[0].model());
+      poseCam.setRotation(poseCam.getRotation().normalize());
       tf::Stamped<tf::Pose> poseWorld(camToWorld * poseCam, camToWorld.stamp_, camToWorld.frame_id_);
 
-      rs::PoseAnnotation poseAnnotation = rs::create<rs::PoseAnnotation>(tcas);
-      poseAnnotation.source.set("TemplateAlignment");
-      poseAnnotation.camera.set(rs::conversion::to(tcas, poseCam));
-      poseAnnotation.world.set(rs::conversion::to(tcas, poseWorld));
-
-      cluster.annotations.append(poseAnnotation);
-      transfICPResults_.push_back(pcl::PointCloud<PointT>::Ptr(new pcl::PointCloud<PointT>()));
-      pcl::transformPointCloud(*object_template.getPointCloud(), *transfICPResults_.back(), icp.getFinalTransformation());
-      transfSACIAResults_.push_back(pcl::PointCloud<PointT>::Ptr(new pcl::PointCloud<PointT>()));
-      pcl::transformPointCloud(*object_template.getPointCloud(), *transfSACIAResults_.back(), best_alignment.final_transformation);
-
-      cv::Mat dispQuery;
-
-      if(cas.has("VIEW_DISPLAY_IMAGE"))
+      if(iteration < 30)
       {
-        cas.get("VIEW_DISPLAY_IMAGE", dispQuery);
+        rs::PoseAnnotation poseAnnotation = rs::create<rs::PoseAnnotation>(tcas);
+        poseAnnotation.source.set("TemplateAlignment");
+        poseAnnotation.camera.set(rs::conversion::to(tcas, poseCam));
+        poseAnnotation.world.set(rs::conversion::to(tcas, poseWorld));
+
+
+        cluster.annotations.append(poseAnnotation);
+        transfICPResults_.push_back(pcl::PointCloud<PointT>::Ptr(new pcl::PointCloud<PointT>()));
+        pcl::transformPointCloud(*object_template.getPointCloud(), *transfICPResults_.back(), icp.getFinalTransformation());
+        transfSACIAResults_.push_back(pcl::PointCloud<PointT>::Ptr(new pcl::PointCloud<PointT>()));
+        pcl::transformPointCloud(*object_template.getPointCloud(), *transfSACIAResults_.back(), best_alignment.final_transformation);
+
+        cv::Mat dispQuery;
+
+        if(cas.has("VIEW_DISPLAY_IMAGE"))
+        {
+          cas.get("VIEW_DISPLAY_IMAGE", dispQuery);
+        }
+        else
+        {
+          dispQuery = dispImg.clone();
+        }
+        drawCADModelonImage(templateCloudPath.substr(0, templateCloudPath.find_last_of(".")) + ".ply", dispQuery);
+        cas.set("VIEW_DISPLAY_IMAGE", dispQuery);
+        dispImg = dispQuery.clone();
       }
-      else
-      {
-        dispQuery = dispImg.clone();
-      }
-      drawCADModelonImage(templateCloudPath.substr(0, templateCloudPath.find_last_of(".")) + ".ply", dispQuery);
-      cas.set("VIEW_DISPLAY_IMAGE", dispQuery);
-      dispImg = dispQuery.clone();
     }
 
     return UIMA_ERR_NONE;
@@ -328,7 +333,7 @@ public:
 
     outInfo("MeshPoints: " << meshPoints->points.size());
     outInfo("Number of vertices :" << polyMesh.polygons.size());
-
+    cv::Mat negative = cv::Mat::zeros(img.rows, img.cols, CV_8U);
     for(int i = 0; i < polyMesh.polygons.size(); ++i)
     {
       pcl::Vertices vertices = polyMesh.polygons[i];
@@ -353,11 +358,22 @@ public:
 
       outDebug(point_2d_0 << point_2d_1 << point_2d_2);
 
-      cv::line(img, point_2d_0, point_2d_1, cv::Scalar(255, 255, 255), 1, CV_AA);
-      cv::line(img, point_2d_1, point_2d_2, cv::Scalar(255, 255, 255), 1, CV_AA);
-      cv::line(img, point_2d_2, point_2d_0, cv::Scalar(255, 255, 255), 1, CV_AA);
 
+      cv::line(negative, point_2d_0, point_2d_1, cv::Scalar(255), 1, CV_AA);
+      cv::line(negative, point_2d_1, point_2d_2, cv::Scalar(255), 1, CV_AA);
+      cv::line(negative, point_2d_2, point_2d_0, cv::Scalar(255), 1, CV_AA);
+
+      //      cv::cvtColor(negative, negative, CV_BGR2GRAY);
     }
+
+//    cv::Mat element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3), cv::Point(2, 2));
+//    cv::morphologyEx(negative, negative, cv::MORPH_CLOSE, element, cv::Point(-1, -1), 5);
+
+//    cv::Canny(negative, negative, 25, 75);
+//    cv::dilate(negative, negative, element);
+
+//    dispImg = negative.clone();
+    img.setTo(cv::Scalar(0, 0, 200), negative);
   }
 
   void drawImageWithLock(cv::Mat &disp)

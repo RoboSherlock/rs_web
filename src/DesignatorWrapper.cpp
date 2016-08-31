@@ -209,6 +209,7 @@ void DesignatorWrapper::convert(rs::Geometry &input, designator_integration::Key
   designator_integration::KeyValuePair *box = new designator_integration::KeyValuePair("BOUNDINGBOX");
   box->setValue("POSE", pose_stamped_msgs);
   box->setValue("SIZE", input.size());
+  box->setValue("DIST-TO-PLANE",input.distanceToPlane());
   box->addChild(dimensions);
 
   object->addChild(box);
@@ -231,7 +232,6 @@ void DesignatorWrapper::convert(rs::PoseAnnotation &input, designator_integratio
   tf::poseStampedTFToMsg(tf_stamped_pose, pose_stamped_msgs);
   valuePair->setValue("POSE", pose_stamped_msgs);
   valuePair->setValue("SOURCE", input.source());
-
   object->addChild(valuePair);
 }
 

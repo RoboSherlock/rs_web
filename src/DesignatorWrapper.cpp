@@ -82,10 +82,11 @@ bool DesignatorWrapper::getHumanDesignator(designator_integration::Designator &d
 
   if(!humans.empty())
   {
-      designator.setValue("HUMAN","FOUND");
+    designator.setValue("HUMAN", "FOUND");
   }
-  else{
-      designator.setValue("HUMAN","NOT_FOUND");
+  else
+  {
+    designator.setValue("HUMAN", "NOT_FOUND");
   }
 }
 
@@ -418,8 +419,8 @@ void DesignatorWrapper::convert(rs_demos::Pizza &input, designator_integration::
   object->addChild(pizza);
 }
 
-void convert(rs::Human &human,designator_integration::KeyValuePair *object)
+void DesignatorWrapper::convert(rs::Human &human, designator_integration::KeyValuePair *object)
 {
-//    human.joints3D.get()
+  // Not neccessary at the moment
 }
 

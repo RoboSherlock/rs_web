@@ -239,6 +239,7 @@ bool RSProcessManager::designatorCallbackLogic(designator_integration_msgs::Desi
     if(std::find(new_pipeline_order.begin(), new_pipeline_order.end(), "ObjectIdentityResolution") == new_pipeline_order.end())
     {
       new_pipeline_order.push_back("ObjectIdentityResolution");
+      new_pipeline_order.push_back("GazeboInterface");
     }
     new_pipeline_order.push_back("StorageWriter");
     if(!allSolutions)
@@ -506,7 +507,6 @@ void RSProcessManager::filterResults(Designator &requestDesignator,
                 KeyValuePair colorRatioKvp = **iter;
                 if(strcasecmp(colorRatioKvp.key().c_str(), req_kvp.stringValue().c_str()) == 0 || req_kvp.stringValue() == "")
                 {
-                  outInfo("Color name mathces, ratio is: " << colorRatioKvp.floatValue());
                   if(colorRatioKvp.floatValue() > 0.20)
                   {
                     ok = true;

@@ -88,6 +88,9 @@
     <delegateAnalysisEngine key="FlaskAnnotator">
       <import location="../../../robosherlock_demos/descriptors/annotators/acat/FlaskAnnotator.xml"/>
     </delegateAnalysisEngine>
+    <delegateAnalysisEngine key="GazeboInterface">
+      <import location="../../../rs_simulation/descriptors/annotators/GazeboInterface.xml"/>
+    </delegateAnalysisEngine>
     <delegateAnalysisEngine key="GogglesAnnotator">
       <import location="../../../robosherlock/descriptors/annotators/annotation/GogglesAnnotator.xml"/>
     </delegateAnalysisEngine>
@@ -150,6 +153,9 @@
     </delegateAnalysisEngine>
     <delegateAnalysisEngine key="PrimitiveShapeAnnotator">
       <import location="../../../robosherlock/descriptors/annotators/annotation/PrimitiveShapeAnnotator.xml"/>
+    </delegateAnalysisEngine>
+    <delegateAnalysisEngine key="ProcessGazeboFrames">
+      <import location="../../../rs_simulation/descriptors/annotators/ProcessGazeboFrames.xml"/>
     </delegateAnalysisEngine>
     <delegateAnalysisEngine key="RegionFilter">
       <import location="../../../robosherlock/descriptors/annotators/filter/RegionFilter.xml"/>

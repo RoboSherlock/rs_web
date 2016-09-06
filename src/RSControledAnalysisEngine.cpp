@@ -83,6 +83,10 @@ void RSControledAnalysisEngine::process(
       {
         query.timestamp.set(q->timestamp);
       }
+      else
+      {
+          query.timestamp.set(0);
+      }
       if(q->location != "")
       {
         query.location.set(q->location);

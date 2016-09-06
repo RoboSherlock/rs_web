@@ -5,7 +5,7 @@ project(rs_kbreasoning)
 find_package(catkin REQUIRED rosjava_build_tools rosprolog designator_integration_cpp
              designator_integration_msgs knowrob_common knowrob_actions knowrob_srdl
              tf tf_conversions knowrob_vis robosherlock json_prolog robosherlock_demos
-             rs_addons rs_human roslib rospack iai_robosherlock_msgs image_transport
+             rs_addons rs_human rs_simulation roslib rospack iai_robosherlock_msgs image_transport
              semrec_client)
 
 catkin_rosjava_setup(installApp publishMavenJavaPublicationToMavenRepository writeClasspath)
@@ -69,10 +69,10 @@ include_directories(
 ################################################################################
 
 ##Update xml list of annotators inside analysis engines
-update_analysis_engines(robosherlock robosherlock_demos rs_addons rs_human)
+update_analysis_engines(robosherlock robosherlock_demos rs_addons rs_human rs_simulation)
 
 ## generate classes from the typesystem xml files
-generate_type_system(robosherlock robosherlock_demos rs_addons rs_human)
+generate_type_system(robosherlock robosherlock_demos rs_addons rs_human rs_simulation)
 
 #find all relevant files
 find_additional_files()

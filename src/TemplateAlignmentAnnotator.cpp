@@ -222,6 +222,10 @@ public:
       template_align.setTargetCloud(target_cloud);
       TemplateAlignment::Result best_alignment;
       pcl::IterativeClosestPoint<PointT, PointT> icp;
+      icp.setTransformationEpsilon(0.001);
+      icp.setMaxCorrespondenceDistance(0.03);
+      icp.setMaximumIterations(50);
+
       tfScalar dp = 2.0d;
 
       tf::Stamped<tf::Pose> poseCam;
@@ -235,9 +239,6 @@ public:
 
         icp.setInputSource(object_template.getPointCloud());
         icp.setInputTarget(cluster_cloud);
-        icp.setTransformationEpsilon(0.001);
-        icp.setMaxCorrespondenceDistance(0.03);
-        icp.setMaximumIterations(50);
 
         pcl::PointCloud<PointT>::Ptr final(new pcl::PointCloud<PointT>);
         icp.align(*final, best_alignment.final_transformation);

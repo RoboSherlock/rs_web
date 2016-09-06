@@ -239,6 +239,7 @@ bool RSProcessManager::designatorCallbackLogic(designator_integration_msgs::Desi
     if(std::find(new_pipeline_order.begin(), new_pipeline_order.end(), "ObjectIdentityResolution") == new_pipeline_order.end())
     {
       new_pipeline_order.push_back("ObjectIdentityResolution");
+      new_pipeline_order.push_back("GazeboInterface");
     }
     new_pipeline_order.push_back("StorageWriter");
     if(!allSolutions)
@@ -465,27 +466,26 @@ void RSProcessManager::filterResults(Designator &requestDesignator,
             }
             if(resultsForRequestedKey[j]->key() == "OBJ-PART")
             {
-              ok = true;
-              std::list<KeyValuePair * > kvps_ = resultDesignators[i].description();
-              std::list<KeyValuePair * >::iterator it = kvps_.begin();
-              while(it != kvps_.end())
-              {
-                if((*it)->key() != "OBJ-PART" && (*it)->key() != "ID" && (*it)->key() != "TIMESTAMP")
-                  kvps_.erase(it++);
-                else
-                {
-                  if((*it)->key() == "OBJ-PART")
-                  {
-                    if((strcasecmp((*it)->childForKey("NAME")->stringValue().c_str(), req_kvp.stringValue().c_str()) == 0) || (req_kvp.stringValue() == ""))
-                      ++it;
-                    else
-                      kvps_.erase(it++);
-                  }
-                  else
-                    ++it;
-                }
-              }
-              resultDesignators[i].setDescription(kvps_);
+             ok = true;
+//              std::list<KeyValuePair * >::iterator it = kvps_.begin();
+//              while(it != kvps_.end())
+//              {
+//                if((*it)->key() != "OBJ-PART" && (*it)->key() != "ID" && (*it)->key() != "TIMESTAMP")
+//                  kvps_.erase(it++);
+//                else
+//                {
+//                  if((*it)->key() == "OBJ-PART")
+//                  {
+//                    if((strcasecmp((*it)->childForKey("NAME")->stringValue().c_str(), req_kvp.stringValue().c_str()) == 0) || (req_kvp.stringValue() == ""))
+//                      ++it;
+//                    else
+//                      kvps_.erase(it++);
+//                  }
+//                  else
+//                    ++it;
+//                }
+//              }
+//              resultDesignators[i].setDescription(kvps_);
             }
             if(resultsForRequestedKey[j]->key() == "PIZZA")
             {
@@ -516,7 +516,6 @@ void RSProcessManager::filterResults(Designator &requestDesignator,
                 KeyValuePair colorRatioKvp = **iter;
                 if(strcasecmp(colorRatioKvp.key().c_str(), req_kvp.stringValue().c_str()) == 0 || req_kvp.stringValue() == "")
                 {
-                  outInfo("Color name mathces, ratio is: " << colorRatioKvp.floatValue());
                   if(colorRatioKvp.floatValue() > 0.20)
                   {
                     ok = true;

@@ -97,6 +97,9 @@
     <delegateAnalysisEngine key="FlaskAnnotator">
       <import location="../../../robosherlock_demos/descriptors/annotators/acat/FlaskAnnotator.xml"/>
     </delegateAnalysisEngine>
+    <delegateAnalysisEngine key="GazeboInterface">
+      <import location="../../../rs_simulation/descriptors/annotators/GazeboInterface.xml"/>
+    </delegateAnalysisEngine>
     <delegateAnalysisEngine key="GogglesAnnotator">
       <import location="../../../robosherlock/descriptors/annotators/annotation/GogglesAnnotator.xml"/>
     </delegateAnalysisEngine>
@@ -108,9 +111,6 @@
     </delegateAnalysisEngine>
     <delegateAnalysisEngine key="HumanBroadcaster">
       <import location="../../../rs_human/descriptors/annotators/other/HumanBroadcaster.xml"/>
-    </delegateAnalysisEngine>
-    <delegateAnalysisEngine key="HumanFilter">
-      <import location="../../../rs_human/descriptors/annotators/other/HumanFilter.xml"/>
     </delegateAnalysisEngine>
     <delegateAnalysisEngine key="ImagePreprocessor">
       <import location="../../../robosherlock/descriptors/annotators/utils/ImagePreprocessor.xml"/>
@@ -142,6 +142,9 @@
     <delegateAnalysisEngine key="ObjectIdentityResolution">
       <import location="../../../robosherlock/descriptors/annotators/tracker/ObjectIdentityResolution.xml"/>
     </delegateAnalysisEngine>
+    <delegateAnalysisEngine key="ObjectInteraction">
+      <import location="../../../rs_human/descriptors/annotators/other/ObjectInteraction.xml"/>
+    </delegateAnalysisEngine>
     <delegateAnalysisEngine key="PCLDescriptorExtractor">
       <import location="../../../robosherlock/descriptors/annotators/annotation/PCLDescriptorExtractor.xml"/>
     </delegateAnalysisEngine>
@@ -171,6 +174,9 @@
     </delegateAnalysisEngine>
     <delegateAnalysisEngine key="PrimitiveShapeAnnotator">
       <import location="../../../robosherlock/descriptors/annotators/annotation/PrimitiveShapeAnnotator.xml"/>
+    </delegateAnalysisEngine>
+    <delegateAnalysisEngine key="ProcessGazeboFrames">
+      <import location="../../../rs_simulation/descriptors/annotators/ProcessGazeboFrames.xml"/>
     </delegateAnalysisEngine>
     <delegateAnalysisEngine key="RegionFilter">
       <import location="../../../robosherlock/descriptors/annotators/filter/RegionFilter.xml"/>
@@ -610,11 +616,11 @@
       <node>ClusterColorHistogramCalculator</node>
       <node>PrimitiveShapeAnnotator</node>
       <node>TemplateAlignmentAnnotator</node>
-
       <node>ClusterToPartsSegmenter</node>
       <node>DeCafClassifier</node>
       <node>TFBroadcaster</node>
       <node>ObjectIdentityResolution</node>
+      <node>GazeboInterface</node>
       <node>StorageWriter</node>
     </fixedFlow>
     </flowConstraints>

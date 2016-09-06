@@ -16,7 +16,9 @@ annotators:
     - PCLFeatureExtractor
     - TFBroadcaster
     - ObjectIdentityResolution
+    - GazeboInterface
     - StorageWriter
+
 
 cw_assumption:
     - red_spotted_bowl

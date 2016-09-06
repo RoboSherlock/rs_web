@@ -2,7 +2,6 @@
 #ifndef DESIGNATORSTORAGE_H
 #define DESIGNATORSTORAGE_H
 
-#endif // DESIGNATORSTORAGE_H
 
 #include <uima/api.hpp>
 
@@ -213,5 +212,7 @@ public:
   void convert(rs::Human &human,designator_integration::KeyValuePair *object);
 
 };
+
 }
 
+#endif // DESIGNATORSTORAGE_H

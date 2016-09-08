@@ -27,6 +27,7 @@
 
 #include <algorithm>
 
+
 using namespace uima;
 
 class ClusterToPartsSegmenter : public DrawingAnnotator
@@ -34,9 +35,9 @@ class ClusterToPartsSegmenter : public DrawingAnnotator
 
 private:
   typedef pcl::PointXYZRGBA PointT;
-  pcl::PointCloud<PointT>::Ptr cloudPtr;
+  pcl::PointCloud<PointT>::Ptr cloudPtr_;
   pcl::PointCloud<PointT>::Ptr dispCloudPtr;
-  pcl::PointCloud<pcl::Normal>::Ptr normalPtr;
+  pcl::PointCloud<pcl::Normal>::Ptr normalPtr_;
 
   struct ClusterWithParts
   {
@@ -58,13 +59,11 @@ private:
 
   float voxel_resolution;
   float seed_resolution;
-  float color_importance;
-  float spatial_importance;
-  float normal_importance;
+  float colorImportance_;
+  float spatialImportance_;
+  float normalImportance_;
 
-  std::map <uint32_t, pcl::Supervoxel<PointT>::Ptr > supervoxelClusters;
-
-  pcl::PointCloud<PointT>::Ptr dispCloud;
+  pcl::PointCloud<PointT>::Ptr dispCloud_;
   pcl::PointCloud<pcl::PointNormal>::Ptr svNormalCloud;
 
   cv::Mat dispRGB;
@@ -81,9 +80,9 @@ public:
   TyErrorId initialize(AnnotatorContext &ctx)
   {
     outInfo("Initialize");
-    color_importance = 0.4f;
-    spatial_importance = 0.4f;
-    normal_importance = 1.0f;
+    colorImportance_ = 0.4f;
+    spatialImportance_ = 0.4f;
+    normalImportance_ = 1.0f;
     return UIMA_ERR_NONE;
   }
 
@@ -91,6 +90,174 @@ public:
   {
     outInfo("Destroy");
     return UIMA_ERR_NONE;
+  }
+
+  void msColorSegmentations(const cv::Mat &img, ClusterWithParts &cwp)
+  {
+    cv::ocl::oclMat oclImgRaw, oclImgConverted;
+    oclImgRaw.upload(img);
+    cv::ocl::cvtColor(oclImgRaw, oclImgConverted, CV_BGR2BGRA);
+    cv::Mat msClusters;
+    cv::ocl::meanShiftSegmentation(oclImgConverted, msClusters, 40, 40, (img.rows * img.cols) * 0.015);
+    cv::cvtColor(msClusters, cwp.msSegmentsImage, CV_BGRA2BGR);
+
+    std::vector<int> labelCount;
+    for(int y = 0; y < cwp.msSegmentsImage.rows; ++y)
+      for(int x = 0; x < cwp.msSegmentsImage.cols; ++x)
+      {
+        if(cwp.mask.at<uint8_t>(y, x) != 0)
+        {
+          bool labelExists = false;
+          cv::Vec3b label = cwp.msSegmentsImage.at<cv::Vec3b>(cv::Point(x, y));
+          for(int l = 0; l < cwp.colorClusterLabels.size(); ++l)
+          {
+            if(label == cwp.colorClusterLabels[l])
+            {
+              labelCount[l]++;
+              labelExists = true;
+            }
+          }
+          if(!labelExists)
+          {
+            labelCount.push_back(0);
+            cwp.colorClusterLabels.push_back(label);
+          }
+        }
+      }
+
+    //now create the clusters: needed because for some reason openCVs meanShift returns clusters
+    // that have fewer points then set in the segm.method
+    for(int y = 0; y < cwp.msSegmentsImage.rows; ++y)
+      for(int x = 0; x < cwp.msSegmentsImage.cols; ++x)
+      {
+        if(cwp.mask.at<uint8_t>(y, x) != 0)
+        {
+          cv::Vec3b label = cwp.msSegmentsImage.at<cv::Vec3b>(cv::Point(x, y));
+          for(int l = 0; l < cwp.colorClusterLabels.size(); ++l)
+          {
+            if(label == cwp.colorClusterLabels[l])
+            {
+              if(labelCount[l] > (img.rows * img.cols) * 0.015)
+              {
+                cwp.colorClusters[l].push_back(cv::Point(x, y));
+              }
+            }
+          }
+        }
+      }
+    outInfo("found " << cwp.colorClusterLabels.size() << " color cluster labels");
+    outInfo("found " << cwp.colorClusters.size() << " color clusters");
+  }
+
+  void overSegmentAndGrow(const pcl::PointIndicesPtr &indices,ClusterWithParts &cwp)
+  {
+    pcl::PointCloud<PointT>::Ptr clusterCloud(new pcl::PointCloud<PointT>());
+    pcl::ExtractIndices<PointT> ei;
+    ei.setInputCloud(cloudPtr_);
+    ei.setIndices(indices);
+    ei.filter(*clusterCloud);
+
+    std::map <uint32_t, pcl::Supervoxel<PointT>::Ptr > supervoxelClusters;
+    pcl::SupervoxelClustering<PointT> super(voxel_resolution, seed_resolution, false);
+    super.setInputCloud(clusterCloud);
+    super.setColorImportance(colorImportance_);
+    super.setSpatialImportance(spatialImportance_);
+    super.setNormalImportance(normalImportance_);
+    super.extract(supervoxelClusters);
+
+    cwp.svNormalCloud = super.makeSupervoxelNormalCloud(supervoxelClusters);
+
+    outInfo("Cluster split into: " << supervoxelClusters.size() << " supervoxels");
+
+    //group voxels based on their surface normal in two groups...a bit hacky atm. will make it nicer eventually
+    std::multimap<uint32_t, uint32_t> supervoxel_adjacency;
+
+    super.getSupervoxelAdjacency(supervoxel_adjacency);
+    std::multimap<uint32_t, uint32_t>::iterator labelItr = supervoxel_adjacency.begin();
+    std::vector<bool> processed(supervoxelClusters.size(), false);
+
+    pcl::PointIndicesPtr partOneIndices(new pcl::PointIndices());
+    pcl::PointIndicesPtr partTwoIndices(new pcl::PointIndices());
+
+    for(; labelItr != supervoxel_adjacency.end();)
+    {
+      uint32_t supervoxel_label = labelItr->first;
+      pcl::Supervoxel<PointT>::Ptr supervoxel = supervoxelClusters.at(supervoxel_label);
+      pcl::PointNormal svNormal;
+      supervoxel->getCentroidPointNormal(svNormal);
+      std::multimap<uint32_t, uint32_t>::iterator adjacent_itr = supervoxel_adjacency.equal_range(supervoxel_label).first;
+      for(; adjacent_itr != supervoxel_adjacency.equal_range(supervoxel_label).second; ++adjacent_itr)
+      {
+        pcl::Supervoxel<PointT>::Ptr neighbor_supervoxel = supervoxelClusters.at(adjacent_itr->second);
+        pcl::PointNormal svNeighbourNormal;
+        neighbor_supervoxel->getCentroidPointNormal(svNeighbourNormal);
+        Eigen::Map<const Eigen::Vector3f> point_a_normal = svNormal.normal, point_b_normal = svNeighbourNormal.normal;
+        //outInfo("Angle between svl:" << supervoxel_label << " and svl:" << adjacent_itr->second << " is: " << fabs(point_a_normal.dot(point_b_normal)));
+        Eigen::Vector3f dist(svNormal.x - svNeighbourNormal.x, svNormal.y - svNeighbourNormal.y, svNormal.z - svNeighbourNormal.z);
+        if(std::abs(point_a_normal.dot(point_b_normal)) > 0.87 && !processed[(int)adjacent_itr->second - 1])
+        {
+          processed[(int)adjacent_itr->second - 1] = true;
+        }
+      }
+
+      labelItr = supervoxel_adjacency.upper_bound(supervoxel_label);
+    }
+
+    pcl::PointCloud<pcl::PointXYZL>::Ptr labeledCloud = super.getLabeledCloud();
+
+    for(unsigned int i =  0; i < labeledCloud->points.size(); ++i)
+    {
+      pcl::PointXYZL &p = labeledCloud->points[i];
+      if(p.label != 0 && processed[(int)p.label - 1])
+      {
+        partOneIndices->indices.push_back(indices->indices.at(i));
+      }
+      else
+      {
+        partTwoIndices->indices.push_back(indices->indices.at(i));
+      }
+    }
+    cwp.partsOfClusters.push_back(partOneIndices);
+    cwp.partsOfClusters.push_back(partTwoIndices);
+  }
+
+
+  void createImageRoi(const pcl::PointIndicesPtr &indices,
+                      cv::Rect &roi, cv::Rect &roiHires,
+                      cv::Mat &mask, cv::Mat &maskHires)
+  {
+
+
+    size_t width = cloudPtr_->width;
+    size_t height = cloudPtr_->height;
+
+    int min_x = width;
+    int max_x = -1;
+    int min_y = height;
+    int max_y = -1;
+
+    cv::Mat mask_full = cv::Mat::zeros(height, width, CV_8U);
+
+    // get min / max extents (rectangular bounding box in image (pixel) coordinates)
+    //#pragma omp parallel for
+    for(size_t i = 0; i < indices->indices.size(); ++i)
+    {
+      const int idx = indices->indices[i];
+      const int x = idx % width;
+      const int y = idx / width;
+
+      min_x = std::min(min_x, x);
+      min_y = std::min(min_y, y);
+      max_x = std::max(max_x, x);
+      max_y = std::max(max_y, y);
+
+      mask_full.at<uint8_t>(y, x) = 255;
+    }
+
+    roi = cv::Rect(min_x, min_y, max_x - min_x + 1, max_y - min_y + 1);
+    roiHires = cv::Rect(roi.x << 1, roi.y << 1, roi.width << 1, roi.height << 1);
+    mask_full(roi).copyTo(mask);
+    cv::resize(mask, maskHires, cv::Size(0, 0), 2.0, 2.0, cv::INTER_NEAREST);
   }
 
 private:
@@ -104,16 +271,14 @@ private:
     rs::Scene scene = cas.getScene();
     std::vector<rs::Cluster> clusters;
 
-    supervoxelClusters.clear();
-
     clustersWithParts.clear();
 
-    cloudPtr.reset(new pcl::PointCloud<PointT>);
-    normalPtr.reset(new pcl::PointCloud<pcl::Normal>);
+    cloudPtr_.reset(new pcl::PointCloud<PointT>);
+    normalPtr_.reset(new pcl::PointCloud<pcl::Normal>);
 
 
-    cas.get(VIEW_CLOUD, *cloudPtr);
-    cas.get(VIEW_NORMALS, *normalPtr);
+    cas.get(VIEW_CLOUD, *cloudPtr_);
+    cas.get(VIEW_NORMALS, *normalPtr_);
     cas.get(VIEW_COLOR_IMAGE_HD, dispRGB);
     scene.identifiables.filter(clusters);
 
@@ -134,7 +299,6 @@ private:
     }
     outWarn("Object Queried for is: " << objToProcess);
 
-
     prologQuery << "class_properties(rs_objects:'" << objToProcess << "',rs_components:'hasVisualProperty',rs_objects:'ObjectPart').";
     json_prolog::Prolog pl;
     json_prolog::PrologQueryProxy bdgs = pl.query(prologQuery.str());
@@ -144,9 +308,10 @@ private:
       return UIMA_ERR_NONE; // Indicate failure
     }
 
+    std::vector<rs::Cluster> mergedClusters,newClusters;
+
     for(int i = 0; i < clusters.size(); ++i)
     {
-
       rs::Cluster &cluster = clusters[i];
       std::vector<rs::Detection> detections;
       cluster.annotations.filter(detections);
@@ -160,194 +325,126 @@ private:
 
       if(boost::iequals(detection.name(), objToProcess))
       {
-        ClusterWithParts clusterSplit;
+        ClusterWithParts clusterAsParts;
 
-        //2D
-
+        //2D segmentation
         if(cluster.rois.has())
         {
           rs::ImageROI imageRoi = cluster.rois.get();
-
-          rs::conversion::from(imageRoi.roi_hires(), clusterSplit.clusterRoi);
-          rs::conversion::from(imageRoi.mask_hires(), clusterSplit.mask);
-          cv::Mat clusterImg(dispRGB, clusterSplit.clusterRoi);
-
-          cv::ocl::oclMat oclImgRaw, oclImgConverted;
-          oclImgRaw.upload(clusterImg);
-          cv::ocl::cvtColor(oclImgRaw, oclImgConverted, CV_BGR2BGRA);
-          cv::Mat segmentedImg;
-          cv::ocl::meanShiftSegmentation(oclImgConverted, segmentedImg, 40, 40, (clusterImg.rows * clusterImg.cols) * 0.015);
-          cv::cvtColor(segmentedImg, clusterSplit.msSegmentsImage, CV_BGRA2BGR);
-
-          std::vector<int> labelCount;
-          for(int y = 0; y < clusterSplit.msSegmentsImage.rows; ++y)
-            for(int x = 0; x < clusterSplit.msSegmentsImage.cols; ++x)
-            {
-
-              if(clusterSplit.mask.at<uint8_t>(y, x) != 0)
-              {
-                bool labelExists = false;
-                cv::Vec3b label = clusterSplit.msSegmentsImage.at<cv::Vec3b>(cv::Point(x, y));
-                for(int l = 0; l < clusterSplit.colorClusterLabels.size(); ++l)
-                {
-                  if(label == clusterSplit.colorClusterLabels[l])
-                  {
-                    //                   outInfo("found new label: " << label);
-                    labelCount[l]++;
-                    labelExists = true;
-                  }
-                }
-                if(!labelExists)
-                {
-                  //                  outInfo("Adding new label: " << label);
-                  labelCount.push_back(0);
-                  clusterSplit.colorClusterLabels.push_back(label);
-                }
-              }
-            }
-
-          //now create the clusters FFS
-          for(int y = 0; y < clusterSplit.msSegmentsImage.rows; ++y)
-            for(int x = 0; x < clusterSplit.msSegmentsImage.cols; ++x)
-            {
-
-              if(clusterSplit.mask.at<uint8_t>(y, x) != 0)
-              {
-                cv::Vec3b label = clusterSplit.msSegmentsImage.at<cv::Vec3b>(cv::Point(x, y));
-                for(int l = 0; l < clusterSplit.colorClusterLabels.size(); ++l)
-                {
-                  if(label == clusterSplit.colorClusterLabels[l])
-                  {
-                    if(labelCount[l] > (clusterImg.rows * clusterImg.cols) * 0.015)
-                    {
-                      clusterSplit.colorClusters[l].push_back(cv::Point(x, y));
-                    }
-                  }
-                }
-              }
-            }
-          outInfo("found " << clusterSplit.colorClusterLabels.size() << " color cluster labels");
-          for(int l = 0; l < labelCount.size(); ++l)
-          {
-            //            outInfo("Label id " << l << " has " << labelCount[l] << " pixels");
-          }
-          outInfo("found " << clusterSplit.colorClusters.size() << " color clusters");
+          rs::conversion::from(imageRoi.roi_hires(), clusterAsParts.clusterRoi);
+          rs::conversion::from(imageRoi.mask_hires(), clusterAsParts.mask);
+          cv::Mat clusterImg(dispRGB, clusterAsParts.clusterRoi);
+          msColorSegmentations(clusterImg,clusterAsParts);
         }
 
-        //3D
+        //3D segmentation
         pcl::PointIndicesPtr clusterIndices(new pcl::PointIndices());
         rs::conversion::from(((rs::ReferenceClusterPoints)cluster.points.get()).indices.get(), *clusterIndices);
-        pcl::PointCloud<PointT>::Ptr clusterCloud(new pcl::PointCloud<PointT>());
+        overSegmentAndGrow(clusterIndices,clusterAsParts);
 
-        pcl::ExtractIndices<PointT> ei;
-        ei.setInputCloud(cloudPtr);
-        ei.setIndices(clusterIndices);
-        ei.filter(*clusterCloud);
+        clustersWithParts.push_back(clusterAsParts);
 
-        //      pcl::PointCloud<pcl::PointXYZRGB>::Ptr clusterNoAlpha (new pcl::PointCloud<pcl::PointXYZRGB>);
-        //      pcl::copyPointCloud(*clusterCloud,*clusterNoAlpha);
-
-        pcl::SupervoxelClustering<PointT> super(voxel_resolution, seed_resolution, false);
-        super.setInputCloud(clusterCloud);
-        super.setColorImportance(color_importance);
-        super.setSpatialImportance(spatial_importance);
-        super.setNormalImportance(normal_importance);
-        super.extract(supervoxelClusters);
-
-        clusterSplit.svNormalCloud = super.makeSupervoxelNormalCloud(supervoxelClusters);
-
-        outInfo("Cluster split into: " << supervoxelClusters.size() << " supervoxels");
-        //group voxels based on their surface normal in two groups...a bit hacky atm. will make it nicer eventually
-
-        std::multimap<uint32_t, uint32_t> supervoxel_adjacency;
-
-        super.getSupervoxelAdjacency(supervoxel_adjacency);
-        std::multimap<uint32_t, uint32_t>::iterator labelItr = supervoxel_adjacency.begin();
-        std::vector<bool> processed(supervoxelClusters.size(), false);
-
-        pcl::PointIndicesPtr partOneIndices(new pcl::PointIndices());
-        pcl::PointIndicesPtr partTwoIndices(new pcl::PointIndices());
-
-        for(; labelItr != supervoxel_adjacency.end();)
-        {
-          uint32_t supervoxel_label = labelItr->first;
-          pcl::Supervoxel<PointT>::Ptr supervoxel = supervoxelClusters.at(supervoxel_label);
-          pcl::PointNormal svNormal;
-          supervoxel->getCentroidPointNormal(svNormal);
-          std::multimap<uint32_t, uint32_t>::iterator adjacent_itr = supervoxel_adjacency.equal_range(supervoxel_label).first;
-          for(; adjacent_itr != supervoxel_adjacency.equal_range(supervoxel_label).second; ++adjacent_itr)
-          {
-            pcl::Supervoxel<PointT>::Ptr neighbor_supervoxel = supervoxelClusters.at(adjacent_itr->second);
-            pcl::PointNormal svNeighbourNormal;
-            neighbor_supervoxel->getCentroidPointNormal(svNeighbourNormal);
-            Eigen::Map<const Eigen::Vector3f> point_a_normal = svNormal.normal, point_b_normal = svNeighbourNormal.normal;
-            //          outInfo("Angle between svl:" << supervoxel_label << " and svl:" << adjacent_itr->second << " is: " << fabs(point_a_normal.dot(point_b_normal)));
-            Eigen::Vector3f dist(svNormal.x - svNeighbourNormal.x, svNormal.y - svNeighbourNormal.y, svNormal.z - svNeighbourNormal.z);
-            if(fabs(point_a_normal.dot(point_b_normal)) > 0.87 && !processed[(int)adjacent_itr->second - 1])//this seems to be a better condition, need to investigate a bit more
-              //          if( (180*acos(dist.dot(point_a_normal)))/M_PI > 89 && (180*acos(dist.dot(point_a_normal)))/M_PI <92 && !processed[(int)adjacent_itr->second - 1])
-            {
-              processed[(int)adjacent_itr->second - 1] = true;
-            }
-          }
-
-          labelItr = supervoxel_adjacency.upper_bound(supervoxel_label);
-        }
-
-        pcl::PointCloud<pcl::PointXYZL>::Ptr labeledCloud = super.getLabeledCloud();
-
-        for(unsigned int i =  0; i < labeledCloud->points.size(); ++i)
-        {
-          pcl::PointXYZL &p = labeledCloud->points[i];
-          if(p.label != 0 && processed[(int)p.label - 1])
-          {
-            partOneIndices->indices.push_back(clusterIndices->indices.at(i));
-          }
-          else
-          {
-            partTwoIndices->indices.push_back(clusterIndices->indices.at(i));
-          }
-        }
-        clusterSplit.partsOfClusters.push_back(partOneIndices);
-        clusterSplit.partsOfClusters.push_back(partTwoIndices);
-        clustersWithParts.push_back(clusterSplit);
-
-
-        //ok, now do something smart FFS
+        //now merge
         std::vector<pcl::PointIndicesPtr> final_clusters;
-        std::vector<bool> assignedIndices(cloudPtr->points.size(), false);
-        outWarn(detection.name() << " has " << clusterSplit.colorClusters.size() << " colored parts and " << clusterSplit.partsOfClusters.size() << " shape based parts");
+        std::vector<bool> assignedIndices(cloudPtr_->points.size(), false);
+        outWarn(detection.name() << " has " << clusterAsParts.colorClusters.size() << " colored parts and " << clusterAsParts.partsOfClusters.size() << " shape based parts");
 
         //for now do it like this: if more color clusters take those if not take the others
-        if(clusterSplit.colorClusters.size() >= clusterSplit.partsOfClusters.size())
+
+        if(clusterAsParts.colorClusters.size() >= clusterAsParts.partsOfClusters.size())
         {
-          cv::Rect roi = clusterSplit.clusterRoi;
-          for(auto & c : clusterSplit.colorClusters)
+          cv::Rect roi = clusterAsParts.clusterRoi;
+          for(auto & c : clusterAsParts.colorClusters)
           {
             rs::ClusterPart part = rs::create<rs::ClusterPart>(tcas);
 
-            pcl::PointIndices coloredIndice;
+            pcl::PointIndices newClusterIndices;
+            cv::Rect roiLowres,roiHires;
+
+            roiHires = cv::boundingRect(c.second);
+            roiLowres.height = roiHires.height/2;
+            roiLowres.width = roiHires.width/2;
+            roiLowres.x = roiHires.x/2;
+            roiLowres.y = roiHires.y/2;
+
+            cv::Mat maskLowres = cv::Mat::zeros(roiLowres.height, roiLowres.width, CV_8U),
+                maskHires = cv::Mat::zeros(roiHires.height, roiHires.width, CV_8U);
+
             for(unsigned int j = 0; j < c.second.size(); ++j)
             {
               cv::Point p = c.second[j];
-              coloredIndice.indices.push_back((p.y / 2 + roi.y / 2) * 640 + (p.x / 2 + roi.x / 2));
+              maskHires.at<uint8_t>(p.y,p.x) =255;
+              maskLowres.at<uint8_t>(p.y/2,p.x/2) =255;
+              newClusterIndices.indices.push_back((p.y / 2 + roi.y / 2) * 640 + (p.x / 2 + roi.x / 2));
             }
-            if(!coloredIndice.indices.empty())
+            if(!newClusterIndices.indices.empty())
             {
-              part.indices.set(rs::conversion::to(tcas, coloredIndice));
+              part.indices.set(rs::conversion::to(tcas, newClusterIndices));
               cluster.annotations.append(part);
             }
+
+            rs::ReferenceClusterPoints rcp = rs::create<rs::ReferenceClusterPoints>(tcas);
+            rs::PointIndices uimaIndices = rs::conversion::to(tcas, newClusterIndices);
+            rcp.indices.set(uimaIndices);
+
+
+            rs::ImageROI imageRoi = rs::create<rs::ImageROI>(tcas);
+            imageRoi.mask(rs::conversion::to(tcas, maskLowres));
+            imageRoi.mask_hires(rs::conversion::to(tcas, maskHires));
+            imageRoi.roi(rs::conversion::to(tcas, roiLowres));
+            imageRoi.roi_hires(rs::conversion::to(tcas, roiHires));
+
+            rs::TFLocation location = rs::create<rs::TFLocation>(tcas);
+            location.reference_desc.set("on");
+            location.frame_id.set(objToProcess);
+
+            rs::Cluster newCluster = rs::create<rs::Cluster>(tcas);
+            newCluster.annotations.append(location);
+            newCluster.rois.set(imageRoi);
+            newCluster.points.set(rcp);
+            scene.identifiables.append(newCluster);
           }
 
         }
         else
         {
-          for(int pclClIdx = 0; pclClIdx < clusterSplit.partsOfClusters.size(); pclClIdx++)
+          for(int pclClIdx = 0; pclClIdx < clusterAsParts.partsOfClusters.size(); pclClIdx++)
           {
             rs::ClusterPart part = rs::create<rs::ClusterPart>(tcas);
-            part.indices.set(rs::conversion::to(tcas, *clusterSplit.partsOfClusters[pclClIdx]));
+            part.indices.set(rs::conversion::to(tcas, *clusterAsParts.partsOfClusters[pclClIdx]));
+
+
+            rs::Cluster newCluster =rs::create<rs::Cluster>(tcas);
+            rs::ReferenceClusterPoints rcp = rs::create<rs::ReferenceClusterPoints>(tcas);
+            rs::PointIndices uimaIndices = rs::conversion::to(tcas, clusterAsParts.partsOfClusters[pclClIdx]);
+            rcp.indices.set(uimaIndices);
+
+            cv::Rect roi,roiHires;
+            cv::Mat mask,maskHires;
+            createImageRoi(clusterAsParts.partsOfClusters[pclClIdx],roi,roiHires,mask,maskHires);
+
+            rs::ImageROI imageRoi = rs::create<rs::ImageROI>(tcas);
+            imageRoi.mask(rs::conversion::to(tcas, mask));
+            imageRoi.mask_hires(rs::conversion::to(tcas, maskHires));
+            imageRoi.roi(rs::conversion::to(tcas, roi));
+            imageRoi.roi_hires(rs::conversion::to(tcas, roiHires));
+
+            rs::TFLocation location = rs::create<rs::TFLocation>(tcas);
+            location.reference_desc.set("on");
+            location.frame_id.set(objToProcess);
+
+            newCluster.annotations.append(location);
+            newCluster.rois.set(imageRoi);
+            newCluster.points.set(rcp);
+            scene.identifiables.append(newCluster);
+
             cluster.annotations.append(part);
           }
         }
+      }
+      else
+      {
+        mergedClusters.push_back(cluster);
       }
     }
 
@@ -370,12 +467,6 @@ private:
     dot_p = dot_p > 1 ? 1 : dot_p;
     dot_p = dot_p < -1 ? -1 : dot_p;
 
-    //    if((acos(dot_p) < 70 * M_PI / 180))
-    //    if(acos(point_a_normal.dot(point_b_normal)) < 70 * M_PI / 180)
-    //    {
-    //      return(true);
-    //    }
-    //    return (false);
     if(fabs(point_a.curvature - point_b.curvature) < 0.0009)
     {
       return (true);
@@ -390,22 +481,6 @@ private:
   void drawImageWithLock(cv::Mat &disp)
   {
     disp = dispRGB.clone();
-    //keep this for addign options to viewer
-    //    for(unsigned int i = 0; i < clustersWithParts.size(); ++i)
-    //    {
-    //      cv::Mat &imgSeg = clustersWithParts[i].msSegmentsImage;
-    //      cv::Mat &mask = clustersWithParts[i].mask;
-    //      cv::Rect roi = clustersWithParts[i].clusterRoi;
-    //      for(int y = 0; y < imgSeg.rows; ++y)
-    //        for(int x = 0; x < imgSeg.cols; ++x)
-    //        {
-    //          if(mask.at<uint8_t>(y, x) != 0)
-    //          {
-    //            cv::Vec3b color = imgSeg.at<cv::Vec3b>(cv::Point(x, y));
-    //            disp.at<cv::Vec3b>(cv::Point(x + roi.x, y + roi.y)) = color;
-    //          }
-    //        }
-    //    }
     for(unsigned int i = 0; i < clustersWithParts.size(); ++i)
     {
       cv::Rect roi = clustersWithParts[i].clusterRoi;
@@ -421,23 +496,6 @@ private:
         }
         idx++;
       }
-      //      for(unsigned int j = 0; j < clustersWithParts[i].partsOfClusters.size(); ++j)
-      //      {
-      //        pcl::PointIndicesPtr &indices = clustersWithParts[i].partsOfClusters[j];
-      //        for(unsigned int k = 0; k < indices->indices.size(); ++k)
-      //        {
-      //            int index = indices->indices[k];
-      ////            auto result =  std::find(coloredIndice.begin(),coloredIndice.end(),index);
-      ////            if (result == std::end(coloredIndice))
-      ////            {
-      //                disp.at<cv::Vec3b>(cv::Point((index%640)*2+1,(index/640)*2)) = colors[idx];
-      //                disp.at<cv::Vec3b>(cv::Point((index%640)*2,(index/640)*2+1)) = colors[idx];
-      //                disp.at<cv::Vec3b>(cv::Point((index%640)*2,(index/640)*2-1)) = colors[idx];
-      //                disp.at<cv::Vec3b>(cv::Point((index%640)*2-1,(index/640)*2)) = colors[idx];
-      ////            }
-      //        }
-      //        idx++;
-      //      }
     }
   }
 
@@ -452,19 +510,19 @@ private:
         for(unsigned int k = 0; k < indices->indices.size(); ++k)
         {
           int index = indices->indices[k];
-          cloudPtr->points[index].rgba = rs::common::colors[j % rs::common::numberOfColors];
+          cloudPtr_->points[index].rgba = rs::common::colors[j % rs::common::numberOfColors];
         }
       }
     }
 
     if(firstRun)
     {
-      visualizer.addPointCloud(cloudPtr, std::string("voxel_centroids"));
+      visualizer.addPointCloud(cloudPtr_, std::string("voxel_centroids"));
       visualizer.setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, pointSize, std::string("voxel_centroids"));
     }
     else
     {
-      visualizer.updatePointCloud(cloudPtr, std::string("voxel_centroids"));
+      visualizer.updatePointCloud(cloudPtr_, std::string("voxel_centroids"));
       visualizer.getPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, pointSize, std::string("voxel_centroids"));
     }
   }

@@ -24,7 +24,7 @@
   <depend>designator_integration_cpp</depend>
   <depend>image_transport</depend>
   <depend>semrec_client</depend>
-
+  <depend>rs_simulation</depend>
   
 
 </package>

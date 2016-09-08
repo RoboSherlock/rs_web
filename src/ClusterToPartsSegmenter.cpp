@@ -27,6 +27,7 @@
 
 #include <algorithm>
 
+#include <rs/utils/RSAnalysisEngine.h>
 
 using namespace uima;
 
@@ -39,6 +40,8 @@ private:
   pcl::PointCloud<PointT>::Ptr dispCloudPtr;
   pcl::PointCloud<pcl::Normal>::Ptr normalPtr_;
 
+  RSAnalysisEngine engine;
+
   struct ClusterWithParts
   {
     std::vector<pcl::PointIndicesPtr> partsOfClusters;
@@ -48,7 +51,6 @@ private:
     cv::Rect clusterRoi;
     std::vector<cv::Vec3b> colorClusterLabels;
     std::map<int, std::vector<cv::Point>> colorClusters; //map label to points in the image
-
   };
 
 
@@ -83,6 +85,12 @@ public:
     colorImportance_ = 0.4f;
     spatialImportance_ = 0.4f;
     normalImportance_ = 1.0f;
+
+    std::string lowlvlAEPath;
+    rs::common::getAEPaths("lowlvl",lowlvlAEPath);
+    outWarn("=============A DREAM IN A DREAM==============");
+    engine.init(lowlvlAEPath);
+    outWarn("=============END OF A DREAM IN A DREAM==============");
     return UIMA_ERR_NONE;
   }
 
@@ -270,7 +278,7 @@ private:
     rs::SceneCas cas(tcas);
     rs::Scene scene = cas.getScene();
     std::vector<rs::Cluster> clusters;
-
+    std::vector<rs::Plane> planes;
     clustersWithParts.clear();
 
     cloudPtr_.reset(new pcl::PointCloud<PointT>);
@@ -281,6 +289,7 @@ private:
     cas.get(VIEW_NORMALS, *normalPtr_);
     cas.get(VIEW_COLOR_IMAGE_HD, dispRGB);
     scene.identifiables.filter(clusters);
+    scene.annotations.filter(planes);
 
     rs::Query qs = rs::create<rs::Query>(tcas);
     std::string objToProcess;
@@ -308,7 +317,7 @@ private:
       return UIMA_ERR_NONE; // Indicate failure
     }
 
-    std::vector<rs::Cluster> mergedClusters,newClusters;
+    std::vector<rs::Identifiable> mergedClusters,newClusters;
 
     for(int i = 0; i < clusters.size(); ++i)
     {
@@ -402,7 +411,8 @@ private:
             newCluster.annotations.append(location);
             newCluster.rois.set(imageRoi);
             newCluster.points.set(rcp);
-            scene.identifiables.append(newCluster);
+//            scene.identifiables.append(newCluster);
+            newClusters.push_back(newCluster);
           }
 
         }
@@ -416,7 +426,7 @@ private:
 
             rs::Cluster newCluster =rs::create<rs::Cluster>(tcas);
             rs::ReferenceClusterPoints rcp = rs::create<rs::ReferenceClusterPoints>(tcas);
-            rs::PointIndices uimaIndices = rs::conversion::to(tcas, clusterAsParts.partsOfClusters[pclClIdx]);
+            rs::PointIndices uimaIndices = rs::conversion::to(tcas, *clusterAsParts.partsOfClusters[pclClIdx]);
             rcp.indices.set(uimaIndices);
 
             cv::Rect roi,roiHires;
@@ -436,8 +446,8 @@ private:
             newCluster.annotations.append(location);
             newCluster.rois.set(imageRoi);
             newCluster.points.set(rcp);
-            scene.identifiables.append(newCluster);
-
+//            scene.identifiables.append(newCluster);
+            newClusters.push_back(newCluster);
             cluster.annotations.append(part);
           }
         }
@@ -447,6 +457,15 @@ private:
         mergedClusters.push_back(cluster);
       }
     }
+
+    //now run a lowLvlPipeline on the newly found objects;
+    rs::SceneCas newCas(*engine.cas);
+    rs::Scene newScene = newCas.getScene();
+
+    rs::Plane newPlane= rs::create<rs::Plane>(*engine.cas);
+    newScene.annotations.append(newPlane);
+    newScene.identifiables.set(newClusters);
+
 
     return UIMA_ERR_NONE;
   }

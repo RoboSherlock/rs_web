@@ -29,6 +29,7 @@
         </outputs>
         <inputSofas>
           <sofaName>rs.annotation.Detection</sofaName>
+          <sofaName>rs.pcl.NormalsCloud</sofaName>
         </inputSofas>
         <languagesSupported>
           <language>x-unspecified</language>

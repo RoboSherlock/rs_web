@@ -465,7 +465,15 @@ private:
     rs::Plane newPlane= rs::create<rs::Plane>(*engine.cas);
     newScene.annotations.append(newPlane);
     newScene.identifiables.set(newClusters);
-
+    engine.process();
+    engine.resetCas();
+    newScene = newCas.getScene();
+    std::vector<rs::Cluster>  newClustersAnnotated;
+    newScene.identifiables.filter(newClustersAnnotated);
+    for(rs::Cluster c: newClustersAnnotated)
+    {
+      outInfo("Cluster has: "<<c.annotations.size()<<"annotations");
+    }
 
     return UIMA_ERR_NONE;
   }

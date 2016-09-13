@@ -250,6 +250,8 @@ annotators_for_predicate(cylindrical_shape,A) :-
   annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsAnnotationCylindricalshape' ).
 annotators_for_predicate(obj-part,A) :-
   annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsAnnotationClusterpart' ).
+annotators_for_predicate(inspect,A) :-
+  annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsAnnotationClusterpart' ).
 annotators_for_predicate(contains,A) :-
   annotator_outputs(A,'http://knowrob.org/kb/rs_components.owl#RsdemosAcatSubstance' ).
 annotators_for_predicate(volume,A) :-

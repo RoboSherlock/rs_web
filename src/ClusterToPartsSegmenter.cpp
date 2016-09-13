@@ -332,6 +332,7 @@ private:
     for(int i = 0; i < clusters.size(); ++i)
     {
       rs::Cluster &cluster = clusters[i];
+      mergedClusters.push_back(cluster);
       std::vector<rs::Detection> detections;
       cluster.annotations.filter(detections);
       if(detections.empty())
@@ -375,7 +376,7 @@ private:
 
           for(; mapIt != clusterAsParts.colorClusters.end(); ++mapIt)
           {
-            rs::Cluster newCluster = rs::create<rs::Cluster>(*engine.cas);
+            rs::Cluster newCluster = rs::create<rs::Cluster>(*engine.getCas());
             pcl::PointIndices newClusterIndices;
             cv::Rect roiLowres, roiHires;
             outInfo("");
@@ -401,16 +402,16 @@ private:
             newClusterIndices.header = cloudPtr_->header;
             outInfo("New cluster indices size: " << newClusterIndices.indices.size());
 
-            rs::ReferenceClusterPoints rcp = rs::create<rs::ReferenceClusterPoints>(*engine.cas);
-            rcp.indices.set(rs::conversion::to(*engine.cas, newClusterIndices));
+            rs::ReferenceClusterPoints rcp = rs::create<rs::ReferenceClusterPoints>(*engine.getCas());
+            rcp.indices.set(rs::conversion::to(*engine.getCas(), newClusterIndices));
 
-            rs::ImageROI imageRoi = rs::create<rs::ImageROI>(*engine.cas);
-            imageRoi.mask(rs::conversion::to(*engine.cas, maskLowres));
-            imageRoi.mask_hires(rs::conversion::to(*engine.cas, maskHires));
-            imageRoi.roi(rs::conversion::to(*engine.cas, roiLowres));
-            imageRoi.roi_hires(rs::conversion::to(*engine.cas, roiHires));
+            rs::ImageROI imageRoi = rs::create<rs::ImageROI>(*engine.getCas());
+            imageRoi.mask(rs::conversion::to(*engine.getCas(), maskLowres));
+            imageRoi.mask_hires(rs::conversion::to(*engine.getCas(), maskHires));
+            imageRoi.roi(rs::conversion::to(*engine.getCas(), roiLowres));
+            imageRoi.roi_hires(rs::conversion::to(*engine.getCas(), roiHires));
 
-            rs::TFLocation location = rs::create<rs::TFLocation>(*engine.cas);
+            rs::TFLocation location = rs::create<rs::TFLocation>(*engine.getCas());
             location.reference_desc.set("on");
             location.frame_id.set(objToProcess);
 
@@ -436,22 +437,22 @@ private:
           {
             if(pclClIdx == idxBiggest)
               continue;
-            rs::Cluster newCluster = rs::create<rs::Cluster>(*engine.cas);
-            rs::ReferenceClusterPoints rcp = rs::create<rs::ReferenceClusterPoints>(*engine.cas);
-            rs::PointIndices uimaIndices = rs::conversion::to(*engine.cas, *clusterAsParts.partsOfClusters[pclClIdx]);
+            rs::Cluster newCluster = rs::create<rs::Cluster>(*engine.getCas());
+            rs::ReferenceClusterPoints rcp = rs::create<rs::ReferenceClusterPoints>(*engine.getCas());
+            rs::PointIndices uimaIndices = rs::conversion::to(*engine.getCas(), *clusterAsParts.partsOfClusters[pclClIdx]);
             rcp.indices.set(uimaIndices);
 
             cv::Rect roi, roiHires;
             cv::Mat mask, maskHires;
             createImageRoi(clusterAsParts.partsOfClusters[pclClIdx], roi, roiHires, mask, maskHires);
 
-            rs::ImageROI imageRoi = rs::create<rs::ImageROI>(*engine.cas);
-            imageRoi.mask(rs::conversion::to(*engine.cas, mask));
-            imageRoi.mask_hires(rs::conversion::to(*engine.cas, maskHires));
-            imageRoi.roi(rs::conversion::to(*engine.cas, roi));
-            imageRoi.roi_hires(rs::conversion::to(*engine.cas, roiHires));
+            rs::ImageROI imageRoi = rs::create<rs::ImageROI>(*engine.getCas());
+            imageRoi.mask(rs::conversion::to(*engine.getCas(), mask));
+            imageRoi.mask_hires(rs::conversion::to(*engine.getCas(), maskHires));
+            imageRoi.roi(rs::conversion::to(*engine.getCas(), roi));
+            imageRoi.roi_hires(rs::conversion::to(*engine.getCas(), roiHires));
 
-            rs::TFLocation location = rs::create<rs::TFLocation>(*engine.cas);
+            rs::TFLocation location = rs::create<rs::TFLocation>(*engine.getCas());
             location.reference_desc.set("on");
             location.frame_id.set(objToProcess);
 
@@ -463,15 +464,11 @@ private:
           }
         }
       }
-      else
-      {
-        mergedClusters.push_back(cluster);
-      }
     }
 
     outInfo("Setting new Cas and scene and etc");
     //now run a lowLvlPipeline on the newly found objects;
-    rs::SceneCas newCas(*engine.cas);
+    rs::SceneCas newCas(*engine.getCas());
     newCas.set(VIEW_CLOUD, *cloudPtr_);
     newCas.set(VIEW_COLOR_IMAGE_HD, rgbHD);
     newCas.set(VIEW_NORMALS, *normalPtr_);
@@ -484,9 +481,9 @@ private:
     tf::StampedTransform head_to_map;
     rs::conversion::from(scene.viewPoint.get(), head_to_map);
 
-    rs::StampedTransform vp(rs::conversion::to(*engine.cas, head_to_map));
+    rs::StampedTransform vp(rs::conversion::to(*engine.getCas(), head_to_map));
     newScene.viewPoint.set(vp);
-    rs::Plane newPlane = rs::create<rs::Plane>(*engine.cas);
+    rs::Plane newPlane = rs::create<rs::Plane>(*engine.getCas());
     newPlane.id.set(planes[0].id());
     newPlane.model.set(planes[0].model());
 
@@ -500,11 +497,12 @@ private:
       outInfo("Cluster has: " << c.annotations.size() << "annotations");
       mongo::BSONObj bson = rs::conversion::fromFeatureStructure(c, mongo::OID());
       mergedClusters.push_back(rs::conversion::toFeatureStructure(tcas, bson));
+      std::vector<rs::TFLocation> locations;
+      c.annotations.filter(locations);
+      if(!locations.empty()) outInfo(locations[0].reference_desc()<<" "<<locations[0].frame_id());
     }
-
     scene.identifiables.set(mergedClusters);
     engine.resetCas();
-
     return UIMA_ERR_NONE;
   }
 
@@ -538,18 +536,13 @@ private:
   void drawImageWithLock(cv::Mat &disp)
   {
     disp = dispRGB.clone();
-    outInfo("");
     for(unsigned int i = 0; i < clustersWithParts.size(); ++i)
     {
       cv::Rect roi = clustersWithParts[i].clusterRoi;
-      outInfo("");
       int idx = 0;
-      outInfo("");
       std::vector<int> coloredIndice;
-      outInfo("");
       for(auto & c : clustersWithParts[i].colorClusters)
       {
-        outInfo("");
         for(unsigned int j = 0; j < c.second.size(); ++j)
         {
           cv::Point p = c.second[j];

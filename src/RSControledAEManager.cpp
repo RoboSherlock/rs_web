@@ -177,7 +177,7 @@ bool RSProcessManager::designatorCallbackLogic(designator_integration_msgs::Desi
         query->location = kvp->stringValue();
         outInfo("received location:" << query->location);
       }
-      if(key == "OBJ-PART")
+      if(key == "OBJ-PART" || key =="INSPECT")
       {
         KeyValuePair *kvp =  rs::DesignatorWrapper::req_designator->childForKey("OBJ-PART");
         query->objToInspect = kvp->stringValue();

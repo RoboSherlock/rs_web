@@ -91,6 +91,7 @@ public:
   {
     MEASURE_TIME;
     outInfo("process start");
+    outInfo("process start");
     rs::SceneCas cas(tcas);
     pcl::PointCloud<PointT>::Ptr cloud_ptr(new pcl::PointCloud<PointT>);
 
@@ -113,6 +114,11 @@ public:
     {
       jsonQuery = qs.asJson();
       outWarn("json query: " << qs.asJson());
+    }
+    else
+    {
+      outWarn("No Query, skipping exec");
+      return UIMA_ERR_NONE;
     }
 
     rapidjson::Document doc;

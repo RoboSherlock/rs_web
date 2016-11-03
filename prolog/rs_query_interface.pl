@@ -1,16 +1,17 @@
 :- module(rs_query_interface,
   [
-  do_some_magic/1,
-  test_new_interface/1,
+  %test_new_interface/1,
   rs_interface/1,
   execute_pipeline/1,
   scene_clusters_count/3,
+  detect/1,
   detect/2,
   set_context/1,
   query_result/5,
-  test/1,
-  test_list/1,
-  get_list_of_predicates/2
+  %test/1,
+  %test_list/1,
+  get_list_of_predicates/2, 
+  check_preamble/1
 ]).
 
 %%%%%%%%%%%%%%%% BEGIN: Java Client calls %%%%%%%%%%%%%%%%%%%%
@@ -19,6 +20,7 @@ client_interface :-
     client_interface(_).
 
 :- assert(rs_java_interface(fail)).
+
 client_interface(Client) :-
     rs_java_interface(fail),
     jpl_new('org.knowrob.robosherlock.client.RSClient',[],Client),
@@ -82,23 +84,37 @@ process_once(Cl).
 %%%%%%%%%%%%%%%% END: C++ Interface %%%%%%%%%%%%%%%%%%%%    
 
 %%%%%%%%%%%%%%%% BEGIN: TESTS %%%%%%%%%%%%%%%%%%%% 
-do_some_magic([Head|Tail]):-
-    length(Tail,Tl),
-    print(Head),tab(2),print(Tail),tab(2),print(Tl),nl.
-%    test_new_interface(Tail).
+add_new_designator(A,B):-
+    print(A),write(' '),print(B).
+     
+add_kvp([Head|Tail]):-
+    length(Head, Hl),
+    write(' length of Head is: '),print(Hl),nl,
+    (Hl=2->print(Head),nl,add_kvp(Tail);
+    designator_type(HEAD),
+    write('found  designator in a designator '),
+    print(Head)).
 
-test_new_interface(List):-	
-    forall(member(M,List),
-                is_list(M)->(
-                print(M),nl,
-                do_some_magic(M)
-            )
-          ).
+check_preamble([ A,B | Tail]):-
+    designator_type([A,B],T),
+    add_new_designator(A,B), %shoudl return a designator Object..prefer C
+    add_kvp(Tail).%add Kvps-to this designator
+
+designator_type([ A,B | T ] ):-
+    designator_type([A,B],N).
+
+designator_type([an,object],'Object').
+designator_type([a,location],'Location').
+
+
+detect(List):-
+    check_preamble(List).	
+    %            is_list(M)->(
     %    is_list(Head)->(
     %        test_new_interface(Head),
     %        length(Tail,Lt),
     %        Lt=1 -> member(Mt,Tail);
-    %        test_new_interface(Tail)
+    %        test_new_interface(
     %    );
     %    writef(Head,['-']),print(Tail,[]),
     %    put(10),
@@ -106,7 +122,6 @@ test_new_interface(List):-
     %    LT>1->test_new_interface(Tail);
     %    member(MT,Tail),
     %writef(MT,['\n']),put(10).
-
 
     %member(M,List),
     %is_list(M)->
@@ -116,11 +131,11 @@ test_new_interface(List):-
     %test_new_interface(M);
     %print(M).
 
-test(A):-
-    test_new_interface([an, object,[shape,spehere],[size,medium],[logo,'Dr.Oetker'],[color,blue], [location,[a,location,[on,[an, object,[type, table]]]]],[location,[a,location,[next-to,[an,object,[[shape,box],[type,drink]]]]]]]).
+%test(A):-
+%    test_new_interface([an, object,[shape,spehere],[size,medium],[logo,'Dr.Oetker'],[color,blue], [location,[a,location,[on,[an, object,[type, table]]]]],[location,[a,location,[next-to,[an,object,[[shape,box],[type,drink]]]]]]]).
 
-test_list(A):-
-    flatten([an, object,[shape,spehere],[size,medium],[logo,'Dr.Oetker'],[color,blue], [location,[a,location,[on,[an, object,[type, table]]]]],[location,[a,location,[next-to,[an,object,[[shape,box],[type,drink]]]]]]],A).
+%test_list(A):-
+%    flatten([an, object,[shape,spehere],[size,medium],[logo,'Dr.Oetker'],[color,blue], [location,[a,location,[on,[an, object,[type, table]]]]],[location,[a,location,[next-to,[an,object,[[shape,box],[type,drink]]]]]]],A).
 
 
 get_list_of_predicates([],[]).

@@ -98,9 +98,6 @@ keyword(cad-model).
 
 
 % for simplifying query writing spatial relation can also be keyword
-keyword(A):-
-  spatial_relation(A).
-
 
 spatial_relation(on).
 spatial_relation(in).
@@ -109,6 +106,9 @@ spatial_relation(left-of).
 spatial_relation(right-of).
 spatial_relation(behind).
 spatial_relation(in-front-of).
+
+%keyword(A):-
+%  spatial_relation(A).
 
 % check if key can exist and add it to designator
 add_kvp(Key,Value,D):-
@@ -120,15 +120,21 @@ add_kvp(Key,Value,D):-
     designator(Key),
     parse_nested_description(Value,D).
 
-
 % yet another crap needed to manage on as a spacial realtion
 add_kvp(Key,Value,D):-
     spatial_relation(Key),
+    is_list(Value),
     cpp_init_kvp(D,Key,Kvp),
     parse_nested_description(Value,Kvp).
 
-
+% if query term following spatial relation is not a description (list in our case)
+% add the key value pair
+add_kvp(Key,Value,D):-
+    spatial_relation(Key),
+    \+is_list(Value),
+    cpp_add_kvp(Key,Value,D).
 %return true once List is empty
+
 add_kvp([],D).
 
 %main rule for adding kvps

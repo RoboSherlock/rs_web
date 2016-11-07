@@ -1,6 +1,5 @@
 :- module(rs_query_interface,
   [
-  %test_new_interface/1,
   rs_interface/1,
   execute_pipeline/1,
   scene_clusters_count/3,
@@ -8,10 +7,8 @@
   detect/2,
   set_context/1,
   query_result/5,
-  %test/1,
-  %test_list/1,
   get_list_of_predicates/2, 
-  parse_description/1
+  parse_description/2
 ]).
 
 %%%%%%%%%%%%%%%% BEGIN: Java Client calls %%%%%%%%%%%%%%%%%%%%
@@ -64,26 +61,22 @@ set_context(CName):-
 
 %%%%%%%%%%%%%%%% BEGIN: C++ Interface %%%%%%%%%%%%%%%%%%%%  
 rs_interface :-
-    rs_interface(_).
+   rs_interface(_).
 
 :- assert(rs_interf(fail)).
 
 rs_interface(Client) :-
-    rs_interf(fail),
-    init_rs(kitchen,Client),
-    retract(rs_interf(fail)),
-    assert(rs_interf(Client)),!.
+   rs_interf(fail),
+   init_rs(kitchen,Client),
+   retract(rs_interf(fail)),
+   assert(rs_interf(Client)),!.
     
 rs_interface(Cl):-
    rs_interf(Cl).
 
 execute_pipeline(P):-
-    rs_interface(Cl),
-process_once(Cl).
-
-%%%%%%%%%%%%%%%% END: C++ Interface %%%%%%%%%%%%%%%%%%%%    
-
-%%%%%%%%%%%%%%%% BEGIN: TESTS %%%%%%%%%%%%%%%%%%%% 
+   rs_interface(Cl),
+   process_once(Cl).
 
 designator(location).
 designator(object).
@@ -92,60 +85,45 @@ keyword(shape).
 keyword(size).
 keyword(type).
 keyword(color).
+keyword(on).
+keyword(next-to).
 
-add_new_designator(T):-
-    print(T),write(' '),
-    add_designator(T,D).
-     
-add_kvp([Head|Tail]):-
+
+add_kvp(Key,Value,D):-
+    keyword(Key),
+    cpp_add_kvp(Key,Value,D).
+
+add_kvp([],D).
+add_kvp([Head|Tail],D):-
     length(Head, Hl),
-    write(' length of Head is: '),print(Hl),nl,
-    (Hl=2->nth1(1,Head,A),nth1(2,Head,B),print(A),print(B),nl,add_kvp(Tail);
-    designator_type(HEAD),
-    write('found  designator in a designator '),
-    print(Head)).
+    (Hl=2->nth1(1,Head,Key),nth1(2,Head,Value),
+	   add_kvp(Key,Value,D);
+    designator_type(Head),parse_nested_description(Head,D)
+    ),
+    add_kvp(Tail,D).
 
-parse_description([ A,B | Tail]):-
+parse_nested_description([A,B|Tail],D):-
     designator_type([A,B],T),
-    add_new_designator(T), %shoudl return a designator Object..prefer C
-    add_kvp(Tail).%add Kvps-to this designator
+    cpp_init_kvp(D,T,KVP),
+    add_kvp(Tail,KVP).
+
+parse_description([ A,B | Tail],D):-
+    designator_type([A,B],T),
+    cpp_add_designator(T,D), %shoudl return a designator Object..prefer C
+    add_kvp(Tail,D).%add Kvps-to this designator
 
 designator_type([ A,B | T ] ):-
     designator_type([A,B],N).
 
-designator_type([an,object],'Object').
-designator_type([a,location],'Location').
+designator_type([an,object],'object').
+designator_type([a,location],'location').
 
 detect(List):-
-    parse_description(List).	
-    %            is_list(M)->(
-    %    is_list(Head)->(
-    %        test_new_interface(Head),
-    %        length(Tail,Lt),
-    %        Lt=1 -> member(Mt,Tail);
-    %        test_new_interface(
-    %    );
-    %    writef(Head,['-']),print(Tail,[]),
-    %    put(10),
-    %    length(Tail,LT),print(LT),put(10),
-    %    LT>1->test_new_interface(Tail);
-    %    member(MT,Tail),
-    %writef(MT,['\n']),put(10).
+    parse_description(List,D),
+    cpp_print_desig(D).
 
-    %member(M,List),
-    %is_list(M)->
-    %test_new_interface(M,A);
-    %print(M).
-    %is_list(M),
-    %test_new_interface(M);
-    %print(M).
 
-%test(A):-
-%    test_new_interface([an, object,[shape,spehere],[size,medium],[logo,'Dr.Oetker'],[color,blue], [location,[a,location,[on,[an, object,[type, table]]]]],[location,[a,location,[next-to,[an,object,[[shape,box],[type,drink]]]]]]]).
-
-%test_list(A):-
-%    flatten([an, object,[shape,spehere],[size,medium],[logo,'Dr.Oetker'],[color,blue], [location,[a,location,[on,[an, object,[type, table]]]]],[location,[a,location,[next-to,[an,object,[[shape,box],[type,drink]]]]]]],A).
-
+%%%%%%%%%%%%%%%% END: C++ Interface %%%%%%%%%%%%%%%%%%%%    
 
 get_list_of_predicates([],[]).
 get_list_of_predicates([Pred|T],[Pred|Result]):-
@@ -155,7 +133,6 @@ get_list_of_predicates([ThrowAway|Tail],Result):-
 get_list_of_predicates(Tail,Result).
 
 
-%%%%%%%%%%%%%%%% END: TESTS %%%%%%%%%%%%%%%%%%%% 
 
 %%%%%%%%%%%%%%%% BEGIN: Java Result Queries%%%%%%%%%%%%%%%%%%%%
 %%count object hypotheses logged in a scene by timestamp and Scene name

@@ -17,22 +17,70 @@ Designator *req_desig = NULL;
 static RSControledAnalysisEngine *ae_Proxy;
 uima::ResourceManager &resourceManager = uima::ResourceManager::createInstance("RoboSherlock");
 
-PREDICATE(add_designator,2)
+
+PREDICATE(cpp_add_designator,2)
 {
- std::string desigType(char*(A1));
- std::cerr<<"Adding designator of type: "<<desigType<<"\n";
- Designator *desig = new Designator();
-// if(desigType==std::string("Object"))
-// {
-//   desig->setType(Designator::OBJECT);
-// }
- return A2 = static_cast<void *>(desig);
+  std::string desigType((char *)A1);
+  //std::cerr<<"Adding designator of type: "<<desigType<<"\n";
+  Designator *desig = new Designator();
+  if(desigType=="object")
+  {
+    desig->setType(Designator::OBJECT);
+  }
+  return A2 = static_cast<void *>(desig);
 }
 
-PREDICATE(init_desig, 1)
+PREDICATE(cpp_init_kvp,3)
+{
+  void *obj =A1;
+  std::string type((char*)A2);
+  Designator *desig = (Designator*)obj;
+  KeyValuePair *kvp = desig->addChild(type);
+  return A3 = static_cast<void *>(kvp);
+
+}
+
+PREDICATE(cpp_add_kvp, 3)
+{
+  std::string key = (std::string)A1;
+  std::string value = (std::string)A2;
+  void *obj =A3;
+  Designator *desig = (Designator*)obj;
+  KeyValuePair *kvp = new KeyValuePair(key, value);
+
+  if(desig)
+  {
+    //std::cerr<<"Adding Kvp: ("<<key<<" : "<<value<<")\n";
+    desig->addChild(kvp);
+    return TRUE;
+  }
+  else
+  {
+    return FALSE;
+  }
+}
+
+PREDICATE(cpp_print_desig, 1)
+{
+  void *obj = A1;
+  Designator *desig = (Designator*)obj;
+  if(desig)
+  {
+    desig->printDesignator();
+    return TRUE;
+  }
+  else
+  {
+    std::cerr << "Desigantor object not initialized. Can not print" << std::endl;
+    return FALSE;
+  }
+}
+
+PREDICATE(cpp_init_desig, 1)
 {
   if(!req_desig)
   {
+    std::cerr<<"Initializing designator: "<<std::endl;
     req_desig = new designator_integration::Designator();
     designator_integration::KeyValuePair *some_shit =  new designator_integration::KeyValuePair("location", "on table");
     designator_integration::KeyValuePair *links = new designator_integration::KeyValuePair("location");
@@ -47,11 +95,18 @@ PREDICATE(init_desig, 1)
   }
 }
 
+PREDICATE(cpp_delete_desig, 1)
+{
+    void *obj = A1;
+    Designator *desig = (Designator*)obj;
+    delete desig;
+    return TRUE;
+}
 
 /**
  * @brief initialize the AnalysisEngine object
  */
-PREDICATE(init_rs, 2)
+PREDICATE(cpp_init_rs, 2)
 {
   if(!ae_Proxy)
   {
@@ -157,36 +212,6 @@ PREDICATE(delete_desig, 1)
   }
 }
 
-PREDICATE(add_kvp, 2)
-{
-  std::string key = (std::string)A1;
-  std::string value = (std::string)A2;
-  designator_integration::KeyValuePair *kvp = new designator_integration::KeyValuePair(key, value);
-
-  if(req_desig)
-  {
-    req_desig->addChild(kvp);
-    return TRUE;
-  }
-  else
-  {
-    return FALSE;
-  }
-}
-
-PREDICATE(print_desig, 1)
-{
-  if(req_desig)
-  {
-    req_desig->printDesignator();
-    return TRUE;
-  }
-  else
-  {
-    std::cerr << "Desigantor object was destoyed. Can not print" << std::endl;
-    return FALSE;
-  }
-}
 
 PREDICATE(write_list, 1)
 {

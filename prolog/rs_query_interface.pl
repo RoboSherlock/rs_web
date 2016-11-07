@@ -78,45 +78,64 @@ execute_pipeline(P):-
    rs_interface(Cl),
    process_once(Cl).
 
+
+%defs for syntax checks
+designator_type([an,object],'object').
+designator_type([a,location],'location').
+
+%defs for designator types
 designator(location).
 designator(object).
 
+%keywords available
 keyword(shape).
 keyword(size).
 keyword(type).
 keyword(color).
 keyword(on).
 keyword(next-to).
+keyword(left-of).
+keyword(cad-model).
 
-
+% check if key can exist and add it to designator
 add_kvp(Key,Value,D):-
     keyword(Key),
     cpp_add_kvp(Key,Value,D).
 
+% handle case when key hints at a nested designator
+add_kvp(Key,Value,D):-
+    designator(Key),
+    parse_nested_description(Value,D).
+
+%return true once List is empty
 add_kvp([],D).
+
+%main rule for adding kvps
 add_kvp([Head|Tail],D):-
     length(Head, Hl),
-    (Hl=2->nth1(1,Head,Key),nth1(2,Head,Value),
+    (Hl=2->nth1(1,Head,Key),
+	   nth1(2,Head,Value),
 	   add_kvp(Key,Value,D);
-    designator_type(Head),parse_nested_description(Head,D)
+    	   designator_type(Head),
+	   parse_nested_description(Head,D)
     ),
     add_kvp(Tail,D).
 
+% add a nested desig to the main obj-designator
 parse_nested_description([A,B|Tail],D):-
     designator_type([A,B],T),
     cpp_init_kvp(D,T,KVP),
     add_kvp(Tail,KVP).
 
+% parse the designator given by detect
 parse_description([ A,B | Tail],D):-
     designator_type([A,B],T),
-    cpp_add_designator(T,D), %shoudl return a designator Object..prefer C
-    add_kvp(Tail,D).%add Kvps-to this designator
+    cpp_add_designator(T,D), 
+    add_kvp(Tail,D).
 
 designator_type([ A,B | T ] ):-
     designator_type([A,B],N).
 
-designator_type([an,object],'object').
-designator_type([a,location],'location').
 
 detect(List):-
     parse_description(List,D),

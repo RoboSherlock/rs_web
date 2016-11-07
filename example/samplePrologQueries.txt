@@ -1,0 +1,15 @@
+detect([an,object,[color,'blue'],
+		  [location,[a, location, [on, [an,object,[type,'CounterTop'],
+							  [color,grey]]]]],
+		  [size, big],
+		  [cad-model,'Cup']]
+      ).
+
+Simpler form of query above:
+
+detect([an,object,[color,'blue'],
+                  [a, location, [on,'CounterTop'],[color,grey]],
+                  [size, big],
+                  [cad-model,'Cup']]
+      ).
+

@@ -59,7 +59,9 @@ set_context(CName):-
 %%%%%%%%%%%%%%%% END: Java Client calls %%%%%%%%%%%%%%%%%%%%    
 
 
-%%%%%%%%%%%%%%%% BEGIN: C++ Interface %%%%%%%%%%%%%%%%%%%%  
+%%%%%%%%%%%%%%%% BEGIN: C++ Interface %%%%%%%%%%%%%%%%%%%%
+%%Queries written using this interface need a sanity check
+%%e,g,. spatial relations don't make sense inside a color determiner 
 rs_interface :-
    rs_interface(_).
 
@@ -92,10 +94,21 @@ keyword(shape).
 keyword(size).
 keyword(type).
 keyword(color).
-keyword(on).
-keyword(next-to).
-keyword(left-of).
 keyword(cad-model).
+
+
+% for simplifying query writing spatial relation can also be keyword
+keyword(A):-
+  spatial_relation(A).
+
+
+spatial_relation(on).
+spatial_relation(in).
+spatial_relation(next-to).
+spatial_relation(left-of).
+spatial_relation(right-of).
+spatial_relation(behind).
+spatial_relation(in-front-of).
 
 % check if key can exist and add it to designator
 add_kvp(Key,Value,D):-
@@ -106,6 +119,14 @@ add_kvp(Key,Value,D):-
 add_kvp(Key,Value,D):-
     designator(Key),
     parse_nested_description(Value,D).
+
+
+% yet another crap needed to manage on as a spacial realtion
+add_kvp(Key,Value,D):-
+    spatial_relation(Key),
+    cpp_init_kvp(D,Key,Kvp),
+    parse_nested_description(Value,Kvp).
+
 
 %return true once List is empty
 add_kvp([],D).
@@ -139,7 +160,8 @@ designator_type([ A,B | T ] ):-
 
 detect(List):-
     parse_description(List,D),
-    cpp_print_desig(D).
+    cpp_print_desig(D),
+    cpp_delete_desig(D).
 
 
 %%%%%%%%%%%%%%%% END: C++ Interface %%%%%%%%%%%%%%%%%%%%    

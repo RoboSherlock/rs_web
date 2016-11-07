@@ -11,7 +11,7 @@
   %test/1,
   %test_list/1,
   get_list_of_predicates/2, 
-  check_preamble/1
+  parse_description/1
 ]).
 
 %%%%%%%%%%%%%%%% BEGIN: Java Client calls %%%%%%%%%%%%%%%%%%%%
@@ -84,20 +84,30 @@ process_once(Cl).
 %%%%%%%%%%%%%%%% END: C++ Interface %%%%%%%%%%%%%%%%%%%%    
 
 %%%%%%%%%%%%%%%% BEGIN: TESTS %%%%%%%%%%%%%%%%%%%% 
-add_new_designator(A,B):-
-    print(A),write(' '),print(B).
+
+designator(location).
+designator(object).
+
+keyword(shape).
+keyword(size).
+keyword(type).
+keyword(color).
+
+add_new_designator(T):-
+    print(T),write(' '),
+    add_designator(T,D).
      
 add_kvp([Head|Tail]):-
     length(Head, Hl),
     write(' length of Head is: '),print(Hl),nl,
-    (Hl=2->print(Head),nl,add_kvp(Tail);
+    (Hl=2->nth1(1,Head,A),nth1(2,Head,B),print(A),print(B),nl,add_kvp(Tail);
     designator_type(HEAD),
     write('found  designator in a designator '),
     print(Head)).
 
-check_preamble([ A,B | Tail]):-
+parse_description([ A,B | Tail]):-
     designator_type([A,B],T),
-    add_new_designator(A,B), %shoudl return a designator Object..prefer C
+    add_new_designator(T), %shoudl return a designator Object..prefer C
     add_kvp(Tail).%add Kvps-to this designator
 
 designator_type([ A,B | T ] ):-
@@ -106,9 +116,8 @@ designator_type([ A,B | T ] ):-
 designator_type([an,object],'Object').
 designator_type([a,location],'Location').
 
-
 detect(List):-
-    check_preamble(List).	
+    parse_description(List).	
     %            is_list(M)->(
     %    is_list(Head)->(
     %        test_new_interface(Head),

@@ -10,11 +10,24 @@
 #include <stdio.h>
 #include <dlfcn.h>
 
+using namespace designator_integration;
 
-designator_integration::Designator *req_desig = NULL;
+Designator *req_desig = NULL;
 
 static RSControledAnalysisEngine *ae_Proxy;
 uima::ResourceManager &resourceManager = uima::ResourceManager::createInstance("RoboSherlock");
+
+PREDICATE(add_designator,2)
+{
+ std::string desigType(char*(A1));
+ std::cerr<<"Adding designator of type: "<<desigType<<"\n";
+ Designator *desig = new Designator();
+// if(desigType==std::string("Object"))
+// {
+//   desig->setType(Designator::OBJECT);
+// }
+ return A2 = static_cast<void *>(desig);
+}
 
 PREDICATE(init_desig, 1)
 {
@@ -25,7 +38,7 @@ PREDICATE(init_desig, 1)
     designator_integration::KeyValuePair *links = new designator_integration::KeyValuePair("location");
     links->addChild(some_shit);
     req_desig->addChild(links);
-    return TRUE;
+    return A1 = (void *)req_desig;
   }
   else
   {
@@ -33,6 +46,7 @@ PREDICATE(init_desig, 1)
     return FALSE;
   }
 }
+
 
 /**
  * @brief initialize the AnalysisEngine object
@@ -45,7 +59,7 @@ PREDICATE(init_rs, 2)
     dlopen("libpython2.7.so", RTLD_LAZY | RTLD_GLOBAL);
     std::string pipelineName((char *)A1);
     std::string pipelinePath;
-//    rs::common::getAEPaths(pipelineName, pipelinePath);
+    rs::common::getAEPaths(pipelineName, pipelinePath);
 //    if(!pipelinePath.empty())
 //    {
 //      ae_Proxy->init(pipelinePath,"");

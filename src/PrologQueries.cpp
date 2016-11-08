@@ -108,18 +108,22 @@ PREDICATE(cpp_delete_desig, 1)
  */
 PREDICATE(cpp_init_rs, 2)
 {
+
   if(!ae_Proxy)
   {
+    ros::init(ros::M_string(), std::string("RoboSherlock"));
     ae_Proxy = new RSControledAnalysisEngine();
     dlopen("libpython2.7.so", RTLD_LAZY | RTLD_GLOBAL);
     std::string pipelineName((char *)A1);
     std::string pipelinePath;
     rs::common::getAEPaths(pipelineName, pipelinePath);
-//    if(!pipelinePath.empty())
-//    {
-//      ae_Proxy->init(pipelinePath,"");
-//      return A2 = (void *)ae_Proxy;
-//    }
+    std::vector<std::string> lowLvlPipeline;
+    lowLvlPipeline.push_back("CollectionReader");
+    if(!pipelinePath.empty())
+    {
+      ae_Proxy->init(pipelinePath,lowLvlPipeline);
+      return A2 = (void *)ae_Proxy;
+    }
   }
   return FALSE;
 }

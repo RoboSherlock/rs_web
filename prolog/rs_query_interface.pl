@@ -69,7 +69,7 @@ rs_interface :-
 
 rs_interface(Client) :-
    rs_interf(fail),
-   init_rs(kitchen,Client),
+   cpp_init_rs(kitchen,Client),
    retract(rs_interf(fail)),
    assert(rs_interf(Client)),!.
     

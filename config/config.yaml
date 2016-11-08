@@ -8,7 +8,6 @@ annotators:
     - PointCloudClusterExtractor
     - ImageSegmentationAnnotator
     - ClusterMerger
-    - ClusterFilter
     - Cluster3DGeometryAnnotator
     - ClusterColorHistogramCalculator
     - FeatureAnnotator
@@ -18,7 +17,6 @@ annotators:
     - ObjectIdentityResolution
     - GazeboInterface
     - StorageWriter
-
 
 cw_assumption:
     - red_spotted_bowl
@@ -33,4 +31,3 @@ cw_assumption:
     - reine_butter_milch
     - voll_milch
     - jod_salz
-

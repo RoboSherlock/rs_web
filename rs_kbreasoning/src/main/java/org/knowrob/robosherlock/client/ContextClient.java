@@ -44,7 +44,7 @@ public class ContextClient extends AbstractNodeMain {
 		}
 
 		try {	
-			String context_service_name = "/RoboSherlock_openease/set_context";
+			String context_service_name = "/RoboSherlock/set_context";
 			
 			setContextServiceClient = node.newServiceClient(context_service_name, 
 					iai_robosherlock_msgs.SetRSContext._TYPE);

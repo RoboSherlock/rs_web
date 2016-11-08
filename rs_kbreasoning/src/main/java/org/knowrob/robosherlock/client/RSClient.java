@@ -49,7 +49,7 @@ public class RSClient extends AbstractNodeMain {
 
 		try {
 			//service name change required in RoboSherlock (to not collide with other RS instances running on the same machine
-			String service_name = "/RoboSherlock_openease/designator_request/single_solution";
+			String service_name = "/RoboSherlock/designator_request/single_solution";
 			//			String service_name = "/robosherlock/designator_request/single_solution";
 			serviceClient = node.newServiceClient(service_name, 
 					designator_integration_msgs.DesignatorCommunication._TYPE);

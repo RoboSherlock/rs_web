@@ -256,12 +256,15 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
     {
       continue;
     }
+
     designator_integration::Designator desig = resultDesignators[i];
+    desig.printDesignator();
     designator_integration::KeyValuePair *clusterId = desig.childForKey("ID");
     if(clusterId != NULL)
     {
       //very uglyu quick hack for now just so it does not crash
       int idx = atoi(clusterId->stringValue().c_str());
+
       //Draw cluster on image
       rs::ImageROI roi = clusters[idx].rois();
       cv::Rect cvRoi;
@@ -273,11 +276,14 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
 
       //Color points in Point Cloud
       pcl::PointIndicesPtr inliers(new pcl::PointIndices());
-      rs::conversion::from(((rs::ReferenceClusterPoints)clusters[idx].points()).indices(), *inliers);
-      for(unsigned int idx = 0; idx < inliers->indices.size(); ++idx)
+      if(clusters[idx].points.has())
       {
-        dispCloud->points[inliers->indices[idx]].rgba = rs::common::colors[colorIdx % rs::common::numberOfColors];
-        dispCloud->points[inliers->indices[idx]].a = 255;
+        rs::conversion::from(((rs::ReferenceClusterPoints)clusters[idx].points()).indices(), *inliers);
+        for(unsigned int idx = 0; idx < inliers->indices.size(); ++idx)
+        {
+          dispCloud->points[inliers->indices[idx]].rgba = rs::common::colors[colorIdx % rs::common::numberOfColors];
+          dispCloud->points[inliers->indices[idx]].a = 255;
+        }
       }
       colorIdx++;
     }

@@ -44,7 +44,7 @@ bool JsonPrologInterface::buildPrologQueryFromDesignator(designator_integration:
     if(desig->childForKey("DETECTION"))
     {
       designator_integration::KeyValuePair *kvp = desig->childForKey("DETECTION");
-      if(kvp->stringValue() == "PANCAKE")
+      if(kvp->stringValue() == "PANCAKE"||kvp->stringValue() == "pancake")
       {
         queriedKeys.push_back("pancakedetector");
       }

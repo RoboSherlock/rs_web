@@ -1,4 +1,4 @@
-#include <rs_kbreasoning/RSControledAEManager.h>
+#include <rs_kbreasoning/RSProcessManager.h>
 
 using namespace designator_integration;
 
@@ -23,22 +23,10 @@ void RSProcessManager::run()
 bool RSProcessManager::resetAECallback(iai_robosherlock_msgs::SetRSContext::Request &req,
                                        iai_robosherlock_msgs::SetRSContext::Response &res)
 {
-  outInfo("acquiring lock");
-  processing_mutex_.lock();
-  outInfo(FG_CYAN << "LOCK ACQUIRED");
-  std::string newContextName = req.newAe, contextAEPath;
+  std::string newContextName = req.newAe;
 
-  if(rs::common::getAEPaths(newContextName, contextAEPath))
+  if(resetAE(newContextName))
   {
-    outInfo("Setting new context: " << newContextName);
-
-    cv::FileStorage fs(configFile, cv::FileStorage::READ);
-    std::vector<std::string> lowLvlPipeline;
-    fs["annotators"] >> lowLvlPipeline;
-
-    this->init(contextAEPath, configFile);
-    outInfo("releasing lock");
-    processing_mutex_.unlock();
     return true;
   }
   else
@@ -46,6 +34,28 @@ bool RSProcessManager::resetAECallback(iai_robosherlock_msgs::SetRSContext::Requ
     outError("Contexts need to have a an AE defined");
     outInfo("releasing lock");
     processing_mutex_.unlock();
+    return false;
+  }
+}
+
+bool RSProcessManager::resetAE(std::string newContextName)
+{
+  std::string contextAEPath;
+  if(rs::common::getAEPaths(newContextName, contextAEPath))
+  {
+    outInfo("Setting new context: " << newContextName);
+    cv::FileStorage fs(configFile, cv::FileStorage::READ);
+    std::vector<std::string> lowLvlPipeline;
+    fs["annotators"] >> lowLvlPipeline;
+
+    processing_mutex_.lock();
+    this->init(contextAEPath, configFile);
+    processing_mutex_.unlock();
+
+    return true;
+  }
+  else
+  {
     return false;
   }
 }
@@ -126,6 +136,127 @@ bool RSProcessManager::designatorSingleSolutionCallback(designator_integration_m
   return designatorCallbackLogic(req, res, false);
 }
 
+bool RSProcessManager::handleQuery(Designator* req, std::vector<Designator> &resp)
+{
+  RSQuery *query = new RSQuery();
+  std::string superClass = "";
+//  rs::DesignatorWrapper::req_designator = req;
+  //check Designator type...for some stupid reason req->type ==Designator::ACTION did not work
+
+
+  //these are hacks,, where we need the
+  query->asJson = req->serializeToJSON();
+  if(req != NULL)
+  {
+    std::list<std::string> keys =  req->keys();
+    for(auto key : keys)
+    {
+      if(key == "TIMESTAMP")
+      {
+        KeyValuePair *kvp = req->childForKey("TIMESTAMP");
+        std::string ts = kvp->stringValue();
+        query->timestamp = std::stoll(ts);
+        outInfo("received timestamp:" << query->timestamp);
+      }
+      if(key == "LOCATION")
+      {
+        KeyValuePair *kvp = req->childForKey("LOCATION");
+        query->location = kvp->stringValue();
+        outInfo("received location:" << query->location);
+      }
+      if(key == "OBJ-PART" || key == "INSPECT")
+      {
+        KeyValuePair *kvp =  req->childForKey("OBJ-PART");
+        query->objToInspect = kvp->stringValue();
+        outInfo("received obj-part request for object: " << query->objToInspect);
+      }
+      if(key == "INGREDIENT")
+      {
+        KeyValuePair *kvp =  req->childForKey("INGREDIENT");
+        query->ingredient = kvp->stringValue();
+        outInfo("received request for detection ingredient: " << query->ingredient);
+      }
+      if(key == "TYPE")
+      {
+        KeyValuePair *kvp =  req->childForKey("TYPE");
+        superClass = kvp->stringValue();
+      }
+    }
+  }
+
+  std::string prologQuery = "";
+
+  if(!jsonPrologInterface_.buildPrologQueryFromDesignator(req, prologQuery))
+  {
+    outInfo("Aborting Prolog Query... The generated Prolog Command is invalid");
+    return false;
+  }
+  outInfo("Query Prolog with the following command: " << prologQuery);
+
+  json_prolog::Prolog pl;
+  json_prolog::PrologQueryProxy bdgs = pl.query(prologQuery);
+
+  if(bdgs.begin() == bdgs.end())
+  {
+    outInfo("Can't find solution for pipeline planning");
+    return false; // Indicate failure
+  }
+
+  processing_mutex_.lock();
+  outInfo(FG_CYAN << "LOCK ACQUIRED");
+
+  std::vector<Designator> resultDesignators;
+  std::vector<std::string> new_pipeline_order;
+  for(auto bdg : bdgs)
+  {
+    new_pipeline_order = jsonPrologInterface_.createPipelineFromPrologResult(bdg["A"].toString());
+
+    //always estimate a pose...these could go directly into the planning phase in Prolog?
+    if(std::find(new_pipeline_order.begin(), new_pipeline_order.end(), "Cluster3DGeometryAnnotator") == new_pipeline_order.end())
+    {
+      std::vector<std::string>::iterator it = std::find(new_pipeline_order.begin(), new_pipeline_order.end(), "ClusterMerger");
+      if(it != new_pipeline_order.end())
+      {
+        new_pipeline_order.insert(it + 1, "Cluster3DGeometryAnnotator");
+      }
+    }
+
+    //for debugging advertise TF
+    new_pipeline_order.push_back("TFBroadcaster");
+
+    //whatever happens do ID res and spawn to gazebo...this is also pretty weird
+    if(std::find(new_pipeline_order.begin(), new_pipeline_order.end(), "ObjectIdentityResolution") == new_pipeline_order.end())
+    {
+      new_pipeline_order.push_back("ObjectIdentityResolution");
+      new_pipeline_order.push_back("GazeboInterface");
+    }
+    new_pipeline_order.push_back("StorageWriter");
+
+    if(/*!allSolutions*/true)
+    {
+      break;  // Only take the first solution if allSolutions == false
+    }
+  }
+
+  if(subsetOfLowLvl(new_pipeline_order))
+  {
+    outInfo("Query answerable by lowlvl pipeline. Executing it");
+    engine.process(resultDesignators, query);
+  }
+  else
+  {
+    outInfo(FG_BLUE << "Executing Pipeline # generated by query");
+    engine.process(new_pipeline_order, true, resultDesignators, query);
+    outInfo("Executing pipeline generated by query: done");
+  }
+
+  outInfo("Returned " << resultDesignators.size() << " designators on this execution");
+  filterResults(*rs::DesignatorWrapper::req_designator, resultDesignators, resp, superClass);
+  outInfo("The filteredResponse size:" << resp.size());
+  processing_mutex_.unlock();
+  delete query;
+}
+
 bool RSProcessManager::designatorCallbackLogic(designator_integration_msgs::DesignatorCommunication::Request &req,
     designator_integration_msgs::DesignatorCommunication::Response &res, bool allSolutions)
 {
@@ -148,131 +279,15 @@ bool RSProcessManager::designatorCallbackLogic(designator_integration_msgs::Desi
     //    delete eveReq;
   }
 
-  RSQuery *query = new RSQuery();
-  std::string superClass = "";
-
-  if(rs::DesignatorWrapper::req_designator->type() != Designator::ACTION)
-  {
-    outInfo(" ***** RECEIVED SERVICE CALL WITH UNHANDELED DESIGNATOR TYPE (everything != ACTION) ! Aborting... ****** ");
-    return false;
-  }
-
-  //these are hacks,, where we need the
-  query->asJson = rs::DesignatorWrapper::req_designator->serializeToJSON();
-  if(rs::DesignatorWrapper::req_designator != NULL)
-  {
-    std::list<std::string> keys =  rs::DesignatorWrapper::req_designator->keys();
-    for(auto key : keys)
-    {
-      if(key == "TIMESTAMP")
-      {
-        KeyValuePair *kvp = rs::DesignatorWrapper::req_designator->childForKey("TIMESTAMP");
-        std::string ts = kvp->stringValue();
-        query->timestamp = std::stoll(ts);
-        outInfo("received timestamp:" << query->timestamp);
-      }
-      if(key == "LOCATION")
-      {
-        KeyValuePair *kvp = rs::DesignatorWrapper::req_designator->childForKey("LOCATION");
-        query->location = kvp->stringValue();
-        outInfo("received location:" << query->location);
-      }
-      if(key == "OBJ-PART" || key =="INSPECT")
-      {
-        KeyValuePair *kvp =  rs::DesignatorWrapper::req_designator->childForKey("OBJ-PART");
-        query->objToInspect = kvp->stringValue();
-        outInfo("received obj-part request for object: " << query->objToInspect);
-      }
-      if(key == "INGREDIENT")
-      {
-        KeyValuePair *kvp =  rs::DesignatorWrapper::req_designator->childForKey("INGREDIENT");
-        query->ingredient = kvp->stringValue();
-        outInfo("received request for detection ingredient: " << query->ingredient);
-      }
-      if(key == "TYPE")
-      {
-        KeyValuePair *kvp =  rs::DesignatorWrapper::req_designator->childForKey("TYPE");
-        superClass = kvp->stringValue();
-      }
-    }
-  }
-
-  std::string prologQuery = "";
-
-  if(!jsonPrologInterface_.buildPrologQueryFromDesignator(rs::DesignatorWrapper::req_designator, prologQuery))
-  {
-    outInfo("Aborting Prolog Query... The generated Prolog Command is invalid");
-    return false;
-  }
-  outInfo("Query Prolog with the following command: " << prologQuery);
-
-  json_prolog::Prolog pl;
-  json_prolog::PrologQueryProxy bdgs = pl.query(prologQuery);
-
-  if(bdgs.begin() == bdgs.end())
-  {
-    outInfo("Can't find solution for pipeline planning");
-    return false; // Indicate failure
-  }
-
-  int pipelineId = 0;
-
-  processing_mutex_.lock();
-  outInfo(FG_CYAN << "LOCK ACQUIRED");
-
-  std::vector<Designator> resultDesignators;
-  std::vector<std::string> new_pipeline_order;
-  for(auto bdg : bdgs)
-  {
-    new_pipeline_order = jsonPrologInterface_.createPipelineFromPrologResult(bdg["A"].toString());
-
-    //always add Storage at the end
-    if(std::find(new_pipeline_order.begin(), new_pipeline_order.end(), "Cluster3DGeometryAnnotator") == new_pipeline_order.end())
-    {
-      std::vector<std::string>::iterator it = std::find(new_pipeline_order.begin(), new_pipeline_order.end(), "ClusterMerger");
-      if(it != new_pipeline_order.end())
-      {
-        new_pipeline_order.insert(it + 1, "Cluster3DGeometryAnnotator");
-      }
-    }
-    new_pipeline_order.push_back("TFBroadcaster");
-    if(std::find(new_pipeline_order.begin(), new_pipeline_order.end(), "ObjectIdentityResolution") == new_pipeline_order.end())
-    {
-      new_pipeline_order.push_back("ObjectIdentityResolution");
-      new_pipeline_order.push_back("GazeboInterface");
-    }
-    new_pipeline_order.push_back("StorageWriter");
-    if(!allSolutions)
-    {
-      break;  // Only take the first solution if allSolutions == false
-    }
-  }
-
-  if(subsetOfLowLvl(new_pipeline_order))
-  {
-    outInfo("Query answerable by lowlvl pipeline. Executing it");
-    engine.process(resultDesignators, query);
-  }
-  else
-  {
-    outInfo(FG_BLUE << "Executing Pipeline # " << pipelineId << " generated by service call");
-    engine.process(new_pipeline_order, true, resultDesignators, query);
-    outInfo("Executing pipeline generated by service call: done");
-  }
-
-  outInfo("Returned " << resultDesignators.size() << " designators on this execution");
-
-  pipelineId++;
 
   std::vector<Designator> filteredResponse;
-  filterResults(*rs::DesignatorWrapper::req_designator, resultDesignators, filteredResponse, superClass);
-  outInfo("The filteredResponse size:" << filteredResponse.size());
+  handleQuery(rs::DesignatorWrapper::req_designator, filteredResponse);
 
   std::vector<std::string> executedPipeline = engine.getNextPipeline();
 
   for(auto & designator : filteredResponse)
   {
-    designator.setValue("PIPELINEID", pipelineId);
+    designator.setValue("PIPELINEID", 0);
   }
 
   // Define an ACTION designator with the planned pipeline
@@ -285,7 +300,7 @@ bool RSProcessManager::designatorCallbackLogic(designator_integration_msgs::Desi
     oneAnno->setValue(annotatorName);
     lstDescription.push_back(oneAnno);
   }
-  pipeline_action->setValue("PIPELINEID", pipelineId);
+  pipeline_action->setValue("PIPELINEID", 0);
   pipeline_action->setValue("ANNOTATORS", KeyValuePair::LIST, lstDescription);
   //  filteredResponse.push_back(pipeline_action);
 
@@ -316,9 +331,7 @@ bool RSProcessManager::designatorCallbackLogic(designator_integration_msgs::Desi
   delete ctxRSEvent;
 
   desig_pub_.publish(topicResponse);
-  processing_mutex_.unlock();
   outInfo(FG_CYAN << "LOCK RELEASE");
-  delete query;
   for(auto & kvpPtr : lstDescription)
   {
     delete kvpPtr;
@@ -450,33 +463,35 @@ void RSProcessManager::filterResults(Designator &requestDesignator,
                   }
                 }
                 else
+                {
                   ++it;
+                }
               }
               ok = hasCadPose;
               resultDesignators[i].setDescription(kvps_);
             }
             if(resultsForRequestedKey[j]->key() == "OBJ-PART")
             {
-             ok = true;
-//              std::list<KeyValuePair * >::iterator it = kvps_.begin();
-//              while(it != kvps_.end())
-//              {
-//                if((*it)->key() != "OBJ-PART" && (*it)->key() != "ID" && (*it)->key() != "TIMESTAMP")
-//                  kvps_.erase(it++);
-//                else
-//                {
-//                  if((*it)->key() == "OBJ-PART")
-//                  {
-//                    if((strcasecmp((*it)->childForKey("NAME")->stringValue().c_str(), req_kvp.stringValue().c_str()) == 0) || (req_kvp.stringValue() == ""))
-//                      ++it;
-//                    else
-//                      kvps_.erase(it++);
-//                  }
-//                  else
-//                    ++it;
-//                }
-//              }
-//              resultDesignators[i].setDescription(kvps_);
+              ok = true;
+              //              std::list<KeyValuePair * >::iterator it = kvps_.begin();
+              //              while(it != kvps_.end())
+              //              {
+              //                if((*it)->key() != "OBJ-PART" && (*it)->key() != "ID" && (*it)->key() != "TIMESTAMP")
+              //                  kvps_.erase(it++);
+              //                else
+              //                {
+              //                  if((*it)->key() == "OBJ-PART")
+              //                  {
+              //                    if((strcasecmp((*it)->childForKey("NAME")->stringValue().c_str(), req_kvp.stringValue().c_str()) == 0) || (req_kvp.stringValue() == ""))
+              //                      ++it;
+              //                    else
+              //                      kvps_.erase(it++);
+              //                  }
+              //                  else
+              //                    ++it;
+              //                }
+              //              }
+              //              resultDesignators[i].setDescription(kvps_);
             }
             if(resultsForRequestedKey[j]->key() == "PIZZA")
             {

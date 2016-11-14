@@ -85,7 +85,7 @@ target_link_libraries(rs_designator_wrapper ${catkin_LIBRARIES})
 rs_add_library(rs_handleAnnotator src/annotators/HandleAnnotator.cpp src/annotators/handle_extractor.cpp)
 target_link_libraries(rs_handleAnnotator ${catkin_LIBRARIES})
 
-add_library(rs_kbAEmanagement src/RSControledAnalysisEngine.cpp src/RSControledAEManager.cpp src/JsonPrologInterface.cpp)
+add_library(rs_kbAEmanagement src/RSControledAnalysisEngine.cpp src/RSProcessManager.cpp src/JsonPrologInterface.cpp)
 target_link_libraries(rs_kbAEmanagement rs_designator_wrapper ${catkin_LIBRARIES})
 
 rs_add_executable(runAE src/runAECpp.cpp)
@@ -95,9 +95,10 @@ target_link_libraries(runAE rs_kbAEmanagement ${catkin_LIBRARIES})
 rs_add_library(rs_clusterToPartsSegmenter src/ClusterToPartsSegmenter.cpp)
 target_link_libraries(rs_clusterToPartsSegmenter ${catkin_LIBRARIES})
 
-rs_add_library(rs_prologrulescpp src/PrologQueries.cpp src/RSControledAnalysisEngine.cpp)
+rs_add_library(rs_prologrulescpp src/PrologQueries.cpp src/RSControledAnalysisEngine.cpp src/RSProcessManager.cpp)
 target_link_libraries(rs_prologrulescpp
   rs_designator_wrapper
+  rs_kbAEmanagement
   ${SWIPL_LIBRARIES}
   ${catkin_LIBRARIES}
 )

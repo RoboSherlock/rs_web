@@ -155,6 +155,9 @@ public:
   bool jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::Request &req,
                          iai_robosherlock_msgs::RSQueryService::Response &res);
 
+  bool handleQuery(designator_integration::Designator *req,
+                   std::vector<designator_integration::Designator> &resp);
+
   //TODO: move to Designator wrapper or somewhere else
   void filterResults(designator_integration::Designator &requestDesignator,
                      std::vector<designator_integration::Designator> &resultDesignators,
@@ -166,11 +169,20 @@ public:
     useIdentityResolution_ = useIdentityResoltuion;
     engine.useIdentityResolution(useIdentityResoltuion);
   }
+  inline std::string getEngineName()
+  {
+    return engine.getCurrentAEName();
+  }
 
+  //reset the pipeline in the AE;
+  bool resetAE(std::string);
+
+private:
   /* *
    * returns true if the planed Pipeline is not a subset of the lowLvl Pipeline
    * */
   bool subsetOfLowLvl(const std::vector<std::string> &plannedPipeline);
+
 
 
 };

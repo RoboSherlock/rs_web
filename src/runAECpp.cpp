@@ -40,8 +40,8 @@
 
 #include <rs/utils/RSPipelineManager.h>
 #include <rs_kbreasoning/KRDefinitions.h>
-#include <rs_kbreasoning/RSControledAnalysisEngine.h>
-#include <rs_kbreasoning/RSControledAEManager.h>
+//#include <rs_kbreasoning/RSControledAnalysisEngine.h>
+#include <rs_kbreasoning/RSProcessManager.h>
 
 #include <ros/ros.h>
 #include <ros/package.h>

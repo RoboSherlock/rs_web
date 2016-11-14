@@ -515,8 +515,8 @@
         <name>camera_config_files</name>
         <value>
           <array>
-      <!--      <string>config_mongodb_qa.ini</string>-->
-            <string>config_kinect_robot.ini</string>
+            <string>config_mongodb_qa.ini</string>
+       <!--     <string>config_kinect_robot.ini</string>-->
           </array>
         </value>
       </nameValuePair>

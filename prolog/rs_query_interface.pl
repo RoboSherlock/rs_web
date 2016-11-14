@@ -76,6 +76,7 @@ rs_interface(Client) :-
 rs_interface(Cl):-
    rs_interf(Cl).
 
+
 execute_pipeline(P):-
    rs_interface(Cl),
    process_once(Cl).
@@ -83,6 +84,8 @@ execute_pipeline(P):-
 
 %defs for syntax checks
 designator_type([an,object],'object').
+designator_type([an,obj],'object').
+designator_type([the,object],'object').
 designator_type([a,location],'location').
 
 %defs for designator types
@@ -165,8 +168,10 @@ designator_type([ A,B | T ] ):-
 
 
 detect(List):-
+    rs_interface(A),
     parse_description(List,D),
     cpp_print_desig(D),
+    cpp_process_once(D),
     cpp_delete_desig(D).
 
 

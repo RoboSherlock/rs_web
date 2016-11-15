@@ -136,6 +136,81 @@ bool RSProcessManager::designatorSingleSolutionCallback(designator_integration_m
   return designatorCallbackLogic(req, res, false);
 }
 
+
+bool RSProcessManager::designatorCallbackLogic(designator_integration_msgs::DesignatorCommunication::Request &req,
+    designator_integration_msgs::DesignatorCommunication::Response &res, bool allSolutions)
+{
+  if(rs::DesignatorWrapper::req_designator)
+  {
+    delete rs::DesignatorWrapper::req_designator;
+  }
+  rs::DesignatorWrapper::req_designator = new Designator(req.request.designator);
+  rs::DesignatorWrapper::req_designator->setType(Designator::ACTION);
+  rs::DesignatorWrapper::req_designator->printDesignator();
+
+  //log the req desig with semrec
+
+  semrec_client::Context *ctxRSEvent = NULL;
+  if(semrecClient)
+  {
+    ctxRSEvent = new semrec_client::Context(this->semrecClient, "RoboSherlockEvent", "&rs_kbreasoning;", "RoboSherlockEvent");
+    ctxRSEvent->addDesignator(rs::DesignatorWrapper::req_designator, "rs_kbreasoning:eventRequest", "&rs_kbreasoning;", "eventRequest");
+  }
+
+  std::vector<Designator> filteredResponse;
+  handleQuery(rs::DesignatorWrapper::req_designator, filteredResponse);
+
+  std::vector<std::string> executedPipeline = engine.getNextPipeline();
+  for(auto & designator : filteredResponse)
+  {
+    designator.setValue("PIPELINEID", 0);
+  }
+
+  // Define an ACTION designator with the planned pipeline
+  Designator *pipeline_action = new Designator();
+  pipeline_action->setType(Designator::ACTION);
+  std::list<KeyValuePair *> lstDescription;
+  for(auto & annotatorName : executedPipeline)
+  {
+    KeyValuePair *oneAnno = new KeyValuePair();
+    oneAnno->setValue(annotatorName);
+    lstDescription.push_back(oneAnno);
+  }
+  pipeline_action->setValue("PIPELINEID", 0);
+  pipeline_action->setValue("ANNOTATORS", KeyValuePair::LIST, lstDescription);
+  //  filteredResponse.push_back(pipeline_action);
+
+  if(ctxRSEvent != NULL)
+  {
+    ctxRSEvent->addDesignator(pipeline_action, "rs_kbreasoning:eventHandler", "&rs_kbreasoning;", "eventHandler");
+  }
+
+  //   Delete the allocated keyvalue pairs for the annotator names
+
+  designator_integration_msgs::DesignatorResponse topicResponse;
+  for(auto & designator : filteredResponse)
+  {
+    res.response.designators.push_back(designator.serializeToMessage());
+    if(ctxRSEvent)
+    {
+      //this needs to be an object->create copy constructor in Object class
+      ctxRSEvent->addObject(new semrec_client::Object(&designator, "&rs_kbreasoning;", "objectPerceived"), "rs_kbreasoning:objectPerceived");
+    }
+  }
+  if(ctxRSEvent != NULL)
+    ctxRSEvent->end();
+  delete ctxRSEvent;
+
+  outInfo(FG_CYAN << "LOCK RELEASE");
+  for(auto & kvpPtr : lstDescription)
+  {
+    delete kvpPtr;
+  }
+  delete pipeline_action;
+  outWarn("RS Query service call ended");
+  return true;
+}
+
 bool RSProcessManager::handleQuery(Designator* req, std::vector<Designator> &resp)
 {
   RSQuery *query = new RSQuery();
@@ -146,6 +221,7 @@ bool RSProcessManager::handleQuery(Designator* req, std::vector<Designator> &res
 
   //these are hacks,, where we need the
   query->asJson = req->serializeToJSON();
+  outInfo("Query as Json: "<<query->asJson);
   if(req != NULL)
   {
     std::list<std::string> keys =  req->keys();
@@ -251,96 +327,19 @@ bool RSProcessManager::handleQuery(Designator* req, std::vector<Designator> &res
   }
 
   outInfo("Returned " << resultDesignators.size() << " designators on this execution");
-  filterResults(*rs::DesignatorWrapper::req_designator, resultDesignators, resp, superClass);
+  filterResults(*req, resultDesignators, resp, superClass);
   outInfo("The filteredResponse size:" << resp.size());
   processing_mutex_.unlock();
-  delete query;
-}
-
-bool RSProcessManager::designatorCallbackLogic(designator_integration_msgs::DesignatorCommunication::Request &req,
-    designator_integration_msgs::DesignatorCommunication::Response &res, bool allSolutions)
-{
-  if(rs::DesignatorWrapper::req_designator)
-  {
-    delete rs::DesignatorWrapper::req_designator;
-  }
-  rs::DesignatorWrapper::req_designator = new Designator(req.request.designator);
-  rs::DesignatorWrapper::req_designator->setType(Designator::ACTION);
-  rs::DesignatorWrapper::req_designator->printDesignator();
-
-  //log the req desig with semrec
-  semrec_client::Context *ctxRSEvent = NULL;
-  if(semrecClient)
-  {
-    ctxRSEvent = new semrec_client::Context(this->semrecClient, "RoboSherlockEvent", "&rs_kbreasoning;", "RoboSherlockEvent");
-    //    ctxRSEvent->addObject(new semrec_client::Object(rs::DesignatorWrapper::req_designator,"&rs_kbreasoning;","eventRequest"),"rs_kbreasoning:eventRequest");
-    ctxRSEvent->addDesignator(rs::DesignatorWrapper::req_designator, "rs_kbreasoning:eventRequest", "&rs_kbreasoning;", "eventRequest");
-    //    eveReq->end();
-    //    delete eveReq;
-  }
-
-
-  std::vector<Designator> filteredResponse;
-  handleQuery(rs::DesignatorWrapper::req_designator, filteredResponse);
-
-  std::vector<std::string> executedPipeline = engine.getNextPipeline();
-
-  for(auto & designator : filteredResponse)
-  {
-    designator.setValue("PIPELINEID", 0);
-  }
-
-  // Define an ACTION designator with the planned pipeline
-  Designator *pipeline_action = new Designator();
-  pipeline_action->setType(Designator::ACTION);
-  std::list<KeyValuePair *> lstDescription;
-  for(auto & annotatorName : executedPipeline)
-  {
-    KeyValuePair *oneAnno = new KeyValuePair();
-    oneAnno->setValue(annotatorName);
-    lstDescription.push_back(oneAnno);
-  }
-  pipeline_action->setValue("PIPELINEID", 0);
-  pipeline_action->setValue("ANNOTATORS", KeyValuePair::LIST, lstDescription);
-  //  filteredResponse.push_back(pipeline_action);
-
-  if(ctxRSEvent != NULL)
-  {
-    ctxRSEvent->addDesignator(pipeline_action, "rs_kbreasoning:eventHandler", "&rs_kbreasoning;", "eventHandler");
-  }
-
-  //   Delete the allocated keyvalue pairs for the annotator names
 
   designator_integration_msgs::DesignatorResponse topicResponse;
-  for(auto & designator : filteredResponse)
+  for(auto & designator : resp)
   {
     designator.printDesignator();
-    res.response.designators.push_back(designator.serializeToMessage());
     topicResponse.designators.push_back(designator.serializeToMessage(false));
-    if(ctxRSEvent)
-    {
-      //this needs to be an object->create copy constructor in Object class
-      ctxRSEvent->addObject(new semrec_client::Object(&designator, "&rs_kbreasoning;", "objectPerceived"), "rs_kbreasoning:objectPerceived");
-    }
   }
-
-  if(ctxRSEvent != NULL)
-  {
-    ctxRSEvent->end();
-  }
-  delete ctxRSEvent;
-
   desig_pub_.publish(topicResponse);
-  outInfo(FG_CYAN << "LOCK RELEASE");
-  for(auto & kvpPtr : lstDescription)
-  {
-    delete kvpPtr;
-  }
-  delete pipeline_action;
-  outWarn("RS Query service call ended");
-  return true;
+  delete query;
 }
-
 
 void RSProcessManager::filterResults(Designator &requestDesignator,
                                      std::vector<Designator> &resultDesignators,
@@ -605,7 +604,7 @@ void RSProcessManager::filterResults(Designator &requestDesignator,
             else if(strcasecmp(resultsForRequestedKey[j]->stringValue().c_str(),
                                req_kvp.stringValue().c_str()) == 0 || req_kvp.stringValue() == "")
             {
-              ok = true;
+                ok = true;
             }
           }
         }

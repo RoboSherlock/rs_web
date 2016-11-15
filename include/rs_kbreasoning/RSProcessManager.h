@@ -36,6 +36,7 @@ private:
   const bool useCWAssumption_;
   bool useIdentityResolution_;
 
+
   std::mutex processing_mutex_;
 
   rs::Visualizer visualizer_;
@@ -51,7 +52,7 @@ public:
 
   RSProcessManager(const bool useVisualizer, const std::string &savePath,
                    const bool &waitForServiceCall, const bool useCWAssumption, ros::NodeHandle n):
-    jsonPrologInterface_(), nh_(n), waitForServiceCall_(waitForServiceCall),
+    engine(n),jsonPrologInterface_(), nh_(n), waitForServiceCall_(waitForServiceCall),
     useVisualizer_(useVisualizer), useCWAssumption_(useCWAssumption), useIdentityResolution_(false), visualizer_(savePath)
   {
 
@@ -74,18 +75,18 @@ public:
 
     desig_pub_ = nh_.advertise<designator_integration_msgs::DesignatorResponse>(std::string("result_advertiser"), 5);
 
-    service = n.advertiseService("designator_request/all_solutions",
+    service = nh_.advertiseService("designator_request/all_solutions",
                                  &RSProcessManager::designatorAllSolutionsCallback, this);
 
     // Call this service, if RoboSherlock should try out only
     // the pipeline with all Annotators, that provide the requested types (for example shape)
-    singleService = n.advertiseService("designator_request/single_solution",
+    singleService = nh_.advertiseService("designator_request/single_solution",
                                        &RSProcessManager::designatorSingleSolutionCallback, this);
 
     // Call this service to switch between AEs
-    setContextService = n.advertiseService("set_context", &RSProcessManager::resetAECallback, this);
+    setContextService = nh_.advertiseService("set_context", &RSProcessManager::resetAECallback, this);
 
-    jsonService = n.advertiseService("json_query", &RSProcessManager::jsonQueryCallback, this);
+    jsonService = nh_.advertiseService("json_query", &RSProcessManager::jsonQueryCallback, this);
 
     semrecClient = NULL;
     ctxMain = NULL;

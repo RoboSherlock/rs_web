@@ -198,7 +198,9 @@ bool RSProcessManager::designatorCallbackLogic(designator_integration_msgs::Desi
     }
   }
   if(ctxRSEvent != NULL)
+  {
     ctxRSEvent->end();
+  }
   delete ctxRSEvent;
 
   outInfo(FG_CYAN << "LOCK RELEASE");
@@ -211,17 +213,17 @@ bool RSProcessManager::designatorCallbackLogic(designator_integration_msgs::Desi
   return true;
 }
 
-bool RSProcessManager::handleQuery(Designator* req, std::vector<Designator> &resp)
+bool RSProcessManager::handleQuery(Designator *req, std::vector<Designator> &resp)
 {
   RSQuery *query = new RSQuery();
   std::string superClass = "";
-//  rs::DesignatorWrapper::req_designator = req;
+  //  rs::DesignatorWrapper::req_designator = req;
   //check Designator type...for some stupid reason req->type ==Designator::ACTION did not work
 
 
   //these are hacks,, where we need the
   query->asJson = req->serializeToJSON();
-  outInfo("Query as Json: "<<query->asJson);
+  outInfo("Query as Json: " << query->asJson);
   if(req != NULL)
   {
     std::list<std::string> keys =  req->keys();
@@ -236,9 +238,12 @@ bool RSProcessManager::handleQuery(Designator* req, std::vector<Designator> &res
       }
       if(key == "LOCATION")
       {
-        KeyValuePair *kvp = req->childForKey("LOCATION");
-        query->location = kvp->stringValue();
-        outInfo("received location:" << query->location);
+        KeyValuePair *kvp = req->childForKey("LOCATION")->childForKey("ON");
+        if(kvp)
+        {
+          query->location = kvp->stringValue();
+          outInfo("received location:" << query->location);
+        }
       }
       if(key == "OBJ-PART" || key == "INSPECT")
       {
@@ -604,7 +609,7 @@ void RSProcessManager::filterResults(Designator &requestDesignator,
             else if(strcasecmp(resultsForRequestedKey[j]->stringValue().c_str(),
                                req_kvp.stringValue().c_str()) == 0 || req_kvp.stringValue() == "")
             {
-                ok = true;
+              ok = true;
             }
           }
         }

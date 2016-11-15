@@ -27,11 +27,11 @@ static RSProcessManager *pm;
 uima::ResourceManager &resourceManager = uima::ResourceManager::createInstance("RoboSherlock");
 
 
-class RSServiceProxy
+class RSPMProxy
 {
   ros::NodeHandle nh_;
   ros::ServiceClient client_;
-  RSServiceProxy(): nh_("~")
+  RSPMProxy(): nh_("~")
   {
     client_ = nh_.serviceClient<designator_integration_msgs::DesignatorCommunication>("/RoboSherlock/single_results");
   }
@@ -57,14 +57,12 @@ class RSServiceProxy
 PREDICATE(cpp_add_designator, 2)
 {
   std::string desigType((char *)A1);
-  //std::cerr<<"Adding designator of type: "<<desigType<<"\n";
   Designator *desig = new Designator();
   if(desigType == "object")
   {
     desig->setType(Designator::ACTION);
-
   }
-  std::cerr<<"designator type: "<<desig->type()<<"\n";
+  std::cerr << "designator type: " << desig->type() << "\n";
   return A2 = static_cast<void *>(desig);
 }
 
@@ -74,7 +72,7 @@ PREDICATE(cpp_init_kvp, 3)
 {
   void *obj = A1;
   std::string type((char *)A2);
-  std::transform(type.begin(),type.end(),type.begin(),::toupper);
+  std::transform(type.begin(), type.end(), type.begin(), ::toupper);
   Designator *desig = (Designator *)obj;
   KeyValuePair *kvp = desig->addChild(type);
   return A3 = static_cast<void *>(kvp);
@@ -82,8 +80,8 @@ PREDICATE(cpp_init_kvp, 3)
 
 PREDICATE(cpp_add_kvp, 3)
 {
-  std::string key = (std::string)A1; 
-  std::transform(key.begin(),key.end(),key.begin(),::toupper);
+  std::string key = (std::string)A1;
+  std::transform(key.begin(), key.end(), key.begin(), ::toupper);
   std::string value = (std::string)A2;
   void *obj = A3;
   Designator *desig = (Designator *)obj;
@@ -157,7 +155,6 @@ PREDICATE(cpp_init_rs, 2)
   {
     ros::init(ros::M_string(), std::string("RoboSherlock"));
     ros::NodeHandle nh("~");
-    //    ae_Proxy = new RSControledAnalysisEngine();
     dlopen("libpython2.7.so", RTLD_LAZY | RTLD_GLOBAL);
     std::string pipelineName((char *)A1);
     std::string pipelinePath;
@@ -239,6 +236,12 @@ PREDICATE(cpp_process_once, 1)
     Designator *desig  = (Designator *)myobj;
     std::vector<designator_integration::Designator> resp;
     pm->handleQuery(desig, resp);
+    //    PlTail tail(A2);
+    //    for(auto d : resp)
+    //    {
+    //     PlTerm e((void*)d);
+    //     tail.append(e);
+    //    }
     return TRUE;
 
   }
@@ -258,12 +261,6 @@ PREDICATE(set_new_pipeline, 1)
     ae_Proxy->setNextPipeline(new_pipeline);
     ae_Proxy->applyNextPipeline();
 
-    //    PlTail tail(A1);
-    //    PlTerm e;
-    //    while(tail.next(e))
-    //    {
-    //      std::cout << (char *)e << std::endl;
-    //    }
     return TRUE;
   }
   else

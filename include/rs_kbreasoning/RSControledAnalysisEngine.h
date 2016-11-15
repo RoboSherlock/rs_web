@@ -53,8 +53,8 @@ private:
 
 public:
 
-  RSControledAnalysisEngine() : RSAnalysisEngine(),
-    rspm(NULL),currentAEName(""),nh_("~"),it_(nh_),useIdentityResolution_(false)
+  RSControledAnalysisEngine(ros::NodeHandle nh) : RSAnalysisEngine(),
+    rspm(NULL),currentAEName(""),nh_(nh),it_(nh_),useIdentityResolution_(false)
   {
     process_mutex = boost::shared_ptr<std::mutex>(new std::mutex);
     base64ImgPub = nh_.advertise<std_msgs::String>(std::string("image_base64"), 5);

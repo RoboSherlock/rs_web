@@ -98,7 +98,9 @@ keyword(size).
 keyword(type).
 keyword(color).
 keyword(cad-model).
-
+keyword(volume).
+keyword(contains).
+keyword(timestamp).
 
 % for simplifying query writing spatial relation can also be keyword
 

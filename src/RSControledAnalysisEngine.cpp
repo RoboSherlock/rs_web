@@ -85,7 +85,7 @@ void RSControledAnalysisEngine::process(
       }
       else
       {
-          query.timestamp.set(0);
+        query.timestamp.set(0);
       }
       if(q->location != "")
       {
@@ -220,12 +220,17 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
   rs::SceneCas sceneCas(*cas);
   rs::Scene scene = sceneCas.getScene();
   cv::Mat rgb = cv::Mat::zeros(480, 640, CV_64FC3);
+
   pcl::PointCloud<pcl::PointXYZRGBA>::Ptr dispCloud(new pcl::PointCloud<pcl::PointXYZRGBA>());
   sensor_msgs::CameraInfo cam_info;
 
   sceneCas.get(VIEW_COLOR_IMAGE, rgb);
   sceneCas.get(VIEW_CAMERA_INFO, cam_info);
   sceneCas.get(VIEW_CLOUD, *dispCloud);
+
+
+
+
   uint64_t now = sceneCas.getScene().timestamp();
   std::vector<T> clusters;
   if(std::is_same<T, rs::Cluster>::value)
@@ -374,9 +379,31 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
   image_pub_.publish(outImgMsgs.toImageMsg());
 
 
-  dispCloud->header.frame_id = cam_info.header.frame_id;//"head_mount_kinect_rgb_optical_frame";
+
+
+  tf::StampedTransform camToWorld;
+  camToWorld.setIdentity();
+  if(scene.viewPoint.has())
+    rs::conversion::from(scene.viewPoint.get(), camToWorld);
+
+
+  Eigen::Affine3d eigenTransform;
+  tf::transformTFToEigen( camToWorld,eigenTransform);
+
+  pcl::PointCloud<pcl::PointXYZRGBA>::Ptr transformed(new pcl::PointCloud<pcl::PointXYZRGBA>()),
+                                          dsCloud(new pcl::PointCloud<pcl::PointXYZRGBA>());
+  pcl::transformPointCloud<pcl::PointXYZRGBA>(*dispCloud, *transformed, eigenTransform);
+
+
+  pcl::VoxelGrid<pcl::PointXYZRGBA> vg;
+  float leaf_size=0.01;
+  vg.setLeafSize(leaf_size,leaf_size,leaf_size);
+  vg.setInputCloud(transformed);
+  vg.filter(*dsCloud);
+
+  dsCloud->header.frame_id = camToWorld.child_frame_id_; //map if localized..head_mount_kinect_rgb_optical_frame otherwise;
   //  dispCloud->header.stamp = ros::Time::now().toNSec();
-  pc_pub_.publish(dispCloud);
+  pc_pub_.publish(dsCloud);
 
 }
 

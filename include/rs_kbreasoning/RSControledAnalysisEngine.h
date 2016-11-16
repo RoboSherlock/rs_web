@@ -13,7 +13,12 @@
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/image_encodings.h>
 #include <std_msgs/String.h>
+
 #include <pcl_ros/point_cloud.h>
+#include <pcl/filters/voxel_grid.h>
+#include <pcl/common/transforms.h>
+
+#include <tf_conversions/tf_eigen.h>
 
 #include <rs_kbreasoning/DesignatorWrapper.h>
 

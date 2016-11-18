@@ -20,35 +20,46 @@ using namespace designator_integration;
 
 Designator *req_desig = NULL;
 
-static RSControledAnalysisEngine *ae_Proxy;
 static RSProcessManager *pm;
-
 
 uima::ResourceManager &resourceManager = uima::ResourceManager::createInstance("RoboSherlock");
 
 
-class RSPMProxy
-{
-  ros::NodeHandle nh_;
-  ros::ServiceClient client_;
-  RSPMProxy(): nh_("~")
-  {
-    client_ = nh_.serviceClient<designator_integration_msgs::DesignatorCommunication>("/RoboSherlock/single_results");
-  }
+//class RSPMProxy
+//{
+//  ros::NodeHandle *nh_;
+//  ros::ServiceClient client_;
+//  RSProcessManager *pm_;
+//  std::mutex lock_;
+//  std::string ae_;
+//  RSPMProxy(std::string ae):ae_(ae)
+//  {
+//    ros::init(ros::M_string(), std::string("RoboSherlock"));
+//    nh_ = new ros::NodeHandle("~");
+//    pm_ = new RSProcessManager(false, ".", true, false, nh_);
+//  }
 
-  void queryRoboSherlock(Designator d)
-  {
-    designator_integration_msgs::DesignatorCommunication srv;
-    srv.request.request.designator = d.serializeToMessage();
-    {
-      if(client_.call(srv))
-      {
+//  void run()
+//  {
 
-      }
+//  }
 
-    }
-  }
-};
+//  void queryRoboSherlock(Designator d)
+//  {
+//    designator_integration_msgs::DesignatorCommunication srv;
+//    srv.request.request.designator = d.serializeToMessage();
+//    {
+//      if(client_.call(srv))
+//      {
+//          m->setUseIdentityResolution(false);
+//          pm->init(pipelinePath, "cml");
+//      }
+
+//    }
+//  }
+//};
+
+std::thread thread;
 
 /***************************************************************************
  *                                  ADD DESIGNATOR
@@ -165,12 +176,27 @@ PREDICATE(cpp_init_rs, 2)
     if(!pipelinePath.empty())
     {
       pm = new RSProcessManager(false, ".", true, false, nh);
+      pm->setLowLvlPipeline(lowLvlPipeline);
       pm->setUseIdentityResolution(false);
       pm->init(pipelinePath, "cml");
+//      thread = std::thread(&RSProcessManager::run, &(*pm));
       return A2 = (void *)pm;
     }
   }
   return FALSE;
+}
+
+PREDICATE(rs_pause, 1)
+{
+  if(pm)
+  {
+    pm->pause();
+    return TRUE;
+  }
+  else
+  {
+    return FALSE;
+  }
 }
 
 PREDICATE(cpp_stop_rs, 1)
@@ -187,6 +213,7 @@ PREDICATE(cpp_stop_rs, 1)
     return FALSE;
   }
 }
+
 
 /**
  * change AE file that is loaded, enables changing the context
@@ -236,31 +263,6 @@ PREDICATE(cpp_process_once, 1)
     Designator *desig  = (Designator *)myobj;
     std::vector<designator_integration::Designator> resp;
     pm->handleQuery(desig, resp);
-    //    PlTail tail(A2);
-    //    for(auto d : resp)
-    //    {
-    //     PlTerm e((void*)d);
-    //     tail.append(e);
-    //    }
-    return TRUE;
-
-  }
-  else
-  {
-    return FALSE;
-  }
-}
-
-PREDICATE(set_new_pipeline, 1)
-{
-  if(ae_Proxy)
-  {
-    std::vector<std::string> new_pipeline;
-    new_pipeline.push_back("CollectionReader");
-    new_pipeline.push_back("ImagePreprocessor");
-    ae_Proxy->setNextPipeline(new_pipeline);
-    ae_Proxy->applyNextPipeline();
-
     return TRUE;
   }
   else

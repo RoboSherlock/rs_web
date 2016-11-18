@@ -1,1 +1,3 @@
 /designator_integration_msgs/build
+/designator_integration_msgs/.*
+/iai_robosherlock_msgs/build

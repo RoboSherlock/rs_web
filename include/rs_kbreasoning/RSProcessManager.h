@@ -35,6 +35,7 @@ private:
   const bool useVisualizer_;
   const bool useCWAssumption_;
   bool useIdentityResolution_;
+  bool pause_;
 
 
   std::mutex processing_mutex_;
@@ -52,8 +53,8 @@ public:
 
   RSProcessManager(const bool useVisualizer, const std::string &savePath,
                    const bool &waitForServiceCall, const bool useCWAssumption, ros::NodeHandle n):
-    engine(n),jsonPrologInterface_(), nh_(n), waitForServiceCall_(waitForServiceCall),
-    useVisualizer_(useVisualizer), useCWAssumption_(useCWAssumption), useIdentityResolution_(false), visualizer_(savePath)
+    engine(n), jsonPrologInterface_(), nh_(n), waitForServiceCall_(waitForServiceCall),
+    useVisualizer_(useVisualizer), useCWAssumption_(useCWAssumption), useIdentityResolution_(false), pause_(false), visualizer_(savePath)
   {
 
     outInfo("Creating resource manager"); // TODO: DEBUG
@@ -76,12 +77,12 @@ public:
     desig_pub_ = nh_.advertise<designator_integration_msgs::DesignatorResponse>(std::string("result_advertiser"), 5);
 
     service = nh_.advertiseService("designator_request/all_solutions",
-                                 &RSProcessManager::designatorAllSolutionsCallback, this);
+                                   &RSProcessManager::designatorAllSolutionsCallback, this);
 
     // Call this service, if RoboSherlock should try out only
     // the pipeline with all Annotators, that provide the requested types (for example shape)
     singleService = nh_.advertiseService("designator_request/single_solution",
-                                       &RSProcessManager::designatorSingleSolutionCallback, this);
+                                         &RSProcessManager::designatorSingleSolutionCallback, this);
 
     // Call this service to switch between AEs
     setContextService = nh_.advertiseService("set_context", &RSProcessManager::resetAECallback, this);
@@ -107,7 +108,10 @@ public:
     this->configFile = configFile;
     cv::FileStorage fs(configFile, cv::FileStorage::READ);
     fs["cw_assumption"] >> closedWorldAssumption;
-    fs["annotators"] >> lowLvlPipeline_;
+    if(lowLvlPipeline_.empty()) //if not set programatically, load from a config file
+    {
+      fs["annotators"] >> lowLvlPipeline_;
+    }
     engine.init(xmlFile, lowLvlPipeline_);
 
     outInfo("Number of objects in closed world assumption: " << closedWorldAssumption.size());
@@ -170,9 +174,21 @@ public:
     useIdentityResolution_ = useIdentityResoltuion;
     engine.useIdentityResolution(useIdentityResoltuion);
   }
+
   inline std::string getEngineName()
   {
     return engine.getCurrentAEName();
+  }
+  inline void pause()
+  {
+    processing_mutex_.lock();
+    pause_ = !pause_;
+    processing_mutex_.unlock();
+  }
+
+  inline void setLowLvlPipeline(std::vector<std::string> llp)
+  {
+    lowLvlPipeline_.assign(llp.begin(), llp.end());
   }
 
   //reset the pipeline in the AE;

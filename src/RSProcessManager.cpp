@@ -6,16 +6,16 @@ void RSProcessManager::run()
 {
   for(; ros::ok();)
   {
-    if(waitForServiceCall_)
+    processing_mutex_.lock();
+    if(waitForServiceCall_ || pause_ )
     {
       usleep(100000);
     }
     else
     {
-      processing_mutex_.lock();
       engine.process(true);
-      processing_mutex_.unlock();
     }
+    processing_mutex_.unlock();
     ros::spinOnce();
   }
 }
@@ -282,7 +282,7 @@ bool RSProcessManager::handleQuery(Designator *req, std::vector<Designator> &res
     outInfo("Can't find solution for pipeline planning");
     return false; // Indicate failure
   }
-
+  outInfo(FG_CYAN<<"ACQUIRING LOCK");
   processing_mutex_.lock();
   outInfo(FG_CYAN << "LOCK ACQUIRED");
 

@@ -175,11 +175,11 @@ PREDICATE(cpp_init_rs, 2)
 
     if(!pipelinePath.empty())
     {
-      pm = new RSProcessManager(false, ".", true, false, nh);
+      pm = new RSProcessManager(false, ".",false, false, nh);
       pm->setLowLvlPipeline(lowLvlPipeline);
       pm->setUseIdentityResolution(false);
       pm->init(pipelinePath, "cml");
-//      thread = std::thread(&RSProcessManager::run, &(*pm));
+      thread = std::thread(&RSProcessManager::run, &(*pm));
       return A2 = (void *)pm;
     }
   }

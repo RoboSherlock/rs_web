@@ -1,0 +1,8 @@
+<!-- Launch file for running RS locally with web viwualization-->
+<launch>
+    <!--KnowRob roslog -->
+    <include file="$(find rs_queryanswering)/launch/knowrob_rs_openease.launch"/>
+    
+    <!-- launch robosherlock-->
+    <node name="RoboSherlock" pkg="rs_queryanswering" type="runAE" output="screen" args="kitchen -wait" />
+</launch>

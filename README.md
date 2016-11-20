@@ -1,9 +1,9 @@
-# rs_openease
+# rs_kbreasoning
 
 ## Perception Planning
 RoboSherlock uses Apache UIMA (Unstructured Information Management Architecture) to process the incoming sensor data with image processing algorithms, called experts. 
 The selection and ordering of these experts (e.g. a 'pipeline') is usally hard coded by the developer of a robotic system. 
-With RoboSherlock, you can automatically generate these pipelines based on the query you send to RoboSherlock and an Ontology about all implemented experts.
+With this extension to RoboSherlock, you can automatically generate these pipelines based on the query you send to RoboSherlock and an Ontology about all implemented experts.
 For example, you can ask the system to create a pipeline to retrieve the color and shape attribute of objects in front of your camera:
 ```
 ?- build_pipeline_from_predicates([shape,color],S).
@@ -12,6 +12,9 @@ rs_components:'ImagePreprocessor',rs_components:'PointCloudClusterExtractor',
 rs_components:'FlatObjectAnnotator',rs_components:'SacModelAnnotator',
 rs_components:'PrimitiveShapeAnnotator',rs_components:'ClusterColorHistogramCalculator'].
 ```
+
+##### Deprecated:
+
 ### Usage
 * Install RoboSherlock. Currently, you MUST use the pipeline_modification branch: https://github.com/code-iai/iai_robosherlock/tree/pipeline_modification
 * Start RoboSherlock with: 

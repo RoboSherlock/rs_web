@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<package format="2">
+<package format="1">
   <name>rs_kbreasoning</name>
   <version>0.1.0</version>
   <description>rs_kbreasoning holds all the necessary parts for enabling knowledge based query-answering for RoboSherlock
@@ -12,8 +12,8 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   
-  <depend>knowrob_robosherlock</depend>
-  <depend>rs_queryanswering</depend>
+  <run_depend>knowrob_robosherlock</run_depend>
+  <run_depend>rs_queryanswering</run_depend>
   
   <export>
     <metapackage />

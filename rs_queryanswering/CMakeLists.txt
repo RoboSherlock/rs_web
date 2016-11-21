@@ -1,13 +1,11 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(rs_queryanswering)
 
-
 find_package(catkin REQUIRED rosjava_build_tools rosprolog designator_integration_cpp
              designator_integration_msgs knowrob_common knowrob_actions knowrob_srdl
              tf tf_conversions knowrob_vis robosherlock json_prolog robosherlock_demos
              rs_addons rs_simulation roslib rospack iai_robosherlock_msgs image_transport
              semrec_client)
-
 
 find_package(PkgConfig)
 pkg_check_modules(SWIPL REQUIRED swipl)
@@ -72,33 +70,58 @@ generate_type_system(robosherlock robosherlock_demos rs_addons rs_simulation)
 find_additional_files()
 
 
-add_library(rs_designator_wrapper SHARED src/DesignatorWrapper.cpp)
-add_dependencies(rs_designator_wrapper designator_integration_msgs_gencpp)
-target_link_libraries(rs_designator_wrapper ${catkin_LIBRARIES})
+add_library(rs_designator_wrapper SHARED 
+	src/DesignatorWrapper.cpp)
+add_dependencies(rs_designator_wrapper 
+	designator_integration_msgs_gencpp)
+target_link_libraries(rs_designator_wrapper 
+	${catkin_LIBRARIES})
 
-rs_add_library(rs_handleAnnotator src/annotators/HandleAnnotator.cpp src/annotators/handle_extractor.cpp)
-target_link_libraries(rs_handleAnnotator ${catkin_LIBRARIES})
 
-add_library(rs_kbAEmanagement src/RSControledAnalysisEngine.cpp src/RSProcessManager.cpp src/JsonPrologInterface.cpp)
-target_link_libraries(rs_kbAEmanagement rs_designator_wrapper ${catkin_LIBRARIES})
+add_library(rs_kbAEmanagement 
+	src/RSControledAnalysisEngine.cpp 
+	src/RSProcessManager.cpp 
+	src/JsonPrologInterface.cpp)
+target_link_libraries(rs_kbAEmanagement 
+	rs_designator_wrapper 
+	${catkin_LIBRARIES})
 
-rs_add_executable(runAE src/runAECpp.cpp)
-add_dependencies(runAE iai_robosherlock_msgs_gencpp)
-target_link_libraries(runAE rs_kbAEmanagement ${catkin_LIBRARIES})
+rs_add_executable(runAE 
+	src/runAECpp.cpp)
+add_dependencies(runAE 
+	iai_robosherlock_msgs_gencpp)
+target_link_libraries(runAE 
+	rs_kbAEmanagement ${catkin_LIBRARIES})
 
-rs_add_library(rs_clusterToPartsSegmenter src/ClusterToPartsSegmenter.cpp)
-target_link_libraries(rs_clusterToPartsSegmenter ${catkin_LIBRARIES})
 
-rs_add_library(rs_prologrulescpp src/PrologQueries.cpp src/RSControledAnalysisEngine.cpp src/RSProcessManager.cpp)
+rs_add_library(rs_prologrulescpp 
+	src/PrologQueries.cpp 
+	src/RSControledAnalysisEngine.cpp 
+	src/RSProcessManager.cpp)
 target_link_libraries(rs_prologrulescpp
-  rs_designator_wrapper
-  rs_kbAEmanagement
-  ${SWIPL_LIBRARIES}
-  ${catkin_LIBRARIES}
-)
+	rs_designator_wrapper
+	rs_kbAEmanagement
+	${SWIPL_LIBRARIES}
+	${catkin_LIBRARIES})
 
-add_library(rs_templateMatcher src/TemplateAlignment.cpp)
-target_link_libraries(rs_templateMatcher ${catkin_LIBRARIES})
+rs_add_library(rs_handleAnnotator 
+	src/annotators/HandleAnnotator.cpp 
+	src/annotators/handle_extractor.cpp)
+target_link_libraries(rs_handleAnnotator 
+	${catkin_LIBRARIES})
 
-rs_add_library(rs_templateAlignmentAnnotator src/TemplateAlignmentAnnotator.cpp)
-target_link_libraries(rs_templateAlignmentAnnotator rs_templateMatcher ${catkin_LIBRARIES})
+add_library(rs_templateMatcher 
+	src/annotators/TemplateAlignment.cpp)
+target_link_libraries(rs_templateMatcher 
+	${catkin_LIBRARIES})
+
+rs_add_library(rs_templateAlignmentAnnotator 
+	src/annotators/TemplateAlignmentAnnotator.cpp)
+target_link_libraries(rs_templateAlignmentAnnotator 
+	rs_templateMatcher 
+	${catkin_LIBRARIES})
+
+rs_add_library(rs_clusterToPartsSegmenter 
+	src/annotators/ClusterToPartsSegmenter.cpp)
+target_link_libraries(rs_clusterToPartsSegmenter 
+	${catkin_LIBRARIES})

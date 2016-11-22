@@ -3,6 +3,8 @@
 #include <SWI-cpp.h>
 #include <memory>
 #include <mutex>
+#include <ros/package.h>
+
 
 class PrologEngine
 {
@@ -21,9 +23,11 @@ public:
     int argc = 0;
     argv[argc++] = "PrologEngine";
     argv[argc++] = "-f";
-    argv[argc++] = "/home/ferenc/work/kr_ws/src/knowrob/rosprolog/prolog/init.pl";
+    std::string rosPrologInit = ros::package::getPath("rosprolog") +"/prolog/init.pl";
+    argv[argc] = new char[rosPrologInit.size() + 1];
+    std::copy(rosPrologInit.begin(), rosPrologInit.end(), argv[argc]);
+    argv[argc++][rosPrologInit.size()]='\0';
     argv[argc] = NULL;
-    std::string params = "-f /home/ferenc/work/kr_ws/src/knowrob/rosprolog/prolog/init.pl";
     engine  = std::make_shared<PlEngine>(argc, argv);
     init();
   }
@@ -60,12 +64,14 @@ public:
     lock.unlock();
   }
 
-  void whyPlan(std::string a)
+  static void planPipelineQuery(std::vector<std::string> keys)
   {
     PlTermv av(2);
     PlTail l(av[0]);
-    l.append("shape");
-    l.append("color");
+    for(auto key:keys)
+    {
+        l.append(key.c_str());
+    }
     l.close();
     PlQuery q("build_single_pipeline_from_predicates", av);
     while(q.next_solution())
@@ -73,7 +79,6 @@ public:
       std::cerr<<(char*)av[1]<<std::endl;
     }
   }
-
 };
 
 
@@ -82,7 +87,7 @@ int main(int argc, char **argv)
 {
   PrologEngine pe;
   pe.query("asd");
-  pe.whyPlan("crap");
+  pe.planPipelineQuery(std::vector<std::string>{"shape","color"});
   return 0;
 }
 

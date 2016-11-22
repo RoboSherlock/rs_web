@@ -6,11 +6,14 @@
 
 class PrologEngine
 {
+  std::mutex lock;
+
+
 public:
   typedef std::shared_ptr<PlEngine> PlEnginePtr;
 
   PlEnginePtr engine;
-  static std::mutex lock;
+
 
   PrologEngine()
   {
@@ -22,6 +25,7 @@ public:
     argv[argc] = NULL;
     std::string params = "-f /home/ferenc/work/kr_ws/src/knowrob/rosprolog/prolog/init.pl";
     engine  = std::make_shared<PlEngine>(argc, argv);
+    init();
   }
 
   void init()
@@ -43,7 +47,7 @@ public:
     PlTermv av(1);
     try
     {
-      PlQuery q("keyword", av);
+      PlQuery q("rs_query_interface","keyword", av);
       while(q.next_solution())
       {
         std::cerr << (char *)av[0] << std::endl;
@@ -77,9 +81,7 @@ public:
 int main(int argc, char **argv)
 {
   PrologEngine pe;
-  PrologEngine pe2;
-  pe.init();
-  pe.query("shape");
+  pe.query("asd");
   pe.whyPlan("crap");
   return 0;
 }

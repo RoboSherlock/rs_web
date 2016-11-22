@@ -125,3 +125,9 @@ rs_add_library(rs_clusterToPartsSegmenter
 	src/annotators/ClusterToPartsSegmenter.cpp)
 target_link_libraries(rs_clusterToPartsSegmenter 
 	${catkin_LIBRARIES})
+
+add_executable(likes
+        src/swiprologinterpreter.cpp)
+target_link_libraries(likes
+        ${catkin_LIBRARIES}
+        ${SWIPL_LIBRARIES})

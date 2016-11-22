@@ -175,7 +175,8 @@ PREDICATE(cpp_init_rs, 2)
 
     if(!pipelinePath.empty())
     {
-      pm = new RSProcessManager(false, ".",false, false, nh);
+      bool waitForService = true;
+      pm = new RSProcessManager(false, ".",waitForService, false, nh);
       pm->setLowLvlPipeline(lowLvlPipeline);
       pm->setUseIdentityResolution(false);
       pm->init(pipelinePath, "cml");

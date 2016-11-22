@@ -219,7 +219,7 @@ bool RSProcessManager::handleQuery(Designator *req, std::vector<Designator> &res
   std::string superClass = "";
   //  rs::DesignatorWrapper::req_designator = req;
   //check Designator type...for some stupid reason req->type ==Designator::ACTION did not work
-
+  processing_mutex_.lock();
 
   //these are hacks,, where we need the
   query->asJson = req->serializeToJSON();
@@ -283,7 +283,7 @@ bool RSProcessManager::handleQuery(Designator *req, std::vector<Designator> &res
     return false; // Indicate failure
   }
   outInfo(FG_CYAN<<"ACQUIRING LOCK");
-  processing_mutex_.lock();
+
   outInfo(FG_CYAN << "LOCK ACQUIRED");
 
   std::vector<Designator> resultDesignators;

@@ -106,7 +106,7 @@ target_link_libraries(rs_prologrulescpp
 
 rs_add_library(rs_handleAnnotator 
 	src/annotators/HandleAnnotator.cpp 
-	src/annotators/handle_extractor.cpp)
+	src/annotators/HandleExtractor.cpp)
 target_link_libraries(rs_handleAnnotator 
 	${catkin_LIBRARIES})
 

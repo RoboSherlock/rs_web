@@ -14,7 +14,6 @@ PrologInterface::PrologInterface()
   argv[argc] = NULL;
   engine  = std::make_shared<PlEngine>(argc, argv);
 
-  outError("PROLOG ENGINE BEING INITIALIZED");
   init();
 }
 

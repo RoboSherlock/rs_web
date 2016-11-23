@@ -238,10 +238,17 @@ bool RSProcessManager::handleQuery(Designator *req, std::vector<Designator> &res
       }
       if(key == "LOCATION")
       {
-        KeyValuePair *kvp = req->childForKey("LOCATION")->childForKey("ON");
-        if(kvp)
+        KeyValuePair *kvp1 = req->childForKey("LOCATION")->childForKey("ON");
+        KeyValuePair *kvp2 = req->childForKey("LOCATION")->childForKey("IN");
+        if(kvp1)
         {
-          query->location = kvp->stringValue();
+          query->location = kvp1->stringValue();
+
+          outInfo("received location:" << query->location);
+        }
+        else if(kvp2)
+        {
+          query->location = kvp2->stringValue();
           outInfo("received location:" << query->location);
         }
       }
@@ -564,7 +571,7 @@ void RSProcessManager::filterResults(Designator &requestDesignator,
                 {
                   if(superclass != "" && rs_queryanswering::krNameMapping.count(superclass) == 1)
                   {
-                    ok = PrologInterface::subClassOf(childrenPair.stringValue(),superclass);
+                    ok = PrologInterface::subClassOf(childrenPair.stringValue(), superclass);
                   }
                   else if(strcasecmp(childrenPair.stringValue().c_str(), req_kvp.stringValue().c_str()) == 0 || req_kvp.stringValue() == "")
                   {

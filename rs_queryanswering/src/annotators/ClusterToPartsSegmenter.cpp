@@ -9,8 +9,6 @@
 #include <rs/utils/common.h>
 #include <rs/conversion/bson.h>
 
-#include <rs_queryanswering/KRDefinitions.h>
-
 // PCL
 #include <pcl/filters/extract_indices.h>
 #include <pcl/io/pcd_io.h>
@@ -20,13 +18,12 @@
 #include <pcl/segmentation/impl/conditional_euclidean_clustering.hpp>
 #include <pcl/segmentation/supervoxel_clustering.h>
 
+#include <rs_queryanswering/KRDefinitions.h>
+#include <rs_queryanswering/PrologInterface.h>
 
 // OpenCV
 #include <opencv2/gpu/gpu.hpp>
 #include <opencv2/ocl/ocl.hpp>
-
-//json_prolog
-#include<json_prolog/prolog.h>
 
 #include <algorithm>
 
@@ -317,11 +314,8 @@ private:
     //    }
     outWarn("Object Queried for is: " << objToProcess);
 
-    prologQuery << "class_properties(" << rs_queryanswering::krNameMapping[objToProcess] << ",rs_components:'hasVisualProperty',rs_objects:'ObjectPart').";
-    outInfo("Prolog Query: " << prologQuery.str());
-    json_prolog::Prolog pl;
-    json_prolog::PrologQueryProxy bdgs = pl.query(prologQuery.str());
-    if(bdgs.begin() == bdgs.end())
+    bool ok = PrologInterface::class_property(objToProcess,"rs_components:'hasVisualProperty'","rs_objects:'ObjectPart'");
+    if(!ok)
     {
       outInfo("Queried Object does not meet requirements of this annotator");
       return UIMA_ERR_NONE; // Indicate failure

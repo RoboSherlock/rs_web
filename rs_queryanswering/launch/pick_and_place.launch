@@ -1,8 +1,5 @@
 <!-- Launch file for running RS locally with web viwualization -->
 <launch>
-  <param name="initial_package" type="string" value="knowrob_robosherlock" />
-  <node name="json_prolog" pkg="json_prolog" type="json_prolog_node" cwd="node" output="screen" />
-
   <!-- launch robosherlock -->
   <arg name="wait" default="false" />
   <node if="$(arg wait)"  name="RoboSherlock" pkg="rs_queryanswering" type="runAE" output="screen" args="pickandplace -wait" />

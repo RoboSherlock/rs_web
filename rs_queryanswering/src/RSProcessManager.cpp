@@ -7,7 +7,7 @@ void RSProcessManager::run()
   for(; ros::ok();)
   {
     processing_mutex_.lock();
-    if(waitForServiceCall_ || pause_ )
+    if(waitForServiceCall_ || pause_)
     {
       usleep(100000);
     }
@@ -265,60 +265,44 @@ bool RSProcessManager::handleQuery(Designator *req, std::vector<Designator> &res
     }
   }
 
-  std::string prologQuery = "";
+  std::vector<std::string> keys;
+  std::vector<std::string> new_pipeline_order;
+  prologInterface.extractQueryKeysFromDesignator(req, keys);
 
-  if(!jsonPrologInterface_.buildPrologQueryFromDesignator(req, prologQuery))
-  {
-    outInfo("Aborting Prolog Query... The generated Prolog Command is invalid");
-    return false;
-  }
-  outInfo("Query Prolog with the following command: " << prologQuery);
-
-  json_prolog::Prolog pl;
-  json_prolog::PrologQueryProxy bdgs = pl.query(prologQuery);
-
-  if(bdgs.begin() == bdgs.end())
+  PrologInterface::planPipelineQuery(keys, new_pipeline_order);
+  if(new_pipeline_order.empty())
   {
     outInfo("Can't find solution for pipeline planning");
     return false; // Indicate failure
   }
-  outInfo(FG_CYAN<<"ACQUIRING LOCK");
 
-  outInfo(FG_CYAN << "LOCK ACQUIRED");
-
-  std::vector<Designator> resultDesignators;
-  std::vector<std::string> new_pipeline_order;
-  for(auto bdg : bdgs)
+  std::for_each(new_pipeline_order.begin(), new_pipeline_order.end(), [](std::string & p)
   {
-    new_pipeline_order = jsonPrologInterface_.createPipelineFromPrologResult(bdg["A"].toString());
+    outInfo(p);
+  });
 
-    //always estimate a pose...these could go directly into the planning phase in Prolog?
-    if(std::find(new_pipeline_order.begin(), new_pipeline_order.end(), "Cluster3DGeometryAnnotator") == new_pipeline_order.end())
+  //always estimate a pose...these could go directly into the planning phase in Prolog?
+  if(std::find(new_pipeline_order.begin(), new_pipeline_order.end(), "Cluster3DGeometryAnnotator") == new_pipeline_order.end())
+  {
+    std::vector<std::string>::iterator it = std::find(new_pipeline_order.begin(), new_pipeline_order.end(), "ClusterMerger");
+    if(it != new_pipeline_order.end())
     {
-      std::vector<std::string>::iterator it = std::find(new_pipeline_order.begin(), new_pipeline_order.end(), "ClusterMerger");
-      if(it != new_pipeline_order.end())
-      {
-        new_pipeline_order.insert(it + 1, "Cluster3DGeometryAnnotator");
-      }
-    }
-
-    //for debugging advertise TF
-    new_pipeline_order.push_back("TFBroadcaster");
-
-    //whatever happens do ID res and spawn to gazebo...this is also pretty weird
-    if(std::find(new_pipeline_order.begin(), new_pipeline_order.end(), "ObjectIdentityResolution") == new_pipeline_order.end())
-    {
-      new_pipeline_order.push_back("ObjectIdentityResolution");
-      new_pipeline_order.push_back("GazeboInterface");
-    }
-    new_pipeline_order.push_back("StorageWriter");
-
-    if(/*!allSolutions*/true)
-    {
-      break;  // Only take the first solution if allSolutions == false
+      new_pipeline_order.insert(it + 1, "Cluster3DGeometryAnnotator");
     }
   }
 
+  //for debugging advertise TF
+  new_pipeline_order.push_back("TFBroadcaster");
+
+  //whatever happens do ID res and spawn to gazebo...this is also pretty weird
+  if(std::find(new_pipeline_order.begin(), new_pipeline_order.end(), "ObjectIdentityResolution") == new_pipeline_order.end())
+  {
+    new_pipeline_order.push_back("ObjectIdentityResolution");
+    new_pipeline_order.push_back("GazeboInterface");
+  }
+  new_pipeline_order.push_back("StorageWriter");
+
+  std::vector<Designator> resultDesignators;
   if(subsetOfLowLvl(new_pipeline_order))
   {
     outInfo("Query answerable by lowlvl pipeline. Executing it");
@@ -580,16 +564,7 @@ void RSProcessManager::filterResults(Designator &requestDesignator,
                 {
                   if(superclass != "" && rs_queryanswering::krNameMapping.count(superclass) == 1)
                   {
-                    std::stringstream prologQuery;
-                    prologQuery << "owl_subclass_of(" << rs_queryanswering::krNameMapping[childrenPair.stringValue()] << "," << rs_queryanswering::krNameMapping[superclass] << ").";
-                    outInfo("Asking Query: " << prologQuery.str());
-                    json_prolog::Prolog pl;
-                    json_prolog::PrologQueryProxy bdgs = pl.query(prologQuery.str());
-                    bdgs.begin() == bdgs.end() ? ok = false : ok = true;
-                    if(ok)
-                    {
-                      outInfo(rs_queryanswering::krNameMapping[childrenPair.stringValue()] << " IS " << rs_queryanswering::krNameMapping[superclass]);
-                    }
+                    ok = PrologInterface::subClassOf(childrenPair.stringValue(),superclass);
                   }
                   else if(strcasecmp(childrenPair.stringValue().c_str(), req_kvp.stringValue().c_str()) == 0 || req_kvp.stringValue() == "")
                   {

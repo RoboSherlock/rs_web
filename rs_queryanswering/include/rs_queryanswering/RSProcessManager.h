@@ -6,7 +6,7 @@
 #include <rs_queryanswering/DesignatorWrapper.h>
 #include <rs_queryanswering/RSControledAnalysisEngine.h>
 #include <rs_queryanswering/KRDefinitions.h>
-#include <rs_queryanswering/JsonPrologInterface.h>
+#include <rs_queryanswering/PrologInterface.h>
 
 
 #include <designator_integration_msgs/DesignatorCommunication.h>
@@ -25,7 +25,7 @@ class RSProcessManager
 private:
 
   RSControledAnalysisEngine engine;
-  JsonPrologInterface jsonPrologInterface_;
+  PrologInterface prologInterface;
 
   ros::NodeHandle nh_;
   ros::Publisher desig_pub_;
@@ -53,7 +53,7 @@ public:
 
   RSProcessManager(const bool useVisualizer, const std::string &savePath,
                    const bool &waitForServiceCall, const bool useCWAssumption, ros::NodeHandle n):
-    engine(n), jsonPrologInterface_(), nh_(n), waitForServiceCall_(waitForServiceCall),
+    engine(n), prologInterface(), nh_(n), waitForServiceCall_(waitForServiceCall),
     useVisualizer_(useVisualizer), useCWAssumption_(useCWAssumption), useIdentityResolution_(false), pause_(false), visualizer_(savePath)
   {
 

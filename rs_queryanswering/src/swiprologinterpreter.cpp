@@ -4,6 +4,9 @@
 #include <memory>
 #include <mutex>
 #include <ros/package.h>
+#include <algorithm>
+
+#include <rs_queryanswering/KRDefinitions.h>
 
 
 class PrologEngine
@@ -22,11 +25,11 @@ public:
     char *argv[4];
     int argc = 0;
     argv[argc++] = "PrologEngine";
-    argv[argc++] = "-f";
-    std::string rosPrologInit = ros::package::getPath("rosprolog") +"/prolog/init.pl";
+    argv[argc++] = "-s";
+    std::string rosPrologInit = ros::package::getPath("rosprolog") + "/prolog/init.pl";
     argv[argc] = new char[rosPrologInit.size() + 1];
     std::copy(rosPrologInit.begin(), rosPrologInit.end(), argv[argc]);
-    argv[argc++][rosPrologInit.size()]='\0';
+    argv[argc++][rosPrologInit.size()] = '\0';
     argv[argc] = NULL;
     engine  = std::make_shared<PlEngine>(argc, argv);
     init();
@@ -51,7 +54,7 @@ public:
     PlTermv av(1);
     try
     {
-      PlQuery q("rs_query_interface","keyword", av);
+      PlQuery q("rs_query_interface", "keyword", av);
       while(q.next_solution())
       {
         std::cerr << (char *)av[0] << std::endl;
@@ -64,19 +67,71 @@ public:
     lock.unlock();
   }
 
-  static void planPipelineQuery(std::vector<std::string> keys)
+  static void planPipelineQuery(const std::vector<std::string> &keys,
+                                std::vector<std::string> &pipeline)
   {
     PlTermv av(2);
     PlTail l(av[0]);
-    for(auto key:keys)
+    for(auto key : keys)
     {
-        l.append(key.c_str());
+      l.append(key.c_str());
     }
     l.close();
     PlQuery q("build_single_pipeline_from_predicates", av);
     while(q.next_solution())
     {
-      std::cerr<<(char*)av[1]<<std::endl;
+      //      std::cerr<<(char*)av[1]<<std::endl;
+      PlTail res(av[1]);//result is a list
+      PlTerm e;//elements of that list
+      while(res.next(e))
+      {
+        pipeline.push_back(std::string((char *)e));
+      }
+    }
+  }
+
+  static void subClassOf(std::string child, std::string parent)
+  {
+    PlTermv av(2);
+    av[0] =  rs_queryanswering::makeUri(rs_queryanswering::krNameMapping[child]).c_str();
+    av[1] =  rs_queryanswering::makeUri(rs_queryanswering::krNameMapping[parent]).c_str();
+    try
+    {
+      if(PlCall("owl_subclass_of", av))
+      {
+        std::cerr << child << " is subclass of " << parent << std::endl;
+      }
+      else
+      {
+        std::cerr << child << " is NOT subclass of " << parent << std::endl;
+      }
+    }
+    catch(PlException &ex)
+    {
+      std::cerr << (char *)ex << std::endl;
+    }
+  }
+
+  static void class_property(std::string className, std::string property, std::string value)
+  {
+    PlTermv av(3);
+    av[0] =  rs_queryanswering::makeUri(rs_queryanswering::krNameMapping[className]).c_str();
+    av[1] =  rs_queryanswering::makeUri(property).c_str();
+    av[2] =  rs_queryanswering::makeUri(value).c_str();
+    try
+    {
+      if(PlCall("class_properties", av))
+      {
+        std::cerr << className << " " <<property <<" " <<value << std::endl;
+      }
+      else
+      {
+        std::cerr << className << " has NO " <<property <<" " <<value << std::endl;
+      }
+    }
+    catch(PlException &ex)
+    {
+      std::cerr << (char *)ex << std::endl;
     }
   }
 };
@@ -87,7 +142,15 @@ int main(int argc, char **argv)
 {
   PrologEngine pe;
   pe.query("asd");
-  pe.planPipelineQuery(std::vector<std::string>{"shape","color"});
+  std::vector<std::string> plannedPipeline;
+  pe.planPipelineQuery(std::vector<std::string> {"shape"}, plannedPipeline);
+  std::for_each(plannedPipeline.begin(), plannedPipeline.end(), [](std::string & p)
+  {
+    std::cerr << p << std::endl;
+  });
+
+  pe.subClassOf("toaster", "Container");
+  pe.class_property("plate","rs_components:'hasVisualProperty'","rs_objects:'ObjectPart'");
   return 0;
 }
 

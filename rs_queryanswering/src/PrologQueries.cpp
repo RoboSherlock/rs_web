@@ -172,14 +172,18 @@ PREDICATE(cpp_init_rs, 2)
     rs::common::getAEPaths(pipelineName, pipelinePath);
     std::vector<std::string> lowLvlPipeline;
     lowLvlPipeline.push_back("CollectionReader");
+    std::string configPath =
+        ros::package::getPath("rs_queryanswering").append(std::string("/config/config.yaml"));
+
+    std::cerr<<"Path to config file: "<<configPath<<std::endl;
 
     if(!pipelinePath.empty())
     {
-      bool waitForService = true;
-      pm = new RSProcessManager(false, ".",waitForService, false, nh);
-      pm->setLowLvlPipeline(lowLvlPipeline);
+      bool waitForService = false;
+      pm = new RSProcessManager(false, ".", waitForService, false, nh);
+//      pm->setLowLvlPipeline(lowLvlPipeline);
       pm->setUseIdentityResolution(false);
-      pm->init(pipelinePath, "cml");
+      pm->init(pipelinePath, configPath);
       thread = std::thread(&RSProcessManager::run, &(*pm));
       return A2 = (void *)pm;
     }
@@ -187,7 +191,7 @@ PREDICATE(cpp_init_rs, 2)
   return FALSE;
 }
 
-PREDICATE(rs_pause, 1)
+PREDICATE(cpp_rs_pause, 1)
 {
   if(pm)
   {
@@ -204,7 +208,7 @@ PREDICATE(cpp_stop_rs, 1)
 {
   if(pm)
   {
-    pm->stop();
+      pm->stop();
     delete pm;
     pm = NULL;
     return TRUE;

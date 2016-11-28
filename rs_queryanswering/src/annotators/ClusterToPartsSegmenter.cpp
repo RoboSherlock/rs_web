@@ -303,6 +303,10 @@ private:
     {
       objToProcess = qs.inspect();
     }
+    else
+    {
+      return UIMA_ERR_NONE;
+    }
     //todo if there is time...check if object can hold other objects
 
     std::stringstream prologQuery;
@@ -314,7 +318,7 @@ private:
     //    }
     outWarn("Object Queried for is: " << objToProcess);
 
-    bool ok = PrologInterface::class_property(objToProcess,"rs_components:'hasVisualProperty'","rs_objects:'ObjectPart'");
+    bool ok = PrologInterface::class_property(objToProcess, "rs_components:'hasVisualProperty'", "rs_objects:'ObjectPart'");
     if(!ok)
     {
       outInfo("Queried Object does not meet requirements of this annotator");
@@ -430,7 +434,9 @@ private:
           for(int pclClIdx = 0; pclClIdx < clusterAsParts.partsOfClusters.size(); pclClIdx++)
           {
             if(pclClIdx == idxBiggest)
+            {
               continue;
+            }
             rs::Cluster newCluster = rs::create<rs::Cluster>(*engine.getCas());
             rs::ReferenceClusterPoints rcp = rs::create<rs::ReferenceClusterPoints>(*engine.getCas());
             rs::PointIndices uimaIndices = rs::conversion::to(*engine.getCas(), *clusterAsParts.partsOfClusters[pclClIdx]);
@@ -493,7 +499,10 @@ private:
       mergedClusters.push_back(rs::conversion::toFeatureStructure(tcas, bson));
       std::vector<rs::TFLocation> locations;
       c.annotations.filter(locations);
-      if(!locations.empty()) outInfo(locations[0].reference_desc()<<" "<<locations[0].frame_id());
+      if(!locations.empty())
+      {
+        outInfo(locations[0].reference_desc() << " " << locations[0].frame_id());
+      }
     }
     scene.identifiables.set(mergedClusters);
     engine.resetCas();

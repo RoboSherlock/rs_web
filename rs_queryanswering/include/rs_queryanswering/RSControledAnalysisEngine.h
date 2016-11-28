@@ -31,7 +31,7 @@
 */
 struct RSQuery
 {
-  uint64_t timestamp = 0;
+  uint64_t timestamp = std::numeric_limits<uint64_t>::max();
   std::string location = "";
   std::string objToInspect = "";
   std::string ingredient ="";

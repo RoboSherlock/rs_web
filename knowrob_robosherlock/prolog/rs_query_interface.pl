@@ -1,6 +1,8 @@
 :- module(rs_query_interface,
   [
   rs_interface/1,
+  rs_pause/1,
+  rs_stop/1,
   execute_pipeline/1,
   scene_clusters_count/3,
   detect/1,
@@ -69,7 +71,7 @@ rs_interface :-
 
 rs_interface(Client) :-
    rs_interf(fail),
-   cpp_init_rs(kitchen,Client),
+   cpp_init_rs(pickandplace,Client),
    retract(rs_interf(fail)),
    assert(rs_interf(Client)),!.
     
@@ -81,6 +83,13 @@ execute_pipeline(P):-
    rs_interface(Cl),
    process_once(Cl).
 
+rs_pause(A):-
+   cpp_rs_pause(A).
+
+rs_stop(A):-
+   rs_interf(Cl),
+   cpp_stop_rs(A),
+   assert(rs_interf(fail)).
 
 %defs for syntax checks
 designator_type([an,object],'object').

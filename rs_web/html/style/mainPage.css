@@ -1,0 +1,93 @@
+html,body {
+	margin:0;
+	padding:5;
+	height: -o-calc(100% - 50px); /* opera */
+    height: -webkit-calc(100% - 60px); /* google, safari */
+    height: -moz-calc(100% - 60px); /* firefox */
+    background: #606060;
+}
+.slide-out-div {
+  padding: 10px;
+  max-height: 240px;
+  height:240px;    
+  width:320px;
+  max-width: 320px;
+  background: #ccc;
+  margin: auto;
+  border: 1px solid #29216d;
+  z-index: 1;
+}
+.streamimg {
+  max-height: 240px;
+  max-width: 320px;
+}
+
+#vtab {
+    margin: auto;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+}
+#vtab > ul > li {
+    width: 150px;
+    height: 40px;
+    background: linear-gradient(to bottom, #549FC8 0%, #246F98 50%, #246F98 51%, #144F78 100%)!important;
+    list-style-type: none;
+    display: block;
+    text-align: center;
+    float: left;
+    vertical-align: middle;
+    line-height: 40px;
+    margin-bottom: 110px;
+/*    border: 1px solid #fff;*/
+    position: relative;
+/*    border-right: solid #fff;*/
+    opacity: .5;
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
+    filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=30);
+    transform-origin: left,top, 0;
+    transform: rotate(-90deg);
+/*    transform: translate(-50, -50);*/
+
+-webkit-box-shadow: 8px -8px 16px -2px rgba(0,0,0,0.45);
+-moz-box-shadow: 8px -8px 16px -2px rgba(0,0,0,0.45);
+box-shadow: 8px -8px 16px -2px rgba(0,0,0,0.45);
+    
+}
+#vtab > ul > li > a {
+    color: #ffffff;
+}
+#vtab > ul > li.selected {
+    opacity: 1;
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";
+    filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=100);
+/*    border: 1px solid #ddd;*/
+/*    border-right: none;*/
+    background: linear-gradient(to bottom, #549FC8 0%, #246F98 50%, #246F98 51%, #144F78 100%)!important;
+}
+#vtab > ul {
+    float: left;
+    width: 50px;
+    text-align: left;
+    display: block;
+    margin-left:-45;/*this is fking weird*/
+    padding: 0;
+    position: relative;
+    min-height: :100%;
+    top: 60px;
+    font: 14px arial, sans-serif;
+}
+#vtab > div {
+    background-color: #fafafa;
+    margin-left: 50px;
+    border: 1px solid #ddd;
+    min-height: 100%;
+    height: auto !important;
+    padding: 5px;
+    position: relative;
+    z-index: 9;
+    -moz-border-radius: 20px;
+}

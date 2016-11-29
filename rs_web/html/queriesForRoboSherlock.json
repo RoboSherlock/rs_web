@@ -1,0 +1,170 @@
+{
+    "query": [
+	
+	{
+            "q":"owl_parse('package://iai_semantic_maps/owl/kitchen.owl'),owl_individual_of(A, knowrob:'SemanticEnvironmentMap'),add_object_with_children(A).",
+            "text":"Load semantic map"
+        },
+		{
+            "q":"",
+            "text":"----- Query Robot Capabilities -----"
+        },
+        {
+            "text":"Is the PR2 capable of perceiving 3D depth data?",
+            "q":"perceptual_capabilities_on_robot('http://knowrob.org/kb/rs_components.owl#Perceive3DDepthCapability','http://knowrob.org/kb/PR2.owl#PR2Robot1'),!."            
+        },
+        {
+            "text":"Can I run the Cluster3DGeometryAnnotator component of RoboSherlock on the PR2 Robot?",
+            "q":"action_feasible_on_robot(rs_components:'Cluster3DGeometryAnnotator',pr2:'PR2Robot1')."
+        },
+        {   "text":"",
+            "q":""
+        },
+
+        {
+            "q":"",
+            "text":"----- Query for objects and their properties -----"
+        },
+        {
+            "text":"What are the objects defined in the ontology?",
+            "q":"owl_subclass_of(Obj,rs_objects:'KitchenObjects')."
+        },
+        {
+            "text":"Are there any objects that can be container?",
+            "q":"owl_subclass_of(Obj,rs_objects:'KitchenObject'),owl_subclass_of(Obj,knowrob:'Container')."
+        },
+        {
+            "text":"What are the properties defined for the PancakeMaker?",
+            "q":"predicates_for_object('http://knowrob.org/kb/rs_objects.owl#PancakeMaker',P)."
+        },
+        {
+            "text":"Show me all objects that can have a lid",
+            "q":"owl_subclass_of(Obj,knowrob:'HumanScaleObject'),class_properties(Obj,rs_components:'hasVisualProperty',rs_objects:'ObjectPartLid')."
+        },
+        {
+            "text":"",
+            "q":""
+        },
+        {
+            "q":"",
+            "text":"----- Build pipelines -----"
+        },
+	{
+            "text":"Build a pipeline for the pancake maker.",
+            "q":"build_pipeline_for_object('http://knowrob.org/kb/rs_objects.owl#PancakeMaker',P)."
+        },
+	{
+	    "text":"Build pipeline for predicates: shape,color, location.",
+	    "q":"build_pipeline_from_predicates(['color','shape','location'],P)."
+	},
+	{
+	    "text":" ",
+	    "q":" "
+	},
+	{
+            "q":"rs_interface(A,kitchen).",
+            "text":"Initialize RoboSherlock"
+        },
+        {
+            "text":"-------- Kitchen Context --------",
+            "q":"change_context('kitchen')."
+        },
+	{
+	    "text":" ",
+	    "q":" "
+	},
+        {
+            "text":"--- Detection queries using knowledge about the environment ---", 
+            "q":" "
+        },
+	{
+            "text":"Find a large black object on the counter top",
+            "q": "detect([an, object, [color, black],[size,large],[timestamp,10]])."
+        },
+	{
+            "text":"Find the pancake_maker on the counter top",
+            "q": "detect([an, object, [detection,'pancake_maker'],[a,location,[on, 'kitchen_sink_block_counter_top']],[timestamp,10]])."
+        },
+	{
+            "text":"Find the spatulas in the drawer",
+            "q": "detect([an, object, [detection,'spatula'],[a,location,[in, 'drawer_sinkblock_upper_open']],[timestamp,10]])."
+        },
+        {
+            "text":"Detect Handles",
+            "q": "detect([an, object, [handle,''],[timestamp,1]])."
+        },
+	{
+	    "text":"Detect boxes at ts 2",
+	    "q":"detect([an, object, [shape,box],[timestamp,2]])."		
+	},
+	    {
+	        "text":"Detect the white box",
+	        "q":"detect([an, object, [shape, box],[color, white],[timestamp,12]])."
+	    },
+	    {
+	        "text":"Detect size  and color of all objects at ts 5",
+	        "q":"detect([an, object, [color,''],[size,''],[timestamp,5]])."		
+	    },
+	    {
+	        "text":"Detect the Mondamin pancake mix",
+	        "q":"detect([an, object, [detection,mondamin],[timestamp,9]])."		
+	    }, 
+        
+        {
+            "text":"--- Inspection queries using background knowledge about objects ---", 
+            "q":" "
+        },
+	    {
+	        "text":"Detect pancake on Pancake Maker",
+	        "q":"detect([an, object, [detection,pancake],[timestamp,9]])."		
+	    },
+        {
+            "text":"Find all objects that are drinks",
+            "q":"detect([an, object, [type,'Drink'],[timestamp,5]])."
+        },
+        {
+            "text":"Find all objects that are Food or drink or ingredient",
+            "q":"detect([an, object, [type,'FoodOrDrinkOrIngredient'],[timestamp,8]])."
+        },
+        {
+            "text":"Find all electrical devices",
+             "q":"detect([an, object, [type,'ElectricalDevice'],[timestamp,10]])."
+        },
+        {
+            "text":"",
+            "q":""
+        },
+        {
+            "text":"-------- CHEMLAB CONTEXT --------",
+            "q":"change_context('chemlab')."
+        },
+        {
+            "text":"",
+            "q":""
+        },
+	{
+            "text":"Find all objects",
+            "q": "detect([an, object, [detection,''],[a,location,[on, 'chemlab_table']],[timestamp,1]])."
+        },
+	{
+            "text":"Find the electrical device on the table",
+            "q": "detect([an, object, [type,'ElectricalDevice'],[a,location,[on, 'chemlab_table']],[timestamp,1]])."
+        },
+	{
+	    "text":"Detect container that can hold 100ml of liquid",
+	    "q": "detect([an, object, [type,'Container'],[volume,'0.1'],[a,location,[on, 'chemlab_table']],[timestamp,1]])."	
+	},
+        {
+	    "text":"Detect container that can hold 400ml of liquid",
+	    "q": "detect([an, object, [type,'Container'],[volume,'0.4'],[a,location,[on, 'chemlab_table']],[timestamp,1]])."	
+	},
+	{
+	    "text":"Detect bottle that contains acid",
+	    "q": "detect([an, object, [type,'Container'],[contains,acid],[a,location,[on, 'chemlab_table']],[timestamp,1]])."	
+	},
+	{
+	    "text":"Detect the container that can hold 250ml of substance and has base in it",
+	     "q": "detect([an, object, [type,'Container'],[volume,'0.25'],[contains,base],[a,location,[on, 'chemlab_table']],[timestamp,1]])."	
+	}
+    ]
+}

@@ -423,6 +423,9 @@
       <node>FlaskAnnotator</node>
       <node>MixerAnnotator</node-->
       <node>PancakeAnnotator</node>
+      <node>ObjectIdentityResolution</node>
+      <node>GazeboInterface</node>
+      <node>StorageWriter</node>
 <!--      <node>ClusterTracker</node>-->
 <!--      <node>ClusterGogglesAnnotator</node>-->
 <!--      <node>GroundTruthAnnotator</node>-->

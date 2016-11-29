@@ -54,7 +54,7 @@ public:
   RSProcessManager(const bool useVisualizer, const std::string &savePath,
                    const bool &waitForServiceCall, const bool useCWAssumption, ros::NodeHandle n):
     engine(n), prologInterface(), nh_(n), waitForServiceCall_(waitForServiceCall),
-    useVisualizer_(useVisualizer), useCWAssumption_(useCWAssumption), useIdentityResolution_(false), pause_(false), visualizer_(savePath)
+    useVisualizer_(useVisualizer), useCWAssumption_(useCWAssumption), useIdentityResolution_(false), pause_(true), visualizer_(savePath)
   {
 
     outInfo("Creating resource manager"); // TODO: DEBUG

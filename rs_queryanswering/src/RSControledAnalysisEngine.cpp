@@ -403,7 +403,7 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
 
   for (auto &point:dsCloud->points)
   {
-    point.a = 255;
+    point.a = 0;
   }
   dsCloud->header.frame_id = camToWorld.child_frame_id_; //map if localized..head_mount_kinect_rgb_optical_frame otherwise;
   //  dispCloud->header.stamp = ros::Time::now().toNSec();

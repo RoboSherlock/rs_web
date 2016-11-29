@@ -1,6 +1,6 @@
 :- module(rs_query_interface,
   [
-  rs_interface/1,
+  rs_interface/2,
   rs_pause/1,
   rs_stop/1,
   execute_pipeline/1,
@@ -69,9 +69,9 @@ rs_interface :-
 
 :- assert(rs_interf(fail)).
 
-rs_interface(Client) :-
+rs_interface(Client,Ae) :-
    rs_interf(fail),
-   cpp_init_rs(pickandplace,Client),
+   cpp_init_rs(Ae,Client),
    retract(rs_interf(fail)),
    assert(rs_interf(Client)),!.
     

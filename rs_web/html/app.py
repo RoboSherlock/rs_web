@@ -6,6 +6,7 @@ from pymongo import MongoClient
 import bson
 from bson import Binary
 
+import base64
 import numpy as np
 import cv2 
 import cv
@@ -32,7 +33,8 @@ for sc in scene_cursor:
     for key, value in sc.iteritems():
         if key == 'annotations':
             keyOut=key
-print timestamps
+
+print len(timestamps)
 
 
 def get_image_for_scene(sceneId):    
@@ -42,23 +44,31 @@ def get_image_for_scene(sceneId):
         if colorCursor.count()!=0:
             width = colorCursor[0]['cols']
             height = colorCursor[0]['rows']            
-            print 'Size of image is: '+str(width)+'x'+str(height)+ '\n'
-            print 'Type is: ' + str(colorCursor[0]['mat_type'])
+#            print 'Size of image is: '+str(width)+'x'+str(height)+ '\n'
+#            print 'Type is: ' + str(colorCursor[0]['mat_type'])
             imgData = colorCursor[0]['data']
 
-            nparr = np.fromstring(imgData,np.uint8)
-            nppic= np.reshape(nparr,(960,1280,3))
+            image = np.reshape(np.fromstring(imgData,np.uint8),(960,1280,3))
+            small = cv2.resize(image, (0,0), fx=0.25, fy=0.25) 
+            [ret,jpeg] = cv2.imencode('.png',small)
+            return base64.b64encode(jpeg.tostring())
             
-            cv2.imshow('display',nppic)
-            cv2.waitKey(0)
-            cv2.destroyAllWindows()
+#            cv2.imshow('display',nppic)
+#            cv2.waitKey(0)
+#            cv2.destroyAllWindows()
 
-get_image_for_scene(db.scene.find({'timestamp':timestamps[0]})[0]['_parent'])
+imgs = []
 
+for ts in timestamps:
+   b64 = get_image_for_scene(db.scene.find({'timestamp':ts})[0]['_parent'])
+   imgs.append('data:image/png;base64,'+b64)
+
+
+@app.route('/')
 @app.route('/rs_test.html')
-def hello(dbname=None,rows=[]):
-    return render_template('objStore.html', dbname=dbName,rows=timestamps)
+def hello(dbname=None,rows=[],images =[]):
+    return render_template('objStore.html', dbname=dbName,rows=timestamps,images=imgs)
 
-#if __name__ == '__main__':
-#    app.run(use_reloader=True, debug=False)
+if __name__ == '__main__':
+    app.run(use_reloader=True, debug=True)
 

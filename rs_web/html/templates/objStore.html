@@ -7,6 +7,10 @@
 {% endif %}
 <ul>
 {% for row in rows %}
-  <li class="{{ loop.cycle('odd', 'even') }}">{{ row }}</li>
+  <li class="{{ loop.cycle('odd', 'even') }}">
+	<a>{{ row }}</a>
+    <img src="{{images[loop.index0]}}"/>
+  </li>
 {% endfor %}
 </ul>
+

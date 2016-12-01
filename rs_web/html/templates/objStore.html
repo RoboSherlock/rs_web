@@ -1,16 +1,37 @@
-<!doctype html>
-<title>Hello from Flask</title>
-{% if name %}
-  <h1>Hello {{ name }}!</h1>
-{% else %}
-  <h1>Hello, World!</h1>
-{% endif %}
-<ul>
-{% for row in rows %}
-  <li class="{{ loop.cycle('odd', 'even') }}">
-	<a>{{ row }}</a>
-    <img src="{{images[loop.index0]}}"/>
-  </li>
-{% endfor %}
-</ul>
+{% extends 'base.html' %}
 
+{% block body %}
+{% if timestamps %}
+ {# {{ pagination.info }} #}
+  {{ pagination.links }}
+  <div class="table-responsive">
+    <table class="table table-hover">
+    <thead>
+      <tr>
+	<th>#</th>
+	<th>TS</th>
+	<th>Image</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ts in timestamps %}
+      <tr>
+      <td>{{ loop.index + (page - 1) * per_page }}</td>
+      <td>{{ ts }}
+      <td><img src="{{ images[loop.index-1] }}"/></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    </table>
+  </div>
+  {{ pagination.links }}
+  {% endif %}
+{% endblock %}
+
+{#{% block js %}
+  {% if active_url %}
+    $('#{{ active_url }}').addClass('active');
+  {% else %}
+  $('#users-url').addClass('active');
+  {% endif %}
+{% endblock %}#}

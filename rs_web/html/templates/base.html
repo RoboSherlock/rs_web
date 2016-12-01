@@ -9,7 +9,7 @@
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
     
-    <link rel="stylesheet" href="{{ url_for('static', filename='style/bootstrap.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/bootstrap.mins.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style/web.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style/layout-default-1.4.0.css') }}">
     
@@ -42,7 +42,15 @@
   </head>
   <body>
     <div class="ui-layout-west">
-          
+        
+        <form action= "/scenes" method="post">
+            <input action ="/" type="submit" name="submit" value="Scenes"/>
+        </form>
+        
+        <form action= "/objects" method = "post">
+            <input type="submit" name="submit" value="Objects"/>
+        </form>
+        
     </div>
     {% block body %}{% endblock %}
 <!--

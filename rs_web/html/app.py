@@ -1,4 +1,4 @@
-from flask import Flask, render_template,current_app
+from flask import Flask, render_template,current_app,request
 from flask_paginate import Pagination, get_page_args
 
 from pymongo import MongoClient
@@ -63,7 +63,7 @@ def getImages(timestamps):
 #  return render_template('bkup.html', dbname=dbName,rows=timestamps,images=imgs)
 
 
-@app.route('/')
+@app.route('/scenes', methods= ['GET','POST'])
 def index():
     total = len(timestamps)
     page, per_page, offset = get_page_args()
@@ -86,6 +86,14 @@ def index():
                            pagination=pagination,
                            )
 
+@app.route('/objects', methods=['GET', 'POST'])
+def handle_objects():
+    # do something to send email
+    if request.method == 'POST':
+        return render_template('bkup.html')
+    print 'button pressed'
+    
+
 def get_pagination(**kwargs):
     kwargs.setdefault('record_name', 'records')
     return Pagination(css_framework=get_css_framework(),
@@ -106,5 +114,5 @@ def show_single_page_or_not():
     return current_app.config.get('SHOW_SINGLE_PAGE', False)
 
 if __name__ == '__main__':
-    app.run(use_reloader=True, debug=True)
+    app.run(use_reloader=True, debug=True, host="0.0.0.0", threaded=True)
 

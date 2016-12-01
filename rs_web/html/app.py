@@ -12,21 +12,13 @@ from math import ceil
 app = Flask(__name__)
 app.config.from_pyfile('app.cfg')
 
-#collections = {'rgb:color_imgage_hd','depth:depth_imgage_hd','scene:scene','objects:persistent_objects'}
 
-
-#dbName = "Scenes_annotated"
+dbName = "Scenes_annotated"
 #dbName = "PnP9Obj"
-dbName = "kitchen"
+#dbName = "kitchen"
 client = MongoClient()
 db = client[dbName]
 
-
-#@app.before_request
-#def before_request():
-#  g.conn = sqlite3.connect('test.db')
-#  g.conn.row_factory = sqlite3.Row
-#  g.cur = g.conn.cursor()
 
 for collectionName in db.collection_names():
     print collectionName

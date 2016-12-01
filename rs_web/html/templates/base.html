@@ -8,14 +8,30 @@
     <!-- Bootstrap -->
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='web.css') }}">
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/bootstrap.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/web.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/layout-default-1.4.0.css') }}">
+    
+    
+    <script type="text/javascript" src="{{ url_for('static', filename='jquery-1.11.1.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='jquery.ui.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='jquery.layout-1.4.0.js') }}"></script>
+    
+      
+    <script type="text/javascript"> 
+      $(document).ready(function () {
+	   $('body').layout({ 
+           applyDemoStyles: true,
+           west: {
+            minSize: 250,
+            maxSize: 500,
+            size: 500}
+       }
+       );
+       
+      });
 
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-    <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
-    <script type="text/javascript">
-      {% block js %}{% endblock %}
     </script>
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -25,8 +41,14 @@
     <![endif]-->
   </head>
   <body>
-    <div class="container">
-    {% block body %}{% endblock %}
+    <div class="ui-layout-west">
+          
     </div>
+    {% block body %}{% endblock %}
+<!--
+        <div class="ui-layout-north">North</div>
+<div class="ui-layout-south">South</div>
+<div class="ui-layout-east">East</div>
+-->
   </body>
 </html>

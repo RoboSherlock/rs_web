@@ -2,10 +2,10 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <link rel="stylesheet" type="text/css" href="style/mainPage.css"/>
+    <link rel="stylesheet" type="text/css" href="static/style/mainPage.css"/>
     
-    <script type="text/javascript" src="lib/jquery/jquery-1.11.1.min.js"></script>
-    <script type ="text/javascript" src = "lib/jquery/myJquery.js"></script>
+    <script type="text/javascript" src="static/jquery-1.11.1.min.js"></script>
+    <script type ="text/javascript" src = "static/myJquery.js"></script>
     <script type ="text/javascript" src = "lib/myScripts.js"></script>
     <script type ="text/javascript" src="lib/tabSlideOut.js"></script>
 
@@ -58,7 +58,8 @@
 
         </div>
         <div id="iframe">
-           <iframe  style="position: relative; height: 100%; width: 100%;" src="http://localhost:5000"></iframe>
+            <button onclick="var ifr=document.getElementsByName('objStore')[0]; ifr.src=ifr.src;">Refresh</button>
+           <iframe name="objStore"  style="position: relative; height: 100%; width: 100%;" src="http://localhost:5000"></iframe>
         </div>
         <div id="iframe">
             <iframe  style="position: relative; height: 100%; width: 100%;" src="http://www.robosherlock.org"></iframe>

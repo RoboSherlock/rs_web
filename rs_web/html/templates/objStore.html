@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% block body %}
+<div class="ui-layout-center">
 {% if timestamps %}
  {# {{ pagination.info }} #}
   {{ pagination.links }}
@@ -25,7 +26,8 @@
     </table>
   </div>
   {{ pagination.links }}
-  {% endif %}
+{% endif %}
+</div>
 {% endblock %}
 
 {#{% block js %}

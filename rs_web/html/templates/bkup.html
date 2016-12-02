@@ -2,7 +2,30 @@
 
 {% block body %}
 <div class="ui-layout-center">
-   Test Page
+{% if images %}
+ {# {{ pagination.info }} #}
+ {# {{ pagination.links }}#}
+  <div class="table-responsive">
+    <table class="table table-hover">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Image</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for img in images %}
+      <tr>
+      <td>{{ loop.index }}</td>
+      <td><img src="{{ img }}"/></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    </table>
+  </div>
+  {#{{ pagination.links }}#}
+{% endif %}
+ 
 </div>
 {% endblock %}
 

@@ -7,54 +7,12 @@ import base64
 import numpy as np
 import cv2
 
-from math import ceil
+from source import RSMongoClient as RSMC
 
 app = Flask(__name__)
 app.config.from_pyfile('app.cfg')
 
-
-dbName = "Scenes_annotated"
-#dbName = "PnP9Obj"
-#dbName = "kitchen"
-client = MongoClient()
-db = client[dbName]
-
-
-for collectionName in db.collection_names():
-    print collectionName
-
-keyOut=''
-scene_cursor = db.cas.find()
-timestamps = []
-for sc in scene_cursor:
-    timestamps.append(sc['_timestamp'])
-    for key, value in sc.iteritems():
-        if key == 'annotations':
-            keyOut=key
-
-def getBase64Img(img):
-  [ret,png] = cv2.imencode('.png',img) 
-  b64 = base64.b64encode(png.tostring())
-  return 'data:image/png;base64,'+b64
-
-def get_image_for_sceneID(sceneId,scaleFactor):    
-  casDocument = db.cas.find({'_id':sceneId})
-  if casDocument.count() !=0: 
-    colorCursor= db.color_image_hd.find({'_id':casDocument[0]['color_image_hd']})
-    if colorCursor.count()!=0:
-      width = colorCursor[0]['cols']
-      height = colorCursor[0]['rows']            
-      imgData = colorCursor[0]['data']
-      image = np.reshape(np.fromstring(imgData,np.uint8),(height,width,3))
-      small = cv2.resize(image, (0,0), fx=scaleFactor, fy=scaleFactor) 
-      return small
-
-
-def getImages(timestamps):
-  imgs = []
-  for ts in timestamps:
-    imgs.append(getBase64Img(get_image_for_sceneID(db.scene.find({'timestamp':ts})[0]['_parent'],0.22)))
-  return imgs
+mc = RSMC.RSMongoClient('Scenes_annotated')
 
 
 #@app.route('/rs_test.html')
@@ -62,16 +20,18 @@ def getImages(timestamps):
 #  imgs = getImages(1,10)
 #  return render_template('bkup.html', dbname=dbName,rows=timestamps,images=imgs)
 
+mc.getPersistentObjects()
 
 @app.route('/scenes', methods= ['GET','POST'])
 def index():
+    timestamps = mc.getTimestamps()
     total = len(timestamps)
     page, per_page, offset = get_page_args()
     
     idxB = (page-1)*per_page
     idxE = page*per_page  
     ts = timestamps[idxB:idxE]
-    imgs = getImages(ts)
+    imgs = mc.getSceneImages(ts)
     pagination = get_pagination(page=page,
                                 per_page=per_page,
                                 total=total,
@@ -86,12 +46,13 @@ def index():
                            pagination=pagination,
                            )
 
+
 @app.route('/objects', methods=['GET', 'POST'])
 def handle_objects():
     # do something to send email
+    imgs = mc.getPersistentObjects()
     if request.method == 'POST':
-        return render_template('bkup.html')
-    print 'button pressed'
+        return render_template('bkup.html',images=imgs)
     
 
 def get_pagination(**kwargs):

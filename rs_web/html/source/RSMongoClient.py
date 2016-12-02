@@ -4,11 +4,12 @@ Created on Wed Nov 30 12:50:56 2016
 
 @author: ferenc
 """
-
+from __future__ import division
 from pymongo import MongoClient
 import cv2
 import numpy as np
 import base64
+
 
 class RSMongoClient:
   
@@ -34,7 +35,9 @@ class RSMongoClient:
                 height = colorCursor[0]['rows']            
                 imgData = colorCursor[0]['data']
                 image = np.reshape(np.fromstring(imgData,np.uint8),(height,width,3))
-                objImages.append(self.getBase64Img(image[y:y+objheight,x:x+objwidth]))
+                objImg=image[y:y+objheight,x:x+objwidth]
+                small = cv2.resize(objImg, (0,0), fx= 100 / objheight,fy=100 / objheight)
+                objImages.append(self.getBase64Img(small))
         return objImages
             
         

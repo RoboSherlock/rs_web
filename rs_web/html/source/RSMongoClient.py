@@ -5,6 +5,10 @@ Created on Wed Nov 30 12:50:56 2016
 @author: ferenc
 """
 from __future__ import division
+from __future__ import print_function # In python 2.7
+
+import sys
+
 from pymongo import MongoClient
 import cv2
 import numpy as np
@@ -19,26 +23,43 @@ class RSMongoClient:
     def __init__(self,dbName):
         self.client = MongoClient()
         self.db = self.client[dbName]
-
+    
+    def getPersistentObjectImage(self, objEntry):
+        x=objEntry['rois']['roi_hires']['pos']['x']
+        y=objEntry['rois']['roi_hires']['pos']['y']
+        objheight = objEntry['rois']['roi_hires']['size']['height']
+        objwidth = objEntry['rois']['roi_hires']['size']['width']
+        imgID = self.db.cas.find({'_timestamp':objEntry['lastSeen']})[0]['color_image_hd']
+        colorCursor= self.db.color_image_hd.find({'_id':imgID})
+        if colorCursor.count()!=0:
+            width = colorCursor[0]['cols']
+            height = colorCursor[0]['rows']            
+            imgData = colorCursor[0]['data']
+            image = np.reshape(np.fromstring(imgData,np.uint8),(height,width,3))
+            objImg=image[y:y+objheight,x:x+objwidth]
+            small = cv2.resize(objImg, (0,0), fx= 100 / objheight,fy=100 / objheight)
+            return small
+         
+    def getPersistentObjectAnnotations(self,objEntry):
+        annotations = objEntry['annotations']
+        annNames=[]
+        for a in annotations:
+            annNames.append( a['_type'] )
+        return annNames
+        
     def getPersistentObjects(self):
         poCursor = self.db.persistent_objects.find()
         objImages = []
-        for obj in poCursor:
-            x=obj['rois']['roi_hires']['pos']['x']
-            y=obj['rois']['roi_hires']['pos']['y']
-            objheight = obj['rois']['roi_hires']['size']['height']
-            objwidth = obj['rois']['roi_hires']['size']['width']
-            imgID = self.db.cas.find({'_timestamp':obj['lastSeen']})[0]['color_image_hd']
-            colorCursor= self.db.color_image_hd.find({'_id':imgID})
-            if colorCursor.count()!=0:
-                width = colorCursor[0]['cols']
-                height = colorCursor[0]['rows']            
-                imgData = colorCursor[0]['data']
-                image = np.reshape(np.fromstring(imgData,np.uint8),(height,width,3))
-                objImg=image[y:y+objheight,x:x+objwidth]
-                small = cv2.resize(objImg, (0,0), fx= 100 / objheight,fy=100 / objheight)
-                objImages.append(self.getBase64Img(small))
-        return objImages
+        objects = []
+        for objEntry in poCursor:
+            obj = {}
+            self.getPersistentObjectAnnotations(objEntry)
+            objImages.append(self.getBase64Img(self.getPersistentObjectImage(objEntry)))
+            obj['image'] = self.getBase64Img(self.getPersistentObjectImage(objEntry))
+            obj['annotations'] = self.getPersistentObjectAnnotations(objEntry)
+            objects.append(obj)
+#        return objImages
+        return objects
             
         
     def getBase64Img(self,img):

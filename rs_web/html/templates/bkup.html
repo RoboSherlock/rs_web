@@ -2,7 +2,7 @@
 
 {% block body %}
 <div class="ui-layout-center">
-{% if images %}
+{% if objects %}
  {# {{ pagination.info }} #}
  {# {{ pagination.links }}#}
   <div class="table-responsive">
@@ -11,13 +11,19 @@
       <tr>
         <th>#</th>
         <th>Image</th>
+        <th>Annotations</th>
       </tr>
     </thead>
     <tbody>
-      {% for img in images %}
+      {% for obj in objects %}
       <tr>
       <td>{{ loop.index }}</td>
-      <td><img src="{{ img }}"/></td>
+      <td><img src="{{ obj['image']}}"/></td>
+      <td>
+        {%for a in obj['annotations']%}
+            <a>{{ a }}</a></br>
+        {%endfor%}
+      </td>
       </tr>
       {% endfor %}
     </tbody>

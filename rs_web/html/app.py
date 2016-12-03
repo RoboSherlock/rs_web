@@ -50,9 +50,9 @@ def index():
 @app.route('/objects', methods=['GET', 'POST'])
 def handle_objects():
     # do something to send email
-    imgs = mc.getPersistentObjects()
+    objs = mc.getPersistentObjects()
     if request.method == 'POST':
-        return render_template('bkup.html',images=imgs)
+        return render_template('bkup.html',objects=objs)
     
 
 def get_pagination(**kwargs):

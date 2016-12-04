@@ -24,14 +24,16 @@
 	   $('body').layout({ 
            applyDemoStyles: true,
            west: {
-            minSize: 250,
-            maxSize: 500,
-            size: 500}
+            minSize: 350,
+            maxSize: 350,
+            size: 350}
        }
        );
        
       });
-
+    $( function() {
+        $( "#speed" ).selectmenu();
+      });
     </script>
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -43,13 +45,31 @@
   <body>
     <div class="ui-layout-west">
         
-        <form action= "/scenes" method="post">
-            <input action ="/" type="submit" name="submit" value="Scenes"/>
+        <form  method="post">
+            <input action= "/scenes" type="submit" name="submit" value="Scenes"/>
+            <input action= "/objects" type="submit" name="submit" value="Objects"/>
         </form>
-        
-        <form action= "/objects" method = "post">
-            <input type="submit" name="submit" value="Objects"/>
-        </form>
+
+<form action="#">
+ 
+  <fieldset>
+    <select name="speed" id="speed">
+      <option>shape</option>
+      <option>color</option>
+      <option selected="selected">type</option>
+      <option>location</option>
+      <option>label</option>
+    </select>
+    <select name="keyvalue" id="keyvalue">
+        <option>box</option>
+        <option>flat</option>
+        <option>round</option>
+    </select>
+    <input type="submit" name="submit2" value="Add"/>
+
+  </fieldset>
+ 
+</form>
         
     </div>
     {% block body %}{% endblock %}

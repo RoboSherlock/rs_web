@@ -1,8 +1,10 @@
+from __future__ import print_function # In python 2.7
+
 from flask import Flask, render_template,current_app,request
 from flask_paginate import Pagination, get_page_args
 
 from pymongo import MongoClient
-
+import sys
 import base64
 import numpy as np
 import cv2
@@ -22,8 +24,12 @@ mc = RSMC.RSMongoClient('Scenes_annotated')
 
 mc.getPersistentObjects()
 
-@app.route('/scenes', methods= ['GET','POST'])
+@app.route('/', methods= ['GET','POST'])
+@app.route('/scenes',methods= ['GET','POST'])
 def index():
+    if request.method == 'POST':
+       if request.form['submit'] == 'Objects':
+         return handle_objects()
     timestamps = mc.getTimestamps()
     total = len(timestamps)
     page, per_page, offset = get_page_args()
@@ -49,10 +55,36 @@ def index():
 
 @app.route('/objects', methods=['GET', 'POST'])
 def handle_objects():
-    # do something to send email
     objs = mc.getPersistentObjects()
+    
+    page, per_page, offset = get_page_args()    
+    idxB = (page-1)*per_page
+    idxE = page*per_page  
+    total = len(objs)
+    obj=objs[idxB:idxE]
+    pagination = get_pagination(page=page,
+                                per_page=per_page,
+                                total=total,
+                                record_name='scenes',
+                                format_total=True,
+                                format_number=True,
+                                )
     if request.method == 'POST':
-        return render_template('bkup.html',objects=objs)
+        if request.form['submit'] == 'Objects':
+            print( 'ITT ',file=sys.stderr ) 
+            return render_template('bkup.html',objects=objs)    
+        elif request.form['submit'] == 'Scenes':
+            print( 'ITT is',file=sys.stderr ) 
+            return index()
+        else:
+            print( 'Passzolunk',file=sys.stderr ) 
+            pass # unknown
+    elif request.method == 'GET':
+        return render_template('bkup.html', objects=objs)
+  
+#    print( request.form, file=sys.stderr)
+    
+#        return render_template('bkup.html',objects=objs)
     
 
 def get_pagination(**kwargs):

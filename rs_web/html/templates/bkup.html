@@ -20,9 +20,13 @@
       <td>{{ loop.index }}</td>
       <td><img src="{{ obj['image']}}"/></td>
       <td>
-        {%for a in obj['annotations']%}
-            <a>{{ a }}</a></br>
+        <table>
+            {%for a in obj['annotations']%}
+                <ul>
+                    <li>{{ a }}</li>
+                </ul>
         {%endfor%}
+        </table>          
       </td>
       </tr>
       {% endfor %}

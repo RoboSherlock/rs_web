@@ -35,8 +35,13 @@ def index():
     
     idxB = (page-1)*per_page
     idxE = page*per_page  
-    ts = timestamps[idxB:idxE]
-    imgs = mc.getSceneImages(ts)
+    scenes = []
+    for ts in timestamps[idxB:idxE]:
+        scene = {}
+        scene['ts']= ts
+        scene['rgb'] = mc.getSceneImage(ts)
+        scenes.append(scene)
+    
     pagination = get_pagination(page=page,
                                 per_page=per_page,
                                 total=total,
@@ -44,8 +49,8 @@ def index():
                                 format_total=True,
                                 format_number=True,
                                 )
-    return render_template('objStore.html', timestamps=ts,
-                           images=imgs,
+    return render_template('objStore.html', 
+                           scenes=scenes,
                            page=page,
                            per_page=per_page,
                            pagination=pagination,

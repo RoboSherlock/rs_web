@@ -2,7 +2,7 @@
 
 {% block body %}
 <div class="ui-layout-center">
-{% if timestamps %}
+{% if scenes %}
  {# {{ pagination.info }} #}
   {{ pagination.links }}
   <div class="table-responsive">
@@ -15,11 +15,11 @@
       </tr>
     </thead>
     <tbody>
-      {% for ts in timestamps %}
+      {% for scene in scenes %}
       <tr>
       <td>{{ loop.index + (page - 1) * per_page }}</td>
-      <td>{{ ts }}
-      <td><img src="{{ images[loop.index-1] }}"/></td>
+      <td>{{ scene['ts']}}
+      <td><img src="{{ scene['rgb']}}"/></td>
       </tr>
       {% endfor %}
     </tbody>

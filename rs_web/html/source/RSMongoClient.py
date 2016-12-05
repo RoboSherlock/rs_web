@@ -103,20 +103,25 @@ class RSMongoClient:
         return timestamps
 
     def get_image_for_sceneID(self,sceneId,scaleFactor):    
-      casDocument = self.db.cas.find({'_id':sceneId})
-      if casDocument.count() !=0: 
-        colorCursor= self.db.color_image_hd.find({'_id':casDocument[0]['color_image_hd']})
+        casDocument = self.db.cas.find({'_id':sceneId})
+        if casDocument.count() !=0: 
+            colorCursor= self.db.color_image_hd.find({'_id':casDocument[0]['color_image_hd']})
         if colorCursor.count()!=0:
-          width = colorCursor[0]['cols']
-          height = colorCursor[0]['rows']            
-          imgData = colorCursor[0]['data']
-          image = np.reshape(np.fromstring(imgData,np.uint8),(height,width,3))
-          small = cv2.resize(image, (0,0), fx=scaleFactor, fy=scaleFactor) 
-          return small
+            width = colorCursor[0]['cols']
+            height = colorCursor[0]['rows']            
+            imgData = colorCursor[0]['data']
+            image = np.reshape(np.fromstring(imgData,np.uint8),(height,width,3))
+            small = cv2.resize(image, (0,0), fx=scaleFactor, fy=scaleFactor) 
+            return small
 
 
     def getSceneImages(self,timestamps):
-      imgs = []
-      for ts in timestamps:
-        imgs.append(self.getBase64Img(self.get_image_for_sceneID(self.db.scene.find({'timestamp':ts})[0]['_parent'],0.22)))
-      return imgs
+        imgs = []
+        for ts in timestamps:
+            imgs.append(self.getBase64Img(self.get_image_for_sceneID(self.db.scene.find({'timestamp':ts})[0]['_parent'],0.22)))
+        return imgs
+      
+    def getSceneImage(self,ts):
+        return self.getBase64Img(self.get_image_for_sceneID(self.db.scene.find({'timestamp':ts})[0]['_parent'],0.22))
+        
+  

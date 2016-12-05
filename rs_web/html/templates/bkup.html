@@ -1,10 +1,97 @@
 {% extends 'base.html' %}
 
+{% macro shape(annot) %}
+<table id = annotInfoTable >
+    <thead></thead>
+    <tbody>
+        <tr><td>Source</td><td>{{annot['source']}}</td></tr>
+        <tr><td>Value</td><td>{{annot['shape']}}</td></tr>
+        <tr><td>Confidence</td><td>{{annot['confidence']}}</td></tr>
+    </tbody>
+</table>
+{% endmacro %}
+
+{% macro size(annot) %}
+<table id = annotInfoTable >
+    <thead></thead>
+    <tbody>
+        <tr><td>Source</td><td>{{annot['source']}}</td></tr>
+        <tr><td>Value</td><td>{{annot['size']}}</td></tr>
+        <tr><td>Degree</td><td>{{annot['confidence']}}</td></tr>
+    </tbody>
+</table>
+{% endmacro %}
+
+{% macro location(annot) %}
+<table id = annotInfoTable >
+    <thead></thead>
+    <tbody>
+        <tr><td>Source</td><td>{{annot['source']}}</td></tr>
+        <tr><td>Relation</td><td>{{annot['reference_desc']}}</td></tr>
+        <tr><td>Location</td><td>{{annot['frame_id']}}</td></tr>
+    </tbody>
+</table>
+{% endmacro %}
+
+{% macro detection(annot) %}
+<table id = annotInfoTable >
+    <thead></thead>
+    <tbody>
+        <tr><td>Source</td><td>{{annot['source']}}</td></tr>
+        <tr><td>Value</td><td>{{annot['name']}}</td></tr>
+        <tr><td>Confidence</td><td>{{annot['confidence']}}</td></tr>
+    </tbody>
+</table>
+{% endmacro %}
+        
+{% macro color(annot) %}  
+<table id = annotInfoTable >
+    <thead>
+        <tr>
+            <th>Color</th>
+            <th>Ratio</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for label in annot['color']  %}
+        <tr><td>{{label}}</td><td>{{annot['ratio'][loop.index0]}}</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endmacro %}
+
+{% macro pose(annot) %}  
+<p>Source: {{annot['source']}}</p>
+<table id = annotInfoTable >
+<thead>
+    <tr>
+        <th>Frame</th>
+        <th>Translation</th>
+        <th>Rotation</th>
+    </tr>
+</thead>
+<tbody>
+    <tr><td>Camera</td><td>{{annot['camera']['translation']}}</td><td>{{annot['camera']['rotation']}}</td></tr>
+   <tr><td>World</td><td>{{annot['world']['translation']}}</td><td>{{annot['world']['rotation']}}</td></tr>
+</tbody>
+</table>
+{% endmacro %}
+
+{% macro geometry(annot) %}  
+<table id = annotInfoTable >
+<thead>
+   
+</thead>
+<tbody>
+</tbody>
+</table>
+{% endmacro %}
+
 {% block body %}
 <div class="ui-layout-center">
 {% if objects %}
- {# {{ pagination.info }} #}
- {# {{ pagination.links }}#}
+ {#{{ pagination.info }}#}
+ {#{{ pagination.links }}#}
   <div class="table-responsive">
     <table class="table table-hover">
     <thead>
@@ -20,13 +107,32 @@
       <td>{{ loop.index }}</td>
       <td><img src="{{ obj['image']}}"/></td>
       <td>
-        <table>
+        
+            <div id = content>   
             {%for a in obj['annotations']%}
-                <ul>
-                    <li>{{ a }}</li>
-                </ul>
-        {%endfor%}
-        </table>          
+                <div class="page_collapsible" id="body-section1">{{a['_type']}}<span></span></div>
+                <div class="container">
+                <div class= "content">
+                    {% if  a['_type']|string() =='rs.annotation.Shape' %}
+                        {{ shape(a) }}
+                    {% elif a['_type']|string() =='rs.annotation.SemanticColor' %}
+                        {{ color(a) }}
+                    {% elif a['_type']|string() =='rs.annotation.PoseAnnotation' %}
+                        {{ pose(a) }}
+                    {% elif a['_type']|string() =='rs.annotation.Detection' %}
+                        {{ detection(a) }}
+                    {% elif a['_type']|string() =='rs.annotation.TFLocation' %}
+                        {{ location(a) }}
+                    {% elif a['_type']|string() =='rs.annotation.Geometry' %}
+                        {{ geometry(a) }}
+                    {% elif a['_type']|string() =='rs.annotation.SemanticSize' %}
+                        {{ size(a) }}
+                    {% endif %}
+                </div>            
+                </div>
+            {%endfor%}
+            </div>
+        
       </td>
       </tr>
       {% endfor %}

@@ -24,7 +24,7 @@ class RSMongoClient:
         self.client = MongoClient()
         self.db = self.client[dbName]
     
-    def getPersistentObjectImage(self, objEntry):
+    def get_persistent_object_image(self, objEntry):
         x=objEntry['rois']['roi_hires']['pos']['x']
         y=objEntry['rois']['roi_hires']['pos']['y']
         objheight = objEntry['rois']['roi_hires']['size']['height']
@@ -40,12 +40,40 @@ class RSMongoClient:
             small = cv2.resize(objImg, (0,0), fx= 100 / objheight,fy=100 / objheight)
             return small
          
-    def getPersistentObjectAnnotations(self,objEntry):
+    def get_persistent_object_annotations(self,objEntry):
         annotations = objEntry['annotations']
-        annNames=[]
+        ann=[]
         for a in annotations:
-            annNames.append( a['_type'] )
-        return annNames
+            if  a['_type'] != 'rs.annotation.MLNAtoms' and \
+                a['_type'] != 'rs.annotation.Geometry':
+                ann.append(a)
+        return ann
+#        return objEntry['annotations']
+        
+    
+    def process_annotations(self,annot):
+        switcher = {
+            'rs.annotation.Shape':self.handle_shape_annotation,
+            'rs.annotation.SemanticColor:':self.handle_sem_color_annotation,
+            'rs.annotation.SemanticSize':self.hanld_sem_size_annotation
+        }
+        func = switcher.get(annot,lambda:"nothing")
+        return func(annot)
+    
+    def handle_shape_annotation(self,annot):
+        res = {}        
+         
+        return res
+        
+    def handle_sem_color_annotation(self,annot):
+        res= {}
+        return res
+    
+    def handle_sem_size_annotation(self,annot):
+        res ={}
+        res['size'] = annot['size']
+        res['confidence'] = annot['confidence']
+        return res
         
     def getPersistentObjects(self):
         poCursor = self.db.persistent_objects.find()
@@ -53,10 +81,10 @@ class RSMongoClient:
         objects = []
         for objEntry in poCursor:
             obj = {}
-            self.getPersistentObjectAnnotations(objEntry)
-            objImages.append(self.getBase64Img(self.getPersistentObjectImage(objEntry)))
-            obj['image'] = self.getBase64Img(self.getPersistentObjectImage(objEntry))
-            obj['annotations'] = self.getPersistentObjectAnnotations(objEntry)
+            self.get_persistent_object_annotations(objEntry)
+            objImages.append(self.getBase64Img(self.get_persistent_object_image(objEntry)))
+            obj['image'] = self.getBase64Img(self.get_persistent_object_image(objEntry))
+            obj['annotations'] = self.get_persistent_object_annotations(objEntry)
             objects.append(obj)
 #        return objImages
         return objects

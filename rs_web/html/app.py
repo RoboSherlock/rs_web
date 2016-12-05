@@ -22,7 +22,6 @@ mc = RSMC.RSMongoClient('Scenes_annotated')
 #  imgs = getImages(1,10)
 #  return render_template('bkup.html', dbname=dbName,rows=timestamps,images=imgs)
 
-mc.getPersistentObjects()
 
 @app.route('/', methods= ['GET','POST'])
 @app.route('/scenes',methods= ['GET','POST'])
@@ -56,19 +55,6 @@ def index():
 @app.route('/objects', methods=['GET', 'POST'])
 def handle_objects():
     objs = mc.getPersistentObjects()
-    
-    page, per_page, offset = get_page_args()    
-    idxB = (page-1)*per_page
-    idxE = page*per_page  
-    total = len(objs)
-    obj=objs[idxB:idxE]
-    pagination = get_pagination(page=page,
-                                per_page=per_page,
-                                total=total,
-                                record_name='scenes',
-                                format_total=True,
-                                format_number=True,
-                                )
     if request.method == 'POST':
         if request.form['submit'] == 'Objects':
             print( 'ITT ',file=sys.stderr ) 
@@ -82,9 +68,6 @@ def handle_objects():
     elif request.method == 'GET':
         return render_template('bkup.html', objects=objs)
   
-#    print( request.form, file=sys.stderr)
-    
-#        return render_template('bkup.html',objects=objs)
     
 
 def get_pagination(**kwargs):

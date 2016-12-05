@@ -7,16 +7,18 @@
     <title>flask-bootstrap example</title>
     <!-- Bootstrap -->
     <!-- Latest compiled and minified CSS -->
+       <link rel="stylesheet" href="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
     
     <link rel="stylesheet" href="{{ url_for('static', filename='style/bootstrap.mins.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style/web.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style/layout-default-1.4.0.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/web.css') }}">
     
     
     <script type="text/javascript" src="{{ url_for('static', filename='jquery-1.11.1.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='jquery.ui.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='jquery.layout-1.4.0.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='jquery.collapsible.js') }}"></script>
     
       
     <script type="text/javascript"> 
@@ -29,11 +31,69 @@
             size: 350}
        }
        );
-       
+
+        $.fn.slideFadeToggle = function(speed, easing, callback) {
+            return this.animate({opacity: 'toggle', height: 'toggle'}, speed, easing, callback);
+        };
+
+        //collapsible management
+        $('.collapsible').collapsible({
+            defaultOpen: 'section1',
+            cookieName: 'nav',
+            speed: 'fast',
+            animateOpen: function (elem, opts) { //replace the standard slideUp with custom function
+                elem.next().slideFadeToggle(opts.speed);
+            },
+            animateClose: function (elem, opts) { //replace the standard slideDown with custom function
+                elem.next().slideFadeToggle(opts.speed);
+            },
+            loadOpen: function (elem) { //replace the standard open state with custom function
+                elem.next().show();
+            },
+            loadClose: function (elem, opts) { //replace the close state with custom function
+                elem.next().hide();
+            }
+        });
+        $('.page_collapsible').collapsible({
+            defaultOpen: 'body_section1',
+            cookieName: 'body2',
+            speed: 'fast',
+            animateOpen: function (elem, opts) { //replace the standard slideUp with custom function
+                elem.next().slideFadeToggle(opts.speed);
+            },
+            animateClose: function (elem, opts) { //replace the standard slideDown with custom function
+                elem.next().slideFadeToggle(opts.speed);
+            },
+            loadOpen: function (elem) { //replace the standard open state with custom function
+                elem.next().show();
+            },
+            loadClose: function (elem, opts) { //replace the close state with custom function
+                elem.next().hide();
+            }
+
+        });
+
+        //assign open/close all to functions
+        function openAll() {
+            $('.page_collapsible').collapsible('openAll');
+        }
+        function closeAll() {
+            $('.page_collapsible').collapsible('closeAll');
+        }
+
+        //listen for close/open all
+        $('#closeAll').click(function(event) {
+            event.preventDefault();
+            closeAll();
+
+        });
+        $('#openAll').click(function(event) {
+            event.preventDefault();
+            openAll();
+        });
+        closeAll();
       });
-    $( function() {
-        $( "#speed" ).selectmenu();
-      });
+      
     </script>
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->

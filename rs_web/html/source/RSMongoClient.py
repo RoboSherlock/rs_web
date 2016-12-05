@@ -45,7 +45,7 @@ class RSMongoClient:
         ann=[]
         for a in annotations:
             if  a['_type'] != 'rs.annotation.MLNAtoms' and \
-                a['_type'] != 'rs.annotation.Geometry':
+                a['_type'] != 'rs.annotation.Segment': 
                 ann.append(a)
         return ann
 #        return objEntry['annotations']

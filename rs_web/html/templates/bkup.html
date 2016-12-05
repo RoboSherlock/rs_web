@@ -2,44 +2,80 @@
 
 {% macro shape(annot) %}
 <table id = annotInfoTable >
-    <thead></thead>
+    <thead>
+        <tr>
+            <th>Source</th>
+            <th>Value</th>
+            <th>Confidence</th>
+        </tr>
+    </thead>
     <tbody>
-        <tr><td>Source</td><td>{{annot['source']}}</td></tr>
-        <tr><td>Value</td><td>{{annot['shape']}}</td></tr>
-        <tr><td>Confidence</td><td>{{annot['confidence']}}</td></tr>
+        <tr>
+            <td>{{annot['source']}}</td>
+            <td>{{annot['shape']}}</td>
+            <td>{{annot['confidence']}}</td>
+        </tr>
     </tbody>
 </table>
 {% endmacro %}
 
 {% macro size(annot) %}
 <table id = annotInfoTable >
-    <thead></thead>
+    <thead>
+        <tr>
+            <th>Source</th>
+            <th>Value</th>
+            <th>Degree</th>
+        </tr>
+    </thead>
     <tbody>
-        <tr><td>Source</td><td>{{annot['source']}}</td></tr>
-        <tr><td>Value</td><td>{{annot['size']}}</td></tr>
-        <tr><td>Degree</td><td>{{annot['confidence']}}</td></tr>
+        <tr>
+            <td>{{annot['source']}}</td>
+            <td>{{annot['size']}}</td>
+            <td>{{annot['confidence']}}</td>
+        </tr>
     </tbody>
 </table>
 {% endmacro %}
 
 {% macro location(annot) %}
 <table id = annotInfoTable >
-    <thead></thead>
+    <thead>
+        <tr>
+            <th></th>
+            <th>Source</th>
+            <th>Relation</th>
+            <th>Location</th>
+        </tr>
+    </thead>
     <tbody>
-        <tr><td>Source</td><td>{{annot['source']}}</td></tr>
-        <tr><td>Relation</td><td>{{annot['reference_desc']}}</td></tr>
-        <tr><td>Location</td><td>{{annot['frame_id']}}</td></tr>
+        <tr>
+            <td>Semantic Location:</td>    
+            <td>{{annot['source']}}</td>
+            <td>{{annot['reference_desc']}}</td>
+            <td>{{annot['frame_id']}}</td>
+        </tr>
     </tbody>
 </table>
 {% endmacro %}
 
 {% macro detection(annot) %}
 <table id = annotInfoTable >
-    <thead></thead>
+    <thead>
+        <tr>
+            <th></th>
+            <th>Source</th>
+            <th>Label</th>
+            <th>Confidence</th>
+        </tr>
+    </thead>
     <tbody>
-        <tr><td>Source</td><td>{{annot['source']}}</td></tr>
-        <tr><td>Value</td><td>{{annot['name']}}</td></tr>
-        <tr><td>Confidence</td><td>{{annot['confidence']}}</td></tr>
+        <tr>
+            <td>Detection Results:</td>
+            <td>{{annot['source']}}</td>
+            <td>{{annot['name']}}</td>
+            <td>{{annot['confidence']}}</td>
+        </tr>
     </tbody>
 </table>
 {% endmacro %}
@@ -48,14 +84,18 @@
 <table id = annotInfoTable >
     <thead>
         <tr>
-            <th>Color</th>
-            <th>Ratio</th>
+        {% for label in annot['color']  %}
+            <th>{{label}}</th>
+        {% endfor %}        
         </tr>
     </thead>
     <tbody>
-    {% for label in annot['color']  %}
-        <tr><td>{{label}}</td><td>{{annot['ratio'][loop.index0]}}</td></tr>
-    {% endfor %}
+        <tr>
+            {% for r in annot['ratio']  %}
+            <td>{{'%0.3f'| format(r|float)}}</td>
+            {% endfor %}
+        </tr>
+    
     </tbody>
 </table>
 {% endmacro %}
@@ -80,9 +120,22 @@
 {% macro geometry(annot) %}  
 <table id = annotInfoTable >
 <thead>
-   
+   <tr>
+       <th></th>
+       <th>Height [m]</th>
+       <th>Width [m]</th>
+       <th>Depth [m]</th>
+       <th>Volume [m3]</th>
+   </tr>
 </thead>
 <tbody>
+    <tr>
+        <td>3DBounding Box</td>
+        <td>{{annot['boundingBox']['height']}}</td>
+        <td>{{annot['boundingBox']['width']}}</td>
+        <td>{{annot['boundingBox']['depth']}}</td>
+        <td>{{annot['boundingBox']['volume']}}</td>
+    </tr>
 </tbody>
 </table>
 {% endmacro %}
@@ -106,8 +159,7 @@
       <tr>
       <td>{{ loop.index }}</td>
       <td><img src="{{ obj['image']}}"/></td>
-      <td>
-        
+      <td>    
             <div id = content>   
             {%for a in obj['annotations']%}
                 <div class="page_collapsible" id="body-section1">{{a['_type']}}<span></span></div>
@@ -132,7 +184,6 @@
                 </div>
             {%endfor%}
             </div>
-        
       </td>
       </tr>
       {% endfor %}

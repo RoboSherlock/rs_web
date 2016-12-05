@@ -20,14 +20,14 @@ mc = RSMC.RSMongoClient('Scenes_annotated')
 #@app.route('/rs_test.html')
 #def hello(dbname=None,rows=[],images =[]):
 #  imgs = getImages(1,10)
-#  return render_template('bkup.html', dbname=dbName,rows=timestamps,images=imgs)
+#  return render_template('objects.html', dbname=dbName,rows=timestamps,images=imgs)
 
 
 @app.route('/', methods= ['GET','POST'])
 @app.route('/scenes',methods= ['GET','POST'])
 def index():
     if request.method == 'POST':
-       if request.form['submit'] == 'Objects':
+       if request.form['submit'] == 'Persistent Objects':
          return handle_objects()
     timestamps = mc.getTimestamps()
     total = len(timestamps)
@@ -56,9 +56,9 @@ def index():
 def handle_objects():
     objs = mc.getPersistentObjects()
     if request.method == 'POST':
-        if request.form['submit'] == 'Objects':
+        if request.form['submit'] == 'Persistent Objects':
             print( 'ITT ',file=sys.stderr ) 
-            return render_template('bkup.html',objects=objs)    
+            return render_template('objects.html',objects=objs)    
         elif request.form['submit'] == 'Scenes':
             print( 'ITT is',file=sys.stderr ) 
             return index()
@@ -66,7 +66,7 @@ def handle_objects():
             print( 'Passzolunk',file=sys.stderr ) 
             pass # unknown
     elif request.method == 'GET':
-        return render_template('bkup.html', objects=objs)
+        return render_template('objects.html', objects=objs)
   
     
 

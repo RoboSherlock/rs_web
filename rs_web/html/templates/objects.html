@@ -140,25 +140,9 @@
 </table>
 {% endmacro %}
 
-{% block body %}
-<div class="ui-layout-center">
-{% if objects %}
- {#{{ pagination.info }}#}
- {#{{ pagination.links }}#}
-  <div class="table-responsive">
-    <table class="table table-hover">
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Image</th>
-        <th>Annotations</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for obj in objects %}
-      <tr>
-      <td>{{ loop.index }}</td>
-      <td><img src="{{ obj['image']}}"/></td>
+
+{% macro showObject(obj) %}
+<td><img src="{{ obj['image']}}"/></td>
       <td>    
             <div id = content>   
             {%for a in obj['annotations']%}
@@ -185,7 +169,28 @@
             {%endfor%}
             </div>
       </td>
+{% endmacro %}
+
+{% block body %}
+<div class="ui-layout-center">
+{% if objects %}
+ {#{{ pagination.info }}#}
+ {#{{ pagination.links }}#}
+  <div class="table-responsive">
+    <table class="table table-hover">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Image</th>
+        <th>Annotations</th>
       </tr>
+    </thead>
+    <tbody>
+      {% for obj in objects %}
+      <tr>
+      <td>{{ loop.index }}</td>
+          {{showObject(obj)}}
+        </tr>
       {% endfor %}
     </tbody>
     </table>

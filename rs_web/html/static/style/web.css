@@ -1,4 +1,4 @@
-body{padding-top:50px;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;}
+body{padding-top:0px;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;}
 .page-subnav,
 .pagination-nav {
     width: 100%;
@@ -35,6 +35,9 @@ body{padding-top:50px;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;}
     filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
 }
 
+.pagination.li.active{
+    background-color: darkgrey;
+}
 .pagination {
     margin: 10px 0;
     margin-top: 0;
@@ -52,7 +55,7 @@ body{padding-top:50px;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;}
 }
 .pagination-page-info b {
     color: black;
-    background: #6aa6ed;
+    background: #808080;
     padding-left: 2px;
     padding: .1em .25em;
     font-size: 150%;
@@ -69,7 +72,7 @@ body{padding-top:50px;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;}
     height:40px;
 
     border-top:#f0f0f0 1px solid;
-    background: rgba(22, 113, 134, 0.83);
+    background: rgba(85, 85, 85, 0.83);
 
     font-family: Arial, Helvetica, sans-serif;
     text-decoration:none;
@@ -134,12 +137,14 @@ code {
 }
 
 #maintable {
-    background: rgb(185, 214, 213);
+    background: rgb(219, 219, 219);
 }
 
+/*
 #maintable tbody tr:hover td{
    background-color: inherit;
 }
+*/
 
 #annotInfoTable {
     background: #ffffff;
@@ -172,7 +177,7 @@ code {
 #hyptable {
     color: aliceblue;
     padding:10px;
-    background: #558C89;
+    background: #6f6f6f;
 }
 
 #hyptable th{

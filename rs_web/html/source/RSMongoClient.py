@@ -24,33 +24,12 @@ class RSMongoClient:
         self.client = MongoClient()
         self.db = self.client[dbName]
     
-    def get_object_image(self, objEntry):
+    def get_object_image(self, objEntry,ts):
         x=objEntry['rois']['roi_hires']['pos']['x']
         y=objEntry['rois']['roi_hires']['pos']['y']
         objheight = objEntry['rois']['roi_hires']['size']['height']
         objwidth = objEntry['rois']['roi_hires']['size']['width']
-        imgID = self.db.cas.find({'_timestamp':objEntry['lastSeen']})[0]['color_image_hd']
-        colorCursor= self.db.color_image_hd.find({'_id':imgID})
-        if colorCursor.count()!=0:
-            width = colorCursor[0]['cols']
-            height = colorCursor[0]['rows']            
-            imgData = colorCursor[0]['data']
-            image = np.reshape(np.fromstring(imgData,np.uint8),(height,width,3))
-            objImg=image[y:y+objheight,x:x+objwidth]
-            small = cv2.resize(objImg, (0,0), fx= 100 / objheight,fy=100 / objheight)
-            height,width = small.shape[:2]
-            if width > 200:
-                small = cv2.resize(objImg, (0,0), fx= 200 / objwidth,fy=200 / objwidth)
-            return small
-    
-    def get_object_hyp_image(self, objEntry,ts):
-        x=objEntry['rois']['roi_hires']['pos']['x']
-        y=objEntry['rois']['roi_hires']['pos']['y']
-        objheight = objEntry['rois']['roi_hires']['size']['height']
-        objwidth = objEntry['rois']['roi_hires']['size']['width']
-
         imgID = self.db.cas.find({'_timestamp':ts})[0]['color_image_hd']
-        
         colorCursor= self.db.color_image_hd.find({'_id':imgID})
         if colorCursor.count()!=0:
             width = colorCursor[0]['cols']
@@ -86,7 +65,6 @@ class RSMongoClient:
     
     def handle_shape_annotation(self,annot):
         res = {}        
-         
         return res
         
     def handle_sem_color_annotation(self,annot):
@@ -104,10 +82,9 @@ class RSMongoClient:
         objects = []
         for objEntry in poCursor:
             obj = {}
-            obj['image'] = self.getBase64Img(self.get_object_image(objEntry))
+            obj['image'] = self.getBase64Img(self.get_object_image(objEntry,objEntry['lastSeen']))
             obj['annotations'] = self.get_persistent_object_annotations(objEntry)
             objects.append(obj)
-
         return objects
     
     def getObjectHypsForScene(self,ts):
@@ -117,7 +94,7 @@ class RSMongoClient:
             hyps = sceneDoc[0]['identifiables']
             for hyp in hyps:
                  objHyp = {}
-                 objHyp['image'] = self.getBase64Img(self.get_object_hyp_image(hyp,ts))
+                 objHyp['image'] = self.getBase64Img(self.get_object_image(hyp,ts))
                  objHyp['annotations'] = self.get_persistent_object_annotations(hyp)
                  objHyps.append(objHyp)
         return objHyps

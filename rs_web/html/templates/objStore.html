@@ -1,25 +1,49 @@
 {% extends 'base.html' %}
 
+{% import 'macros.html' as macros %}
+
 {% block body %}
 <div class="ui-layout-center">
 {% if scenes %}
  {# {{ pagination.info }} #}
   {{ pagination.links }}
   <div class="table-responsive">
-    <table class="table table-hover">
+    <table class="table table-hover" id=maintable>
     <thead>
       <tr>
 	<th>#</th>
 	<th>Timestamp</th>
-	<th>Image</th>
+<!--	<th>Image</th>-->
+    <th>Object Hypotheses</th>
       </tr>
     </thead>
     <tbody>
       {% for scene in scenes %}
       <tr>
       <td>{{ loop.index + (page - 1) * per_page }}</td>
-      <td>{{ scene['ts']}}
-      <td><img src="{{ scene['rgb']}}"/></td>
+          <td> {{ scene['ts']}} <br>
+          <img src="{{ scene['rgb']}}"/>
+      </td>
+      
+      <td>  
+          <table id= "hyptable">
+              <thead>
+                <tr>
+                <th>#</th>
+                <th>Image</th>
+                <th>Annotations</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for obj in scene['objects'] %}
+                <tr>
+                <td>{{ loop.index }}</td>
+                    {{macros.showObject(obj)}}
+                </tr>
+                {% endfor %}
+              </tbody>
+          </table>
+      </td>
       </tr>
       {% endfor %}
     </tbody>

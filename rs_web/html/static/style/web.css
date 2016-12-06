@@ -78,7 +78,7 @@ body{padding-top:50px;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;}
 }
 
 .collapse-open {
-    background:#3368cc;
+    background:#afafaf;
     color: #fff;
 }
 
@@ -133,6 +133,14 @@ code {
     overflow:auto;
 }
 
+#maintable {
+    background: rgb(185, 214, 213);
+}
+
+#maintable tbody tr:hover td{
+   background-color: inherit;
+}
+
 #annotInfoTable {
     background: #ffffff;
     border-color: azure;
@@ -144,6 +152,7 @@ code {
     text-align: center;
     padding:5px;
     border-bottom: 1px solid #ddd;
+    color:black;
 }
 
 #annotInfoTable td {
@@ -152,9 +161,41 @@ code {
     align-content: center;
     text-align:center;
     font-size: 12px;
+    color:#000;
 }
 #annotInfoTable tr {
     padding:5px;
     align-content: center;
     text-align:center;
+}
+
+#hyptable {
+    color: aliceblue;
+    padding:10px;
+    background: #558C89;
+}
+
+#hyptable th{
+     text-align: center;
+    padding: 5px;
+    border-bottom: 1px solid #fff;
+}
+
+
+#hyptable td{
+    align-content: center;
+    text-align: center;
+    vertical-align: middle;
+    padding:5px;
+    border-bottom: 1px solid #fff;
+}
+#hyptable tr{
+    padding: 5px;
+    
+}
+
+#hyptable caption{
+    color: darkblue;
+    font-size: 14pt;
+    
 }

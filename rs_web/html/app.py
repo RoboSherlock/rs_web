@@ -27,8 +27,9 @@ mc = RSMC.RSMongoClient('Scenes_annotated')
 @app.route('/scenes',methods= ['GET','POST'])
 def index():
     if request.method == 'POST':
-       if request.form['submit'] == 'Persistent Objects':
-         return handle_objects()
+        if request.form['submit'] == 'Persistent Objects':
+            print ('Waht the fuck',file=sys.stderr)    
+            return handle_objects()
     timestamps = mc.getTimestamps()
     total = len(timestamps)
     page, per_page, offset = get_page_args()
@@ -40,8 +41,9 @@ def index():
         scene = {}
         scene['ts']= ts
         scene['rgb'] = mc.getSceneImage(ts)
+        scene['objects'] = mc.getObjectHypsForScene(ts)
         scenes.append(scene)
-    
+        
     pagination = get_pagination(page=page,
                                 per_page=per_page,
                                 total=total,

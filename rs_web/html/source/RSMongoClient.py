@@ -7,6 +7,8 @@ Created on Wed Nov 30 12:50:56 2016
 from __future__ import division
 from __future__ import print_function # In python 2.7
 
+from bson.objectid import ObjectId
+
 import sys
 
 from pymongo import MongoClient
@@ -86,6 +88,24 @@ class RSMongoClient:
             obj['annotations'] = self.get_persistent_object_annotations(objEntry)
             objects.append(obj)
         return objects
+        
+    def getObjectInstances(self,id):
+        nrOfObjs = self.db.persistent_objects.count()
+        if id > nrOfObjs:
+            return 
+        poCursor = self.db.persistent_objects.find()        
+        clusterIDs = poCursor[id]['clusters']
+        clusters= []
+        for c in clusterIDs:
+            document = self.db.scene.find({'identifiables._id':ObjectId(c)}, {'_id': 0, 'identifiables._id.$': 1,'timestamp':1})
+            if document.count()!=0:                
+                cluster = {}
+                ts = document[0]['timestamp']                
+                cluster['image'] = self.getBase64Img(self.get_object_image(document[0]['identifiables'][0],ts))
+                cluster['annotations'] = self.get_persistent_object_annotations(document[0]['identifiables'][0])
+                clusters.append(cluster)        
+        return clusters
+            
     
     def getObjectHypsForScene(self,ts):
         sceneDoc = self.db.scene.find({'timestamp':ts})

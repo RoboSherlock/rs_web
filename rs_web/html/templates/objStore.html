@@ -8,7 +8,7 @@
  {# {{ pagination.info }} #}
   {{ pagination.links }}
   <div class="table-responsive">
-    <table class="table table-hover" id=maintable>
+    <table class="table" id=maintable>
     <thead>
       <tr>
 	<th>#</th>
@@ -21,8 +21,8 @@
       {% for scene in scenes %}
       <tr>
       <td>{{ loop.index + (page - 1) * per_page }}</td>
-          <td> {{ scene['ts']}} <br>
-          <img src="{{ scene['rgb']}}"/>
+          <td style="width:auto; max-width:290;" > {{ scene['ts']}} <br>
+          <div class = "imgContainer"> <img style="display:block;margin-left:auto;margin-right:auto;" src="{{ scene['rgb']}}"/></div>
       </td>
       
       <td>  

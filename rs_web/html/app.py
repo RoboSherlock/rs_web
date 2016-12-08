@@ -21,15 +21,17 @@ mc = RSMC.RSMongoClient('Scenes_annotated')
 #def hello(dbname=None,rows=[],images =[]):
 #  imgs = getImages(1,10)
 #  return render_template('objects.html', dbname=dbName,rows=timestamps,images=imgs)
+mc.getObjectInstances(0)
 
 
 @app.route('/', methods= ['GET','POST'])
 @app.route('/scenes',methods= ['GET','POST'])
 def index():
+    print (request.form ,file = sys.stderr)
     if request.method == 'POST':
-        if request.form['submit'] == 'Persistent Objects':
-            print ('Waht the fuck',file=sys.stderr)    
+        if request.form['console'] == 'objects':
             return handle_objects()
+    
     timestamps = mc.getTimestamps()
     total = len(timestamps)
     page, per_page, offset = get_page_args()
@@ -56,26 +58,18 @@ def index():
                            page=page,
                            per_page=per_page,
                            pagination=pagination,
-                           )
+                           )    
 
-
-@app.route('/objects', methods=['GET', 'POST'])
 def handle_objects():
     objs = mc.getPersistentObjects()
-    if request.method == 'POST':
-        if request.form['submit'] == 'Persistent Objects':
-            print( 'ITT ',file=sys.stderr ) 
-            return render_template('objects.html',objects=objs)    
-        elif request.form['submit'] == 'Scenes':
-            print( 'ITT is',file=sys.stderr ) 
-            return index()
-        else:
-            print( 'Passzolunk',file=sys.stderr ) 
-            pass # unknown
-    elif request.method == 'GET':
-        return render_template('objects.html', objects=objs)
+    return render_template('objects.html', objects=objs)
   
+def findObjectInstances(self,objID):
+    objs = mc.getObjectInstances(objID)
+    return render_template('objects.html', objects=objs)
     
+
+
 
 def get_pagination(**kwargs):
     kwargs.setdefault('record_name', 'records')

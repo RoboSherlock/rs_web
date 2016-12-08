@@ -138,6 +138,57 @@
 </table>
 {% endmacro %}
 
+{% macro colorhist(annot) %}
+
+<canvas id="chart" width="600" height="200"></canvas>
+<script>
+   // bar chart data
+   var barData = {
+   labels : [{% for item in range(1,annot['bins']) %}
+                  "{{item}}",
+              {% endfor %}],
+   datasets : [
+      {
+            fillColor: "rgba(151,187,205,0.2)",
+            strokeColor: "rgba(151,187,205,1)",
+            pointColor: "rgba(151,187,205,1)",
+            data : [{% for item in annot['values'] %}
+                      {{item}},
+                    {% endfor %}]
+      }
+      ]
+   }
+ 
+   // get bar chart canvas
+   var mychart = document.getElementById("chart").getContext("2d");
+   steps =1
+   max = 0.5
+   // draw bar chart
+var LineChartDemo = new Chart(mychart).Line(barData, {
+    type: 'line',
+            options: {
+                elements: {
+                    point:{
+                        radius: 0
+                    }
+                }
+            },
+        anumation:false,
+        pointRadius:0,
+        scaleShowLabels : false,
+        scaleOverride: true,
+        scaleSteps: steps,
+        scaleStepWidth: 0.2,
+        scaleStartValue: 0,
+        scaleShowVerticalLines: true,
+        scaleShowGridLines : true,
+        barShowStroke : true,
+        scaleShowLabels: true,
+        bezierCurve: false,
+ 
+   });
+</script>
+{% endmacro %}
 
 {% macro showObject(obj) %}
 <td style="width:auto;max-width:250px;"><div class = "imgContainer"><img style="display:block;margin-left:auto;margin-right:auto;" src="{{ obj['image']}}"/></div></td>
@@ -161,6 +212,8 @@
                         {{ geometry(a) }}
                     {% elif a['_type']|string() =='rs.annotation.SemanticSize' %}
                         {{ size(a) }}
+                    {% elif a['_type']|string() =='rs.annotation.ColorHistogram' %}
+                        {{ colorhist(a) }}
                     {% endif %}
                 </div>            
                 </div>

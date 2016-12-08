@@ -41,8 +41,8 @@ class RSMongoClient:
             objImg=image[y:y+objheight,x:x+objwidth]
             small = cv2.resize(objImg, (0,0), fx= 100 / objheight,fy=100 / objheight)
             height,width = small.shape[:2]
-            if width > 200:
-                small = cv2.resize(objImg, (0,0), fx= 200 / objwidth,fy=200 / objwidth)
+            if width > 150:
+                small = cv2.resize(objImg, (0,0), fx= 150 / objwidth,fy=150 / objwidth)
             return small
             
     def get_persistent_object_annotations(self,objEntry):
@@ -50,34 +50,22 @@ class RSMongoClient:
         ann=[]
         for a in annotations:
             if  a['_type'] != 'rs.annotation.MLNAtoms' and \
-                a['_type'] != 'rs.annotation.Segment': 
-                ann.append(a)
+                a['_type'] != 'rs.annotation.Segment':                     
+                ann.append(self.adjust_annotation(a))
         return ann
-#        return objEntry['annotations']
         
-    
-    def process_annotations(self,annot):
-        switcher = {
-            'rs.annotation.Shape':self.handle_shape_annotation,
-            'rs.annotation.SemanticColor:':self.handle_sem_color_annotation,
-            'rs.annotation.SemanticSize':self.hanld_sem_size_annotation
-        }
-        func = switcher.get(annot,lambda:"nothing")
-        return func(annot)
-    
-    def handle_shape_annotation(self,annot):
-        res = {}        
-        return res
-        
-    def handle_sem_color_annotation(self,annot):
-        res= {}
-        return res
-    
-    def handle_sem_size_annotation(self,annot):
-        res ={}
-        res['size'] = annot['size']
-        res['confidence'] = annot['confidence']
-        return res
+    #adjust values in annotation for simpler js vis
+    def adjust_annotation(self,a):
+        if a['_type'] != 'rs.annotation.ColorHistogram':
+            return a;
+        else:
+            b=a
+            width = a['hist']['cols']
+            height = a['hist']['rows']            
+            imgData =a['hist']['data']
+            b['values'] = np.reshape(np.fromstring(imgData,np.float32),(height*width,1,1))
+            b['bins'] = height*width
+            return b
         
     def getPersistentObjects(self):
         poCursor = self.db.persistent_objects.find()

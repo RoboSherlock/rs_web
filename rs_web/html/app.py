@@ -3,11 +3,10 @@ from __future__ import print_function # In python 2.7
 from flask import Flask, render_template,current_app,request
 from flask_paginate import Pagination, get_page_args
 
-from pymongo import MongoClient
 import sys
-import base64
-import numpy as np
-import cv2
+
+import re
+
 
 from source import RSMongoClient as RSMC
 
@@ -29,7 +28,11 @@ mc.getObjectInstances(0)
 def index():
     print (request.form ,file = sys.stderr)
     if request.method == 'POST':
-        if request.form['console'] == 'objects':
+        query = request.form['console']
+        param = re.search(r"\(([0-9])\)",query)
+        if param:
+            return findObjectInstances(int(param.group(1)))
+        elif query == 'objects':
             return handle_objects()
     
     timestamps = mc.getTimestamps()
@@ -64,7 +67,7 @@ def handle_objects():
     objs = mc.getPersistentObjects()
     return render_template('objects.html', objects=objs)
   
-def findObjectInstances(self,objID):
+def findObjectInstances(objID):
     objs = mc.getObjectInstances(objID)
     return render_template('objects.html', objects=objs)
     

@@ -19,6 +19,7 @@
     </thead>
     <tbody>
       {% for scene in scenes %}
+      {% set outer_loop = loop %}
       <tr>
       <td>{{ loop.index + (page - 1) * per_page }}</td>
           <td style="width:auto; max-width:290;" > {{ scene['ts']}} <br>
@@ -38,7 +39,7 @@
                 {% for obj in scene['objects'] %}
                 <tr>
                 <td>{{ loop.index }}</td>
-                    {{macros.showObject(obj)}}
+                    {{macros.showObject(obj,outer_loop.index,loop.index)}}
                 </tr>
                 {% endfor %}
               </tbody>

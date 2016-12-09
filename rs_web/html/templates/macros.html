@@ -138,20 +138,21 @@
 </table>
 {% endmacro %}
 
-{% macro colorhist(annot) %}
+{% macro colorhist(annot,idx0,idx,aidx) %}
 
-<canvas id="chart" width="600" height="200"></canvas>
+<canvas style="margin-left:auto;margin-right:auto" id="chart_{{idx0}}{{idx}}{{aidx}}" width="600" height="200"></canvas>
+
 <script>
    // bar chart data
    var barData = {
    labels : [{% for item in range(1,annot['bins']) %}
                   "{{item}}",
-              {% endfor %}],
+              {% endfor %},
+            ],
    datasets : [
       {
-            fillColor: "rgba(151,187,205,0.2)",
-            strokeColor: "rgba(151,187,205,1)",
-            pointColor: "rgba(151,187,205,1)",
+            backgroundColor: 'rgb(86, 135, 185)',
+            label: "HSV Histogram",
             data : [{% for item in annot['values'] %}
                       {{item}},
                     {% endfor %}]
@@ -160,37 +161,30 @@
    }
  
    // get bar chart canvas
-   var mychart = document.getElementById("chart").getContext("2d");
-   steps =1
-   max = 0.5
+   var mychart = document.getElementById("chart_{{idx0}}{{idx}}{{aidx}}").getContext("2d");
    // draw bar chart
-var LineChartDemo = new Chart(mychart).Line(barData, {
-    type: 'line',
-            options: {
-                elements: {
-                    point:{
-                        radius: 0
-                    }
-                }
+   var myBarChart = new Chart(mychart, {
+        type: 'bar',
+        data: barData,
+        options: {
+            responsive:false,
+            legend: {
+                display: true
             },
-        anumation:false,
-        pointRadius:0,
-        scaleShowLabels : false,
-        scaleOverride: true,
-        scaleSteps: steps,
-        scaleStepWidth: 0.2,
-        scaleStartValue: 0,
-        scaleShowVerticalLines: true,
-        scaleShowGridLines : true,
-        barShowStroke : true,
-        scaleShowLabels: true,
-        bezierCurve: false,
- 
-   });
+            scales: {
+                xAxes: [{
+                    ticks: {
+                        display: true,
+                        autoSkipPadding: 10
+                    }
+                }]
+            }
+        }}
+);;
 </script>
 {% endmacro %}
 
-{% macro showObject(obj) %}
+{% macro showObject(obj,idx0,idx) %}
 <td style="width:auto;max-width:250px;"><div class = "imgContainer"><img style="display:block;margin-left:auto;margin-right:auto;" src="{{ obj['image']}}"/></div></td>
       <td>    
             <div id = content>   
@@ -213,7 +207,7 @@ var LineChartDemo = new Chart(mychart).Line(barData, {
                     {% elif a['_type']|string() =='rs.annotation.SemanticSize' %}
                         {{ size(a) }}
                     {% elif a['_type']|string() =='rs.annotation.ColorHistogram' %}
-                        {{ colorhist(a) }}
+                        {{ colorhist(a,idx0,idx,loop.index) }}
                     {% endif %}
                 </div>            
                 </div>

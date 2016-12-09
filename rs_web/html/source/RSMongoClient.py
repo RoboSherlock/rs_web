@@ -50,7 +50,8 @@ class RSMongoClient:
         ann=[]
         for a in annotations:
             if  a['_type'] != 'rs.annotation.MLNAtoms' and \
-                a['_type'] != 'rs.annotation.Segment':                     
+                a['_type'] != 'rs.annotation.Segment' and \
+                a['_type'] != 'rs.annotation.Features':                     
                 ann.append(self.adjust_annotation(a))
         return ann
         
@@ -63,7 +64,8 @@ class RSMongoClient:
             width = a['hist']['cols']
             height = a['hist']['rows']            
             imgData =a['hist']['data']
-            b['values'] = np.reshape(np.fromstring(imgData,np.float32),(height*width,1,1))
+            
+            b['values'] = np.fromstring(imgData,np.float32)
             b['bins'] = height*width
             return b
         

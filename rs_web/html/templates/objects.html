@@ -19,7 +19,7 @@
       {% for obj in objects %}
       <tr>
       <td>{{ loop.index }}</td>
-          {{ macros.showObject(obj)}}
+          {{ macros.showObject(obj,loop.index)}}
         </tr>
       {% endfor %}
     </tbody>

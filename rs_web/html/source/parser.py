@@ -12,17 +12,23 @@ key = oneOf('location shape color size detection id')
 separator = Literal(',').suppress()
 lpar = Literal('(').suppress()
 rpar = Literal(')').suppress()
+lbr = Literal('[').suppress()
+rbr = Literal(']').suppress()
 
-prop = lpar + key + separator + Word(alphanums)  + rpar
-props = Forward()
-atom = prop | Group(props)
-props << atom + ZeroOrMore(separator + props)
+And = Literal('and').suppress()
 
-funcs = oneOf( 'scenes views object' )
-expr = funcs + lpar + funcs + lpar + props + rpar+rpar
+kvp = lpar + Group(key + separator + Word(alphanums))+rpar
+kvps = Forward()
+atom = kvp | Group(kvps)
+kvps << atom + ZeroOrMore(separator + kvps)
 
+objDef = lpar + Group('object' +lpar + kvps +rpar) +rpar
+objs = Forward()
+elem = objDef | Group(objs)
+objs << elem + ZeroOrMore(And+objs)
 
-
+scene = 'scenes' + lpar + objs + rpar
+views = 'views' + lpar + objs + rpar
 
 
 #def findObjInStoreById(origString,loc,tokens):
@@ -34,25 +40,19 @@ expr = funcs + lpar + funcs + lpar + props + rpar+rpar
 #show(views(object(id,2)))
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  
     
-#    s ='views(object(id,2))'
-#    results = views.parseString( s ) 
-#    print s,'->', results
-#
-##    s ='object(views(id,2))'    
-##    results = views.parseString( s )
-##    print s,'->', results
-#    
-#    s ='(shape,box)'    
-#    results = prop.parseString( s )
-#    print s,'->', results
+    s ='(object((shape,box),(color, blue)))'
+    results = objDef.parseString( s )
+    print s,'->', results
     
-    s ='object((shape,box),(color, blue),(size, small))'    
-#    s ='views(object((shape,box),(color, blue),(size, small)))'    
-#    s ='scenes(object((shape,box),(color, blue),(size, small)))'
-#        
+    s ='scenes((object((shape,box))) '+ \
+                'and (object((id,2))) '+\
+                'and (object((id,3))))'
+    results = scene.parseString( s )
+    print s,'->', results
     
-    results = expr.parseString( s )
+    s ='views((object((shape,box))) and (object((id,2))) and (object((id,3))))'
+    results = views.parseString( s )
     print s,'->', results
     

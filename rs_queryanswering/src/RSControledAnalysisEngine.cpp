@@ -401,13 +401,15 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
   vg.setInputCloud(transformed);
   vg.filter(*dsCloud);
 
-  for (auto &point:dsCloud->points)
-  {
-    point.a = 0;
-  }
-  dsCloud->header.frame_id = camToWorld.child_frame_id_; //map if localized..head_mount_kinect_rgb_optical_frame otherwise;
+//  for (auto &point:dsCloud->points)
+//  {
+//    point.a = 0;
+//  }
+  pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloudToAdvertise(new pcl::PointCloud<pcl::PointXYZRGB>);
+  pcl::copyPointCloud(*dsCloud,*cloudToAdvertise);
+  cloudToAdvertise->header.frame_id = camToWorld.child_frame_id_; //map if localized..head_mount_kinect_rgb_optical_frame otherwise;
   //  dispCloud->header.stamp = ros::Time::now().toNSec();
-  pc_pub_.publish(dsCloud);
+  pc_pub_.publish(cloudToAdvertise);
 
 }
 

@@ -155,6 +155,7 @@ int main(int argc, char *argv[])
   {
     RSProcessManager manager(useVisualizer, savePath, waitForServiceCall,useCWAssumption, n);
     manager.setUseIdentityResolution(useObjIDRes);
+    manager.pause();
     manager.init(analysisEngineFile,configFile);
     manager.run();
     manager.stop();

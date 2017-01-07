@@ -64,7 +64,7 @@ public:
     process_mutex = boost::shared_ptr<std::mutex>(new std::mutex);
     base64ImgPub = nh_.advertise<std_msgs::String>(std::string("image_base64"), 5);
     image_pub_ = it_.advertise("result_image", 1, true);
-    pc_pub_ = nh_.advertise<pcl::PointCloud<pcl::PointXYZRGBA> >("points", 5 );
+    pc_pub_ = nh_.advertise<pcl::PointCloud<pcl::PointXYZRGB> >("points", 5 );
   }
 
   ~RSControledAnalysisEngine()

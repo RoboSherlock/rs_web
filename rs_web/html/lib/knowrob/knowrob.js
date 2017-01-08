@@ -175,7 +175,7 @@ function Knowrob(options){
         tfClient : tfClient,
         rootObject : rosViewer.scene,
         size: 0.02,
-        max_pts: 25000
+        max_pts: 50000
       });
         
       // Setup the marker client.

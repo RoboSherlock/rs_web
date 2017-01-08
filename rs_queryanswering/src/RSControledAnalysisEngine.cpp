@@ -396,7 +396,7 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
 
 
   pcl::VoxelGrid<pcl::PointXYZRGBA> vg;
-  float leaf_size=0.01;
+  float leaf_size=0.005;
   vg.setLeafSize(leaf_size,leaf_size,leaf_size);
   vg.setInputCloud(transformed);
   vg.filter(*dsCloud);

@@ -62,7 +62,7 @@
 	    "q":" "
 	},
 	{
-            "q":"rs_interface(A,kitchen).",
+            "q":"rs_interface(A,pickandplace).",
             "text":"Initialize RoboSherlock"
         },
         {
@@ -88,6 +88,10 @@
 	{
             "text":"Find the spatulas in the drawer",
             "q": "detect([an, object, [detection,'spatula'],[a,location,[in, 'drawer_sinkblock_upper_open']],[timestamp,10]])."
+        },
+        {
+            "text":"Find all Containers on the counter top",
+            "q": "detect([an, object, [type,'Container'],[a,location,[on, 'kitchen_sink_block_counter_top']],[timestamp,28]])."
         },
         {
             "text":"Detect Handles",

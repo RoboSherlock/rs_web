@@ -138,30 +138,26 @@
 </table>
 {% endmacro %}
 
-{% macro colorhist(annot,idx0,idx,aidx) %}
-
-<canvas style="margin-left:auto;margin-right:auto" id="chart_{{idx0}}{{idx}}{{aidx}}" width="600" height="200"></canvas>
-
+{% macro drawHistogram(name, id, nrOfBins, values) %}
 <script>
    // bar chart data
    var barData = {
-   labels : [{% for item in range(1,annot['bins']) %}
+   labels : [{% for item in range(1,nrOfBins) %}
                   "{{item}}",
               {% endfor %},
             ],
    datasets : [
       {
             backgroundColor: 'rgb(86, 135, 185)',
-            label: "HSV Histogram",
-            data : [{% for item in annot['values'] %}
+            label: "{{name}}",
+            data : [{% for item in values %}
                       {{item}},
                     {% endfor %}]
       }
       ]
    }
- 
-   // get bar chart canvas
-   var mychart = document.getElementById("chart_{{idx0}}{{idx}}{{aidx}}").getContext("2d");
+   // get bar chart canvas   pclfeat_{{idx0}}{{idx}}{{aidx}}"
+   var mychart = document.getElementById("{{id}}").getContext("2d");
    // draw bar chart
    var myBarChart = new Chart(mychart, {
         type: 'bar',
@@ -182,6 +178,16 @@
         }}
 );;
 </script>
+{% endmacro %}
+
+{% macro colorhist(annot,idx0,idx,aidx) %}
+    <canvas style="margin-left:auto;margin-right:auto" id="chart_{{idx0}}{{idx}}{{aidx}}" width="600" height="200"></canvas>
+    {{ drawHistogram('HSV Histogram','chart_'~idx0~idx~aidx, annot['bins'],annot['values'])}} 
+{% endmacro %}
+
+{% macro pclfeat(annot,idx0,idx,aidx) %}
+    <canvas style="margin-left:auto;margin-right:auto" id="pclchart_{{idx0}}{{idx}}{{aidx}}" width="600" height="200"></canvas>
+    {{ drawHistogram('PCL VFH Feature','pclchart_'~idx0~idx~aidx, annot['bins'],annot['values'])}} 
 {% endmacro %}
 
 {% macro showObject(obj,idx0,idx) %}
@@ -208,6 +214,8 @@
                         {{ size(a) }}
                     {% elif a['_type']|string() =='rs.annotation.ColorHistogram' %}
                         {{ colorhist(a,idx0,idx,loop.index) }}
+                    {% elif a['_type']|string() =='rs.pcl.PclFeature' %}
+                        {{ pclfeat(a,idx0,idx,loop.index) }}
                     {% endif %}
                 </div>            
                 </div>

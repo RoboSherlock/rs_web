@@ -57,9 +57,7 @@ class RSMongoClient:
         
     #adjust values in annotation for simpler js vis
     def adjust_annotation(self,a):
-        if a['_type'] != 'rs.annotation.ColorHistogram':
-            return a;
-        else:
+        if a['_type'] == 'rs.annotation.ColorHistogram':
             b=a
             width = a['hist']['cols']
             height = a['hist']['rows']            
@@ -68,6 +66,13 @@ class RSMongoClient:
             b['values'] = np.fromstring(imgData,np.float32)
             b['bins'] = height*width
             return b
+        elif a['_type'] == 'rs.pcl.PclFeature':
+            b=a
+            b['values'] = np.fromstring(a['feature'],np.float32)
+            b['bins'] = b['values'].size
+            return b
+        else:
+            return a
         
     def getPersistentObjects(self):
         poCursor = self.db.persistent_objects.find()

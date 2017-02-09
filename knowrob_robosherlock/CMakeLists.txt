@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(knowrob_robosherlock)
 
 
-find_package(catkin REQUIRED rosjava_build_tools rosprolog designator_integration_cpp
+find_package(catkin REQUIRED rosjava_build_tools rosprolog
              designator_integration_msgs knowrob_common knowrob_actions knowrob_srdl
              tf tf_conversions knowrob_vis json_prolog iai_robosherlock_msgs)
 

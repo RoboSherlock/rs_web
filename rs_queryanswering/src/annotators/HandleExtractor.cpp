@@ -30,7 +30,7 @@
 
 #define DEBUG
 
-#include <rs_queryanswering/HandleExtractor.h>
+#include <rs_queryanswering/annotators/HandleExtractor.h>
 namespace rs
 {
 

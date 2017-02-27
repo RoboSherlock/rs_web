@@ -1,4 +1,4 @@
-#include <rs_queryanswering/TemplateAlignment.h>
+#include <rs_queryanswering/annotators/TemplateAlignment.h>
 
 FeatureCloud::FeatureCloud() :
   search_method_(new SearchMethod),

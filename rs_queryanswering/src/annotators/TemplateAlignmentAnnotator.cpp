@@ -24,7 +24,7 @@
 
 #include <ros/package.h>
 
-#include <rs_queryanswering/TemplateAlignment.h>
+#include <rs_queryanswering/annotators/TemplateAlignment.h>
 
 #include <rapidjson/rapidjson.h>
 #include <rapidjson/document.h>

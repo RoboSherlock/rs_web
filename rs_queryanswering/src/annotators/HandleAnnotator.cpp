@@ -42,7 +42,7 @@
 #include <tf/tf.h>
 
 #include <rs/scene_cas.h>
-#include <rs_queryanswering/HandleExtractor.h>
+#include <rs_queryanswering/annotators/HandleExtractor.h>
 #include <rs/utils/time.h>
 
 #include <rs/DrawingAnnotator.h>

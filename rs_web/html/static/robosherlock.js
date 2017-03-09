@@ -7,7 +7,7 @@ function RoboSherlock(options){
 
     var historyDiv = options.history_div || 'history';
     var queryDiv = options.query_div || 'user_query';
-    var libraryDiv = options.library_div ||'library';
+    var libraryDiv = options.library_div ||'examplequery';
     
     var episodeURL = options.default_query || 'testQueries.json';
     
@@ -18,9 +18,7 @@ function RoboSherlock(options){
         this.setup_query_field();
         this.populate_query_select(libraryDiv);
     }
-    
-    
-    
+            
     
     this.setup_history_field = function () {
         var history = ace.edit(historyDiv);
@@ -122,23 +120,30 @@ function RoboSherlock(options){
     this.get_episode_data = function () {
         if(!that.episodeData) {
             try {
-                // url must point to a json-file containing an array named "query" with
-                // the query strings to display in the select
-                // FIXME: bad synchron request
                 var xmlHttp = new XMLHttpRequest();
-                xmlHttp.onreadystatechange = function() { 
-                    if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
-                    callback(xmlHttp.responseText);
-                }
-                xmlHttp.open("GET", "queries", true); // true for asynchronous 
+                xmlHttp.open("GET", "/queries", false); // true for asynchronous 
+//                xmlHttp.onload = function(e) { 
+//                    if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+//                    {
+////                        callback(xmlHttp.responseText);
+////                        console.log(xmlHttp.responseText)
+//                        that.episodeData = JSON.parse(xmlHttp.responseText);
+//                        console.log(that.episodeData);
+//                        
+//                    }
+//                }
                 xmlHttp.send(null);
+                that.episodeData = JSON.parse(xmlHttp.responseText);
             }
             catch(e) {
                 console.warn("Failed to load episode data.");
             }
         }
+        console.log(that.episodeData);
         return that.episodeData;
     };
+    
+    
 
     // fill the select with json data from url
     this.populate_query_select = function (id, queries) {

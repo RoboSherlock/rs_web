@@ -66,7 +66,6 @@ void RSControledAnalysisEngine::process(
   std::vector<designator_integration::Designator> &designatorResponse,
   RSQuery *q)
 {
-
   outInfo("executing analisys engine: " << name);
   cas->reset();
   try
@@ -113,6 +112,7 @@ void RSControledAnalysisEngine::process(
     outInfo("processing CAS");
     try
     {
+      rs::StopWatch clock;
       uima::CASIterator casIter = engine->processAndOutputNewCASes(*cas);
       for(int i = 0; casIter.hasNext(); ++i)
       {
@@ -122,10 +122,19 @@ void RSControledAnalysisEngine::process(
         outInfo("release CAS " << i);
         engine->getAnnotatorContext().releaseCAS(outCas);
       }
+      counter_++;
+      totalTime_ += clock.getTime();
     }
     catch(const rs::FrameFilterException &)
     {
-      // Nothing changed, time to do something else
+      //we could handle image logging here
+      //handle extra pipeline here->signal thread that we can start processing
+      outError("Got Interrputed with Frame Filter, not time here");
+    }
+    if(counter_ > 0)
+    {
+      outWarn("Avg processing time: " << totalTime_ / counter_);
+      outWarn("Frames processed: " << counter_);
     }
   }
   catch(const rs::Exception &e)
@@ -180,6 +189,7 @@ void RSControledAnalysisEngine::process(bool reset_pipeline_after_process, std::
   outInfo(FG_CYAN << "process(bool,desig) - LOCK RELEASED");
 }
 
+
 // Define a pipeline that should be executed,
 // process(reset_pipeline_after_process) everything and
 // decide if the pipeline should be reset or not
@@ -192,8 +202,6 @@ void RSControledAnalysisEngine::process(std::vector<std::string> annotators,
   outInfo(FG_CYAN << "process(std::vector, bool) - LOCK OBTAINED");
   setNextPipeline(annotators);
   applyNextPipeline();
-
-  // Process the modified pipeline
   process(designator_response, query);
   if(reset_pipeline_after_process)
   {
@@ -378,35 +386,29 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
   base64ImgPub.publish(strMsg);
   image_pub_.publish(outImgMsgs.toImageMsg());
 
-
-
-
   tf::StampedTransform camToWorld;
   camToWorld.setIdentity();
   if(scene.viewPoint.has())
+  {
     rs::conversion::from(scene.viewPoint.get(), camToWorld);
-
+  }
 
   Eigen::Affine3d eigenTransform;
-  tf::transformTFToEigen( camToWorld,eigenTransform);
+  tf::transformTFToEigen(camToWorld, eigenTransform);
 
   pcl::PointCloud<pcl::PointXYZRGBA>::Ptr transformed(new pcl::PointCloud<pcl::PointXYZRGBA>()),
-                                          dsCloud(new pcl::PointCloud<pcl::PointXYZRGBA>());
+      dsCloud(new pcl::PointCloud<pcl::PointXYZRGBA>());
   pcl::transformPointCloud<pcl::PointXYZRGBA>(*dispCloud, *transformed, eigenTransform);
 
 
   pcl::VoxelGrid<pcl::PointXYZRGBA> vg;
-  float leaf_size=0.005;
-  vg.setLeafSize(leaf_size,leaf_size,leaf_size);
+  float leaf_size = 0.005;
+  vg.setLeafSize(leaf_size, leaf_size, leaf_size);
   vg.setInputCloud(transformed);
   vg.filter(*dsCloud);
 
-//  for (auto &point:dsCloud->points)
-//  {
-//    point.a = 0;
-//  }
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloudToAdvertise(new pcl::PointCloud<pcl::PointXYZRGB>);
-  pcl::copyPointCloud(*dsCloud,*cloudToAdvertise);
+  pcl::copyPointCloud(*dsCloud, *cloudToAdvertise);
   cloudToAdvertise->header.frame_id = camToWorld.child_frame_id_; //map if localized..head_mount_kinect_rgb_optical_frame otherwise;
   //  dispCloud->header.stamp = ros::Time::now().toNSec();
   pc_pub_.publish(cloudToAdvertise);

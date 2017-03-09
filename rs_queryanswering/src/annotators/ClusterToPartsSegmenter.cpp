@@ -318,7 +318,7 @@ private:
     //    }
     outWarn("Object Queried for is: " << objToProcess);
 
-    bool ok = PrologInterface::class_property(objToProcess, "rs_components:'hasVisualProperty'", "rs_objects:'ObjectPart'");
+    bool ok = PrologInterface::q_classProperty(objToProcess, "rs_components:'hasVisualProperty'", "rs_objects:'ObjectPart'");
     if(!ok)
     {
       outInfo("Queried Object does not meet requirements of this annotator");

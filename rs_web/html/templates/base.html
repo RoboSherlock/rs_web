@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    
+      
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,6 +14,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style/layout-default-1.4.0.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style/web.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/user.css') }}">
     
     
     <script type="text/javascript" src="{{ url_for('static', filename='jquery-1.11.1.min.js') }}"></script>
@@ -20,40 +23,50 @@
     <script type="text/javascript" src="{{ url_for('static', filename='jquery.collapsible.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='Chart.min.js') }}"></script>
     
+    <script type="text/javascript" src="{{ url_for('static', filename='ace/ace.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='ace/ext-language_tools.js') }}"></script>
+      
+    <script type="text/javascript" src="{{ url_for('static', filename='robosherlock.js') }}"></script>
+      
+    
       
     <script type="text/javascript"> 
       $(document).ready(function () {
-	   $('body').layout({ 
+	    rs = new RoboSherlock({});
+        rs.init();
+        $('body').layout({ 
            applyDemoStyles: true,
            west: {
-            minSize: 350,
-            maxSize: 350,
-            size: 350}
-       }
+            minSize: 210,
+            maxSize: 400,
+            size: 350,
+           //Inner layout
+            childOptions: {
+                north: {
+                    paneSelector: "#console",
+                    onresize: function() {
+                        ace.edit("history").resize(true);
+                        ace.edit("user_query").resize(false);
+                    },
+                    minSize: 250   
+                },
+                center: {
+                    paneSelector: "#library",
+                    minSize: 150
+                },
+                south: {
+                    paneSelector: "#info",
+                    minSize: 150
+                }
+            }
+           }
+        }
        );
 
         $.fn.slideFadeToggle = function(speed, easing, callback) {
             return this.animate({opacity: 'toggle', height: 'toggle'}, speed, easing, callback);
         };
 
-        //collapsible management
-        $('.collapsible').collapsible({
-            defaultOpen: 'section1',
-            cookieName: 'nav',
-            speed: 'fast',
-            animateOpen: function (elem, opts) { //replace the standard slideUp with custom function
-                elem.next().slideFadeToggle(opts.speed);
-            },
-            animateClose: function (elem, opts) { //replace the standard slideDown with custom function
-                elem.next().slideFadeToggle(opts.speed);
-            },
-            loadOpen: function (elem) { //replace the standard open state with custom function
-                elem.next().show();
-            },
-            loadClose: function (elem, opts) { //replace the close state with custom function
-                elem.next().hide();
-            }
-        });
         $('.page_collapsible').collapsible({
             defaultOpen: 'body_section1',
             cookieName: 'body2',
@@ -72,7 +85,6 @@
             }
 
         });
-
         //assign open/close all to functions
         function openAll() {
             $('.page_collapsible').collapsible('openAll');
@@ -93,7 +105,9 @@
         });
         closeAll();
       });
-      
+
+        
+        
     </script>
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -102,39 +116,47 @@
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
   </head>
+    
   <body>
     <div class="ui-layout-west">
-        
-        <form  action = "/scenes" method="post">
-            
-            <input type="textarea" name ="console"/><br>            
-            <input type="submit" name="submit" value="Submit"/>
-<!--            <input action= "/objects" type="submit" name="submit" value="Persistent Objects"/>-->
-        </form>
-
+        <div id="console">
+        <div id="console_top">
+          <div id="history"></div>
+          <div id="user_query">your query here!</div>
+        </div>
+        <div id="console_bottom">
+          <div id="query_buttons">
+            <ul class="query_button_group">
+              <li><a href="#" class="query_button" id="btn_query"  onclick="rs.query()">Query</a></li>
+              <li><a href="#" class="query_button" id="btn_query_next" onclick="rs.next_solution()">Next Solution</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div id="library">
+       <select onclick="rs.add_selected_to_queryform('examplequery')" 
+          size="20" name="examplequery" id="examplequery"><option value=0></option>
+        </select>
+      </div>
+      <div id="info">
+       <br\></br\>
+            <p>Experimental visualization and query interface of perception logs. Existing commands:</p>
+            <ul>
+                <li>objects - > shows all percieved objects from the belief state</li>
+                <li>scenes - > shows all scenes processesed by RoboSherlock</li>
+                <li>views(objID) - > shows all views of an object from the belief state; e.g. objects(2)</li>
+            </ul>
+            <p>Extending the query language will allow queries such as 'show all views of object2 where the shape annotator had value X'</p>
+      </div>    
 <!--
-<form action="#">
- 
-  <fieldset>
-    <select name="speed" id="speed">
-      <option>shape</option>
-      <option>color</option>
-      <option selected="selected">type</option>
-      <option>location</option>
-      <option>label</option>
-    </select>
-    <select name="keyvalue" id="keyvalue">
-        <option>box</option>
-        <option>flat</option>
-        <option>round</option>
-    </select>
-    <input type="submit" name="submit2" value="Add"/>
-
-  </fieldset>
- 
-</form>
--->
-        
+        <form  action = "/scenes" method="post">            
+            <input type="textarea" name ="console" style ="rows=4 cols=50"/>
+            <input type="submit" name="submit" value="Query"/>
+        </form>
+        <div id="info">
+           
+        </div>
+-->   
     </div>
     {% block body %}{% endblock %}
 <!--

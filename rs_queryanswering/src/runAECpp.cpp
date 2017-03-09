@@ -40,7 +40,6 @@
 
 #include <rs/utils/RSPipelineManager.h>
 #include <rs_queryanswering/KRDefinitions.h>
-//#include <rs_queryanswering/RSControledAnalysisEngine.h>
 #include <rs_queryanswering/RSProcessManager.h>
 
 #include <ros/ros.h>

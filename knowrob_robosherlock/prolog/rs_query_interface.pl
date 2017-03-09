@@ -1,5 +1,6 @@
 :- module(rs_query_interface,
   [
+  keyword/1,
   rs_interface/2,
   rs_pause/1,
   rs_stop/1,

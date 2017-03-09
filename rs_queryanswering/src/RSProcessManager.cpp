@@ -2,6 +2,84 @@
 
 using namespace designator_integration;
 
+
+RSProcessManager::RSProcessManager(const bool useVisualizer, const std::string &savePath,
+                                   const bool &waitForServiceCall, const bool useCWAssumption, ros::NodeHandle n):
+  engine(n), prologInterface(), nh_(n), waitForServiceCall_(waitForServiceCall),
+  useVisualizer_(useVisualizer), useCWAssumption_(useCWAssumption), useIdentityResolution_(false), pause_(true), visualizer_(savePath)
+{
+
+  outInfo("Creating resource manager"); // TODO: DEBUG
+  uima::ResourceManager &resourceManager = uima::ResourceManager::createInstance("RoboSherlock"); // TODO: change topic?
+
+  switch(OUT_LEVEL)
+  {
+  case OUT_LEVEL_NOOUT:
+  case OUT_LEVEL_ERROR:
+    resourceManager.setLoggingLevel(uima::LogStream::EnError);
+    break;
+  case OUT_LEVEL_INFO:
+    resourceManager.setLoggingLevel(uima::LogStream::EnWarning);
+    break;
+  case OUT_LEVEL_DEBUG:
+    resourceManager.setLoggingLevel(uima::LogStream::EnMessage);
+    break;
+  }
+
+  desig_pub_ = nh_.advertise<designator_integration_msgs::DesignatorResponse>(std::string("result_advertiser"), 5);
+
+  service = nh_.advertiseService("designator_request/all_solutions",
+                                 &RSProcessManager::designatorAllSolutionsCallback, this);
+
+  // Call this service, if RoboSherlock should try out only
+  // the pipeline with all Annotators, that provide the requested types (for example shape)
+  singleService = nh_.advertiseService("designator_request/single_solution",
+                                       &RSProcessManager::designatorSingleSolutionCallback, this);
+
+  // Call this service to switch between AEs
+  setContextService = nh_.advertiseService("set_context", &RSProcessManager::resetAECallback, this);
+
+  jsonService = nh_.advertiseService("json_query", &RSProcessManager::jsonQueryCallback, this);
+
+  semrecClient = NULL;
+  ctxMain = NULL;
+}
+
+RSProcessManager::~RSProcessManager()
+{
+  delete semrecClient;
+  delete ctxMain;
+  uima::ResourceManager::deleteInstance();
+  outInfo("RSControledAnalysisEngine Stoped");
+}
+
+void RSProcessManager::init(std::string &xmlFile, std::string configFile)
+{
+  this->configFile = configFile;
+  cv::FileStorage fs(configFile, cv::FileStorage::READ);
+  fs["cw_assumption"] >> closedWorldAssumption;
+  if(lowLvlPipeline_.empty()) //if not set programatically, load from a config file
+  {
+    fs["annotators"] >> lowLvlPipeline_;
+  }
+  engine.init(xmlFile, lowLvlPipeline_);
+
+  outInfo("Number of objects in closed world assumption: " << closedWorldAssumption.size());
+  if(!closedWorldAssumption.empty() && useCWAssumption_)
+  {
+    for(auto cwa : closedWorldAssumption)
+    {
+      outInfo(cwa);
+    }
+    engine.setCWAssumption(closedWorldAssumption);
+  }
+  if(useVisualizer_)
+  {
+    visualizer_.start();
+  }
+}
+
+
 void RSProcessManager::run()
 {
   for(; ros::ok();)
@@ -18,6 +96,16 @@ void RSProcessManager::run()
     processing_mutex_.unlock();
     ros::spinOnce();
   }
+}
+
+void RSProcessManager::stop()
+{
+  if(useVisualizer_)
+  {
+    visualizer_.stop();
+  }
+  engine.resetCas();
+  engine.stop();
 }
 
 bool RSProcessManager::resetAECallback(iai_robosherlock_msgs::SetRSContext::Request &req,
@@ -147,8 +235,6 @@ bool RSProcessManager::designatorCallbackLogic(designator_integration_msgs::Desi
   rs::DesignatorWrapper::req_designator = new Designator(req.request.designator);
   rs::DesignatorWrapper::req_designator->setType(Designator::ACTION);
   rs::DesignatorWrapper::req_designator->printDesignator();
-
-  //log the req desig with semrec
 
   semrec_client::Context *ctxRSEvent = NULL;
   if(semrecClient)
@@ -305,7 +391,7 @@ bool RSProcessManager::handleQuery(Designator *req, std::vector<Designator> &res
   if(std::find(new_pipeline_order.begin(), new_pipeline_order.end(), "ObjectIdentityResolution") == new_pipeline_order.end())
   {
     new_pipeline_order.push_back("ObjectIdentityResolution");
-    new_pipeline_order.push_back("GazeboInterface");
+//    new_pipeline_order.push_back("GazeboInterface");
   }
   new_pipeline_order.push_back("StorageWriter");
 
@@ -571,7 +657,7 @@ void RSProcessManager::filterResults(Designator &requestDesignator,
                 {
                   if(superclass != "" && rs_queryanswering::krNameMapping.count(superclass) == 1)
                   {
-                    ok = PrologInterface::subClassOf(childrenPair.stringValue(), superclass);
+                    ok = PrologInterface::q_subClassOf(childrenPair.stringValue(), superclass);
                   }
                   else if(strcasecmp(childrenPair.stringValue().c_str(), req_kvp.stringValue().c_str()) == 0 || req_kvp.stringValue() == "")
                   {

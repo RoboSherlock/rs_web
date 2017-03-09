@@ -72,7 +72,7 @@ public:
   /*brief
    * ask prolog if child is of type parent
    * */
-  static bool subClassOf(std::string child, std::string parent)
+  static bool q_subClassOf(std::string child, std::string parent)
   {
     PlTermv av(2);
     av[0] =  rs_queryanswering::makeUri(rs_queryanswering::krNameMapping[child]).c_str();
@@ -101,7 +101,7 @@ public:
   /*brief
    * check for a class property
    * */
-  static bool class_property(std::string className, std::string property, std::string value)
+  static bool q_classProperty(std::string className, std::string property, std::string value)
   {
     PlTermv av(3);
     av[0] =  rs_queryanswering::makeUri(rs_queryanswering::krNameMapping[className]).c_str();

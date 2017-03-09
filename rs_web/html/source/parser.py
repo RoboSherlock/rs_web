@@ -65,9 +65,9 @@ if __name__ == "__main__":
         results = query.parseString( s )
         print s,'->', results
                 
-        s ='object(())'
-        results = objDef.parseString( s )
-        print s,'->', results
+#        s ='object(())'
+#        results = objDef.parseString( s )
+#        print s,'->', results
 
 #        s ='views((color,blue))'
 #        

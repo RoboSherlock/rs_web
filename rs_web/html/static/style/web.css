@@ -240,3 +240,7 @@ div.imgContainer {
     padding: 5px;
     background: #4c88ce; 
 }
+
+div.table-responsive{
+    overflow-x: initial;
+}

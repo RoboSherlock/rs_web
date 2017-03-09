@@ -7,20 +7,18 @@ import sys
 
 import re
 
-
+from pyswip import *
 from source import RSMongoClient as RSMC
 
 app = Flask(__name__)
 app.config.from_pyfile('app.cfg')
 
 mc = RSMC.RSMongoClient('Scenes_annotated')
-
-
 #@app.route('/rs_test.html')
 #def hello(dbname=None,rows=[],images =[]):
 #  imgs = getImages(1,10)
 #  return render_template('objects.html', dbname=dbName,rows=timestamps,images=imgs)
-mc.getObjectInstances(0)
+#mc.getObjectInstances(0)
 
 
 @app.route('/', methods= ['GET','POST'])
@@ -63,6 +61,11 @@ def index():
                            pagination=pagination,
                            )    
 
+@app.route('/queries', methods = ['GET','POST'])
+def serveStaticFile():
+    print('This must be a joke',file = sys.stderr)
+    return app.send_static_file('testQueries.json')
+    
 def handle_objects():
     objs = mc.getPersistentObjects()
     return render_template('objects.html', objects=objs)
@@ -94,5 +97,11 @@ def show_single_page_or_not():
     return current_app.config.get('SHOW_SINGLE_PAGE', False)
 
 if __name__ == '__main__':
+
+    prolog = Prolog()
+    prolog.consult("/home/ferenc/work/kr_ws/src/knowrob/rosprolog/prolog/init.pl")
+    print(list(prolog.query("register_ros_package(knowrob_robosherlock).")))
+    for i in list(prolog.query("knowrob_robosherlock:keyword(A)")):
+        print (i)
     app.run(use_reloader=True, debug=True, host="0.0.0.0", threaded=True)
 

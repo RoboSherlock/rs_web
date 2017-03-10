@@ -175,6 +175,12 @@
     <delegateAnalysisEngine key="SaphariSegmentation">
       <import location="../../../../robosherlock_demos/descriptors/annotators/saphari/SaphariSegmentation.xml"/>
     </delegateAnalysisEngine>
+    <delegateAnalysisEngine key="SherpaMap">
+      <import location="../../../../robosherlock_demos/descriptors/annotators/sherpa/SherpaMap.xml"/>
+    </delegateAnalysisEngine>
+    <delegateAnalysisEngine key="SherpaOcclusion">
+      <import location="../../../../robosherlock_demos/descriptors/annotators/sherpa/SherpaOcclusion.xml"/>
+    </delegateAnalysisEngine>
     <delegateAnalysisEngine key="ShoppingResultAdvertiser">
       <import location="../../../../robosherlock_demos/descriptors/annotators/shopping/ShoppingResultAdvertiser.xml"/>
     </delegateAnalysisEngine>
@@ -514,8 +520,8 @@
         <name>camera_config_files</name>
         <value>
           <array>
-            <string>config_mongodb_pnp.ini</string>
-<!--            <string>config_kinect_robot.ini</string>-->
+<!--            <string>config_mongodb_qa.ini</string>-->
+            <string>config_kinect_robot.ini</string>
           </array>
         </value>
       </nameValuePair>
@@ -528,7 +534,7 @@
       <nameValuePair>
         <name>storagedb</name>
         <value>
-          <string>Scenes</string>
+          <string>Scenes_annotated</string>
         </value>
       </nameValuePair>
 
@@ -595,11 +601,11 @@
       <node>ClusterColorHistogramCalculator</node>
       <node>PrimitiveShapeAnnotator</node>
       <node>TemplateAlignmentAnnotator</node>
-      <node>ClusterToPartsSegmenter</node>
+<!--      <node>ClusterToPartsSegmenter</node>-->
       <node>DeCafClassifier</node>
       <node>TFBroadcaster</node>
       <node>ObjectIdentityResolution</node>
-      <node>GazeboInterface</node>
+<!--      <node>GazeboInterface</node>-->
       <node>StorageWriter</node>
     </fixedFlow>
     </flowConstraints>

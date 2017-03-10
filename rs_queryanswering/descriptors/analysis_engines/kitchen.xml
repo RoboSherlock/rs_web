@@ -175,6 +175,12 @@
     <delegateAnalysisEngine key="SaphariSegmentation">
       <import location="../../../../robosherlock_demos/descriptors/annotators/saphari/SaphariSegmentation.xml"/>
     </delegateAnalysisEngine>
+    <delegateAnalysisEngine key="SherpaMap">
+      <import location="../../../../robosherlock_demos/descriptors/annotators/sherpa/SherpaMap.xml"/>
+    </delegateAnalysisEngine>
+    <delegateAnalysisEngine key="SherpaOcclusion">
+      <import location="../../../../robosherlock_demos/descriptors/annotators/sherpa/SherpaOcclusion.xml"/>
+    </delegateAnalysisEngine>
     <delegateAnalysisEngine key="ShoppingResultAdvertiser">
       <import location="../../../../robosherlock_demos/descriptors/annotators/shopping/ShoppingResultAdvertiser.xml"/>
     </delegateAnalysisEngine>
@@ -408,7 +414,7 @@
       <node>PointCloudClusterExtractor</node>
       <node>ImageSegmentationAnnotator</node>
       <node>ClusterMerger</node>
-
+      <node>PCLDescriptorExtractor</node>
       <node>Cluster3DGeometryAnnotator</node>
       <node>FeatureAnnotator</node>
       <node>ClusterTFLocationAnnotator</node>
@@ -425,7 +431,7 @@
       <node>PancakeAnnotator</node>
       <node>ObjectIdentityResolution</node>
       <node>GazeboInterface</node>
-      <node>StorageWriter</node>
+<!--      <node>StorageWriter</node>-->
 <!--      <node>ClusterTracker</node>-->
 <!--      <node>ClusterGogglesAnnotator</node>-->
 <!--      <node>GroundTruthAnnotator</node>-->

@@ -175,6 +175,12 @@
     <delegateAnalysisEngine key="SaphariSegmentation">
       <import location="../../../../robosherlock_demos/descriptors/annotators/saphari/SaphariSegmentation.xml"/>
     </delegateAnalysisEngine>
+    <delegateAnalysisEngine key="SherpaMap">
+      <import location="../../../../robosherlock_demos/descriptors/annotators/sherpa/SherpaMap.xml"/>
+    </delegateAnalysisEngine>
+    <delegateAnalysisEngine key="SherpaOcclusion">
+      <import location="../../../../robosherlock_demos/descriptors/annotators/sherpa/SherpaOcclusion.xml"/>
+    </delegateAnalysisEngine>
     <delegateAnalysisEngine key="ShoppingResultAdvertiser">
       <import location="../../../../robosherlock_demos/descriptors/annotators/shopping/ShoppingResultAdvertiser.xml"/>
     </delegateAnalysisEngine>

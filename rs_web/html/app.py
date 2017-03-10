@@ -4,9 +4,10 @@ from flask import Flask, render_template,current_app,request,jsonify
 from flask_paginate import Pagination, get_page_args
 
 import sys
-
 import re
 import json
+
+import rospkg
 
 from pyswip import *
 from source import RSMongoClient as RSMC
@@ -25,14 +26,17 @@ mc = RSMC.RSMongoClient('Scenes_annotated')
 
 @app.route('/', methods= ['GET','POST'])
 @app.route('/scenes',methods= ['GET','POST'])
+@app.route('/query',methods= ['POST'])
 def index():
-    print (request.form ,file = sys.stderr)
     if request.method == 'POST':
-        query = request.form['console']
+        query = request.data
+        print(query,file = sys.stderr)
         param = re.search(r"\(([0-9])\)",query)
         if param:
+            print("shit",file = sys.stderr)                
             return findObjectInstances(int(param.group(1)))
         elif query == 'objects':
+            print("objects",file=sys.stderr)
             return handle_objects()
     
     timestamps = mc.getTimestamps()
@@ -69,7 +73,7 @@ def index():
 #    data = json.loads(request.get_data())
 #    return change_example("inference", data['folder'])
 
-@app.route('/queries', methods = ['GET'])
+@app.route('/_get_queries', methods = ['GET'])
 def serveStaticFile():
     print('This must be a joke',file = sys.stderr)
     config = json.loads(open('testQueries.json').read())
@@ -109,7 +113,9 @@ def show_single_page_or_not():
 if __name__ == '__main__':
 
     prolog = Prolog()
-    prolog.consult("/home/bbferka/work/ros_ws/src/knowrob/rosprolog/prolog/init.pl")
+    rospack = rospkg.RosPack()
+    path_to_rosprolog = rospack.get_path('rosprolog')
+    prolog.consult(path_to_rosprolog+"/prolog/init.pl")
     print(list(prolog.query("register_ros_package(knowrob_robosherlock).")))
     for i in list(prolog.query("knowrob_robosherlock:keyword(A)")):
         print (i)

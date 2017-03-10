@@ -7,18 +7,38 @@ function RoboSherlock(options){
 
     var historyDiv = options.history_div || 'history';
     var queryDiv = options.query_div || 'user_query';
-    var libraryDiv = options.library_div ||'examplequery';
+    var libraryDiv = options.library_div ||'querylist';
     
-    var episodeURL = options.default_query || 'testQueries.json';
-    
-    var episodeData = undefined;
+    var queriesData = undefined;
+    var queries =undefined;
     
     this.init = function () {
         this.setup_history_field();
         this.setup_query_field();
-        this.populate_query_select(libraryDiv);
+        this.get_query_data();
     }
             
+    
+    this.query = function ()
+    {
+        var user_query = ace.edit(queryDiv);
+        var q = user_query.getValue().trim();
+        console.log(q);
+        try {
+            var xmlHttp = new XMLHttpRequest();
+            var url = "/query";
+            var params = q;
+            xmlHttp.open("POST", url, true); // true for asynchronous 
+            xmlHttp.setRequestHeader('Content-type', 'text-plain');
+            xmlHttp.onload = function () {
+                console.log("Success");
+            };
+            xmlHttp.send(params);
+        }
+        catch(e) {
+            console.warn("Failed to load episode data.");
+        }
+    };
     
     this.setup_history_field = function () {
         var history = ace.edit(historyDiv);
@@ -117,41 +137,40 @@ function RoboSherlock(options){
       user_query.navigateFileEnd();
     };
     
-    this.get_episode_data = function () {
-        if(!that.episodeData) {
+    this.get_query_data = function () {
+        if(!that.queryData) {
             try {
                 var xmlHttp = new XMLHttpRequest();
-                xmlHttp.open("GET", "/queries", false); // true for asynchronous 
-//                xmlHttp.onload = function(e) { 
-//                    if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
-//                    {
-////                        callback(xmlHttp.responseText);
-////                        console.log(xmlHttp.responseText)
-//                        that.episodeData = JSON.parse(xmlHttp.responseText);
-//                        console.log(that.episodeData);
-//                        
-//                    }
-//                }
+                xmlHttp.open("GET", "/_get_queries", true); // true for asynchronous 
+                xmlHttp.onload = function(e) { 
+                    if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+                    {
+                        console.log(xmlHttp.responseText)
+                        that.queryData = JSON.parse(xmlHttp.responseText);
+                        that.populate_query_select(libraryDiv, that.queryData);
+                        console.log(that.queryData);   
+                    }
+                }
                 xmlHttp.send(null);
-                that.episodeData = JSON.parse(xmlHttp.responseText);
+//                that.queryData = JSON.parse(xmlHttp.responseText);
             }
             catch(e) {
                 console.warn("Failed to load episode data.");
             }
         }
-        console.log(that.episodeData);
-        return that.episodeData;
+//        console.log(that.queryData);
+//        return that.queryData;
     };
     
     
 
     // fill the select with json data from url
-    this.populate_query_select = function (id, queries) {
-        if(queries == undefined) {
-            var episodeData = that.get_episode_data();
-            if(!episodeData) return;
-            queries = episodeData.query;
-        }
+    this.populate_query_select = function (id, queryData) {
+//        if(that.queries == undefined) {
+//            var qD = that.queryData;
+//            if(!queryData) return;
+            queries = queryData.query;
+//        }
         
         var select = document.getElementById(id);
         if(select !== null) {

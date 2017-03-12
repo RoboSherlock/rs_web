@@ -26,19 +26,17 @@ mc = RSMC.RSMongoClient('Scenes_annotated')
 
 @app.route('/', methods= ['GET','POST'])
 @app.route('/scenes',methods= ['GET','POST'])
-@app.route('/query',methods= ['POST'])
+@app.route('/query',methods= ['GET','POST'])
 def index():
     if request.method == 'POST':
         query = request.data
         print(query,file = sys.stderr)
         param = re.search(r"\(([0-9])\)",query)
-        if param:
-            print("shit",file = sys.stderr)                
+        if param:            
             return findObjectInstances(int(param.group(1)))
         elif query == 'objects':
-            print("objects",file=sys.stderr)
             return handle_objects()
-    
+     
     timestamps = mc.getTimestamps()
     total = len(timestamps)
     page, per_page, offset = get_page_args()
@@ -60,7 +58,7 @@ def index():
                                 format_total=True,
                                 format_number=True,
                                 )
-    return render_template('objStore.html', 
+    return render_template('base.html', 
                            scenes=scenes,
                            page=page,
                            per_page=per_page,
@@ -75,17 +73,18 @@ def index():
 
 @app.route('/_get_queries', methods = ['GET'])
 def serveStaticFile():
-    print('This must be a joke',file = sys.stderr)
     config = json.loads(open('testQueries.json').read())
     return jsonify(config)
 
-    
+@app.route('/objects')    
 def handle_objects():
     objs = mc.getPersistentObjects()
+    print("handle_objects.",file=sys.stderr)
     return render_template('objects.html', objects=objs)
   
 def findObjectInstances(objID):
-    objs = mc.getObjectInstances(objID)
+    objs = mc.getObjectInstances(objID)    
+    print("handle_object_instances",file=sys.stderr)
     return render_template('objects.html', objects=objs)
     
 

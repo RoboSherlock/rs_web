@@ -1,11 +1,9 @@
-{% extends 'base.html' %}
+{#% extends 'base.html' %#}
 {% import 'macros.html' as macros %}
 
 {% block body %}
-<div class="ui-layout-center">
+<p> Query returned {{ objects|length }} Objects. </p>
 {% if objects %}
- {#{{ pagination.info }}#}
- {#{{ pagination.links }}#}
   <div class="table-responsive">
     <table class="table" id ="maintable">
     <thead>
@@ -25,9 +23,7 @@
     </tbody>
     </table>
   </div>
-  {#{{ pagination.links }}#}
 {% endif %}
  
-</div>
 {% endblock %}
 

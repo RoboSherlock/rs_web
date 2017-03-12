@@ -3,7 +3,6 @@
 {% import 'macros.html' as macros %}
 
 {% block body %}
-<div class="ui-layout-center">
 {% if scenes %}
  {# {{ pagination.info }} #}
   {{ pagination.links }}
@@ -52,7 +51,6 @@
   </div>
   {{ pagination.links }}
 {% endif %}
-</div>
 {% endblock %}
 
 {#{% block js %}

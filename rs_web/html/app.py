@@ -83,7 +83,7 @@ def handle_scenes():
 #                                format_total=True,
 #                                format_number=True,
 #                                )
-    return render_template('objStore.html',
+    return render_template('scenes.html',
                                scenes=scenes)
 #                               page=page,
 #                               per_page=per_page,

@@ -23,48 +23,25 @@ mc = RSMC.RSMongoClient('Scenes_annotated')
 #  return render_template('objects.html', dbname=dbName,rows=timestamps,images=imgs)
 #mc.getObjectInstances(0)
 
-
 @app.route('/', methods= ['GET','POST'])
-@app.route('/scenes',methods= ['GET','POST'])
 @app.route('/query',methods= ['GET','POST'])
 def index():
-    if request.method == 'POST':
+    if (request.method == 'POST'):
         query = request.data
-        print(query,file = sys.stderr)
+        print("Query is : ",query,file = sys.stderr)
         param = re.search(r"\(([0-9])\)",query)
         if param:            
             return findObjectInstances(int(param.group(1)))
         elif query == 'objects':
             return handle_objects()
-     
-    timestamps = mc.getTimestamps()
-    total = len(timestamps)
-    page, per_page, offset = get_page_args()
+        elif query == 'scenes':
+            return handle_scenes()
+    print("Method was not POST",file = sys.stderr) 
+    print(request.data,file = sys.stderr)
+    print("Rendering base.html",file=sys.stderr)
+    return render_template('base.html')
+#                          
     
-    idxB = (page-1)*per_page
-    idxE = page*per_page  
-    scenes = []
-    for ts in timestamps[idxB:idxE]:
-        scene = {}
-        scene['ts']= ts
-        scene['rgb'] = mc.getSceneImage(ts)
-        scene['objects'] = mc.getObjectHypsForScene(ts)
-        scenes.append(scene)
-        
-    pagination = get_pagination(page=page,
-                                per_page=per_page,
-                                total=total,
-                                record_name='scenes',
-                                format_total=True,
-                                format_number=True,
-                                )
-    return render_template('base.html', 
-                           scenes=scenes,
-                           page=page,
-                           per_page=per_page,
-                           pagination=pagination,
-                           )    
-
 
 #@app.route('/mln/inference/_change_example', methods=['POST'])
 #def change_example_inf():
@@ -75,20 +52,48 @@ def index():
 def serveStaticFile():
     config = json.loads(open('testQueries.json').read())
     return jsonify(config)
+ 
 
-@app.route('/objects')    
 def handle_objects():
     objs = mc.getPersistentObjects()
     print("handle_objects.",file=sys.stderr)
     return render_template('objects.html', objects=objs)
+
+    
+def handle_scenes():
+    print("handle_scenes.",file=sys.stderr)    
+    timestamps = mc.getTimestamps()
+#    total = len(timestamps)
+#    page, per_page, offset = get_page_args()
+#    
+#    idxB = (page-1)*per_page
+#    idxE = page*per_page  
+    scenes = []
+    for ts in timestamps:#[idxB:idxE]:
+        scene = {}
+        scene['ts']= ts
+        scene['rgb'] = mc.getSceneImage(ts)
+        scene['objects'] = mc.getObjectHypsForScene(ts)
+        scenes.append(scene)
+#        
+#    pagination = get_pagination(page=page,
+#                                per_page=per_page,
+#                                total=total,
+#                                record_name='scenes',
+#                                format_total=True,
+#                                format_number=True,
+#                                )
+    return render_template('objStore.html',
+                               scenes=scenes)
+#                               page=page,
+#                               per_page=per_page,
+#                               pagination=pagination)
   
 def findObjectInstances(objID):
     objs = mc.getObjectInstances(objID)    
     print("handle_object_instances",file=sys.stderr)
     return render_template('objects.html', objects=objs)
     
-
-
 
 def get_pagination(**kwargs):
     kwargs.setdefault('record_name', 'records')

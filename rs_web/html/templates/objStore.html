@@ -1,11 +1,51 @@
-{% extends 'base.html' %}
+{#% extends 'base.html' %#}
 
 {% import 'macros.html' as macros %}
+
+<script  type="text/javascript">
+    $('.page_collapsible').collapsible({
+            defaultOpen: 'body_section1',
+            cookieName: 'body2',
+            speed: 'fast',
+            animateOpen: function (elem, opts) { //replace the standard slideUp with custom function
+                elem.next().slideFadeToggle(opts.speed);
+            },
+            animateClose: function (elem, opts) { //replace the standard slideDown with custom function
+                elem.next().slideFadeToggle(opts.speed);
+            },
+            loadOpen: function (elem) { //replace the standard open state with custom function
+                elem.next().show();
+            },
+            loadClose: function (elem, opts) { //replace the close state with custom function
+                elem.next().hide();
+            }
+
+        });
+        //assign open/close all to functions
+        function openAll() {
+            $('.page_collapsible').collapsible('openAll');
+        }
+        function closeAll() {
+            $('.page_collapsible').collapsible('closeAll');
+        }
+
+        //listen for close/open all
+        $('#closeAll').click(function(event) {
+            event.preventDefault();
+            closeAll();
+
+        });
+        $('#openAll').click(function(event) {
+            event.preventDefault();
+            openAll();
+        });
+        closeAll();
+</script>
 
 {% block body %}
 {% if scenes %}
  {# {{ pagination.info }} #}
-  {{ pagination.links }}
+  {#{ pagination.links }#}
   <div class="table-responsive">
     <table class="table" id=maintable>
     <thead>
@@ -20,7 +60,8 @@
       {% for scene in scenes %}
       {% set outer_loop = loop %}
       <tr>
-      <td>{{ loop.index + (page - 1) * per_page }}</td>
+{# <!--  <td>{{ loop.index + (page - 1) * per_page }}</td>--> #}
+      <td>{{ loop.index }}</td>
           <td style="width:auto; max-width:290;" > {{ scene['ts']}} <br>
           <div class = "imgContainer"> <img style="display:block;margin-left:auto;margin-right:auto;" src="{{ scene['rgb']}}"/></div>
       </td>
@@ -49,7 +90,7 @@
     </tbody>
     </table>
   </div>
-  {{ pagination.links }}
+  {#{ pagination.links }#}
 {% endif %}
 {% endblock %}
 

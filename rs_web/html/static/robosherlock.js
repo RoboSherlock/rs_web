@@ -19,34 +19,24 @@ function RoboSherlock(options){
         this.get_query_data();
     }
             
-    
-    this.query = function ()
-    {
+    //need jQuery here so javascript is evluated in
+    $("#btn_query").click(function (){
         var user_query = ace.edit(queryDiv);
         var q = user_query.getValue().trim();
-        console.log(q);
-        try {
-            var xmlHttp = new XMLHttpRequest();
-            var url = "/query";
-            var params = q;
-            xmlHttp.open("POST", url, true); // true for asynchronous 
-            xmlHttp.setRequestHeader('Content-type', 'text-plain');
-            xmlHttp.onload = function () {
-                if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
-                {
-                    console.log("Success");
-                    console.log(xmlHttp.responseText);
-                    var div = document.getElementById('bodyDiv');
-                    div.innerHTML = xmlHttp.responseText;
-                }
-            };
-            xmlHttp.send(params);
-        }
-        catch(e) {
-            console.warn("Failed to load episode data.");
-        }
-    };
-    
+        $.ajax({
+           type: "POST",
+           url: "/query",
+           data: q, // serializes the form's elements.
+           async: true,
+           beforeSend: function(xhr){xhr.setRequestHeader('Content-type', 'text-plain');},
+           success: function(data){
+                $("#bodyDiv").html(data);
+                $("#bodyDiv-div").find("script").each(function(i) {
+                    eval($(this).text());
+                }); 
+           }
+         });
+    });
     
     this.get_query_data = function () {
         if(!that.queryData) {
@@ -56,10 +46,8 @@ function RoboSherlock(options){
                 xmlHttp.onload = function(e) { 
                     if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
                     {
-                        console.log(xmlHttp.responseText)
                         that.queryData = JSON.parse(xmlHttp.responseText);
                         that.populate_query_select(libraryDiv, that.queryData);
-                        console.log(that.queryData);   
                     }
                 }
                 xmlHttp.send(null);
@@ -170,16 +158,10 @@ function RoboSherlock(options){
 
     // fill the select with json data from url
     this.populate_query_select = function (id, queryData) {
-//        if(that.queries == undefined) {
-//            var qD = that.queryData;
-//            if(!queryData) return;
-            queries = queryData.query;
-//        }
-        
+        queries = queryData.query;       
         var select = document.getElementById(id);
         if(select !== null) {
-          while (select.firstChild) select.removeChild(select.firstChild);
-          
+          while (select.firstChild) select.removeChild(select.firstChild);         
           for (var i = 0; i < queries.length; i++) {
             var opt = document.createElement('option');
             if(queries[i].q !== undefined) {

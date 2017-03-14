@@ -6,16 +6,18 @@ from flask_paginate import Pagination, get_page_args
 import sys
 import re
 import json
+import time
 
-import rospkg
 
-from pyswip import *
+
+from pyswip import Prolog, registerForeign
 from source import RSMongoClient as RSMC
 
 app = Flask(__name__)
 app.config.from_pyfile('app.cfg')
 
 mc = RSMC.RSMongoClient('Scenes_annotated')
+
 
 #@app.route('/rs_test.html')
 #def hello(dbname=None,rows=[],images =[]):
@@ -40,13 +42,16 @@ def index():
     print(request.data,file = sys.stderr)
     print("Rendering base.html",file=sys.stderr)
     return render_template('base.html')
-#                          
-    
 
-#@app.route('/mln/inference/_change_example', methods=['POST'])
-#def change_example_inf():
-#    data = json.loads(request.get_data())
-#    return change_example("inference", data['folder'])
+@app.route('/prolog_query',methods= ['GET','POST'])
+def query_wrapper():
+    if (request.method == 'POST'):
+        query = request.data
+        print("query is: "+query,file=sys.stderr)
+        if query == 'objects':
+            return handle_objects()
+        elif query == 'scenes':
+            return handle_scenes()
 
 @app.route('/_get_queries', methods = ['GET'])
 def serveStaticFile():
@@ -59,7 +64,7 @@ def handle_objects():
     print("handle_objects.",file=sys.stderr)
     return render_template('objects.html', objects=objs)
 
-    
+
 def handle_scenes():
     print("handle_scenes.",file=sys.stderr)    
     timestamps = mc.getTimestamps()
@@ -69,13 +74,17 @@ def handle_scenes():
 #    idxB = (page-1)*per_page
 #    idxE = page*per_page  
     scenes = []
+    
+
+    start_time = time.time()
+
     for ts in timestamps:#[idxB:idxE]:
         scene = {}
         scene['ts']= ts
         scene['rgb'] = mc.getSceneImage(ts)
         scene['objects'] = mc.getObjectHypsForScene(ts)
         scenes.append(scene)
-#        
+    print("getting data took: %s seconds ---" % (time.time() - start_time),file=sys.stderr)
 #    pagination = get_pagination(page=page,
 #                                per_page=per_page,
 #                                total=total,
@@ -83,8 +92,12 @@ def handle_scenes():
 #                                format_total=True,
 #                                format_number=True,
 #                                )
-    return render_template('scenes.html',
-                               scenes=scenes)
+    start_time =time.time()
+    templ = render_template('scenes.html',scenes=scenes)
+    print("rendering took: %s seconds ---" % (time.time() - start_time),file=sys.stderr)
+    return templ
+#    return render_template('scenes.html',
+#                               scenes=scenes)
 #                               page=page,
 #                               per_page=per_page,
 #                               pagination=pagination)
@@ -116,12 +129,5 @@ def show_single_page_or_not():
 
 if __name__ == '__main__':
 
-    prolog = Prolog()
-    rospack = rospkg.RosPack()
-    path_to_rosprolog = rospack.get_path('rosprolog')
-    prolog.consult(path_to_rosprolog+"/prolog/init.pl")
-    print(list(prolog.query("register_ros_package(knowrob_robosherlock).")))
-    for i in list(prolog.query("knowrob_robosherlock:keyword(A)")):
-        print (i)
     app.run(use_reloader=True, debug=True, host="0.0.0.0", threaded=True)
 

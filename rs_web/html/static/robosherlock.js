@@ -25,7 +25,7 @@ function RoboSherlock(options){
         var q = user_query.getValue().trim();
         $.ajax({
            type: "POST",
-           url: "/query",
+           url: "/prolog_query",
            data: q, // serializes the form's elements.
            async: true,
            beforeSend: function(xhr){xhr.setRequestHeader('Content-type', 'text-plain');},

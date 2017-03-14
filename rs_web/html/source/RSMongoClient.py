@@ -15,6 +15,7 @@ from pymongo import MongoClient
 import cv2
 import numpy as np
 import base64
+import time
 
 
 class RSMongoClient:
@@ -25,8 +26,9 @@ class RSMongoClient:
     def __init__(self,dbName):
         self.client = MongoClient()
         self.db = self.client[dbName]
-    
+        
     def get_object_image(self, objEntry,ts):
+#        start_time =time.time()
         x=objEntry['rois']['roi_hires']['pos']['x']
         y=objEntry['rois']['roi_hires']['pos']['y']
         objheight = objEntry['rois']['roi_hires']['size']['height']
@@ -43,9 +45,11 @@ class RSMongoClient:
             height,width = small.shape[:2]
             if width > 150:
                 small = cv2.resize(objImg, (0,0), fx= 150 / objwidth,fy=150 / objwidth)
+#            print("getting objHyps image: %s seconds ---" % (time.time() - start_time),file=sys.stderr)        
             return small
             
     def get_persistent_object_annotations(self,objEntry):
+#        start_time =time.time()        
         annotations = objEntry['annotations']
         ann=[]
         for a in annotations:
@@ -53,6 +57,7 @@ class RSMongoClient:
                 a['_type'] != 'rs.annotation.Segment' and \
                 a['_type'] != 'rs.annotation.Features':                     
                 ann.append(self.adjust_annotation(a))
+#        print("getting annotations for obj:  %s seconds ---" % (time.time() - start_time),file=sys.stderr)        
         return ann
         
     #adjust values in annotation for simpler js vis
@@ -103,7 +108,9 @@ class RSMongoClient:
             
     
     def getObjectHypsForScene(self,ts):
+#        start_time = time.time()
         sceneDoc = self.db.scene.find({'timestamp':ts})
+#        print("finding TS took: %s seconds ---" % (time.time() - start_time),file=sys.stderr)        
         objHyps = []        
         if sceneDoc.count()!=0:
             hyps = sceneDoc[0]['identifiables']
@@ -112,9 +119,10 @@ class RSMongoClient:
                  objHyp['image'] = self.getBase64Img(self.get_object_image(hyp,ts))
                  objHyp['annotations'] = self.get_persistent_object_annotations(hyp)
                  objHyps.append(objHyp)
+#        print("getting objHyps for scene took: %s seconds ---" % (time.time() - start_time),file=sys.stderr)        
         return objHyps
                 
-    def getBase64Img(self,img):
+    def getBase64Img(self,img):      
         [ret,png] = cv2.imencode('.png',img) 
         b64 = base64.b64encode(png.tostring())
         return 'data:image/png;base64,'+b64
@@ -126,7 +134,7 @@ class RSMongoClient:
             timestamps.append(sc['_timestamp'])
         return timestamps
 
-    def get_image_for_sceneID(self,sceneId,scaleFactor):    
+    def get_image_for_sceneID(self,sceneId,scaleFactor): 
         casDocument = self.db.cas.find({'_id':sceneId})
         if casDocument.count() !=0: 
             colorCursor= self.db.color_image_hd.find({'_id':casDocument[0]['color_image_hd']})
@@ -146,6 +154,12 @@ class RSMongoClient:
         return imgs
       
     def getSceneImage(self,ts):
-        return self.getBase64Img(self.get_image_for_sceneID(self.db.scene.find({'timestamp':ts})[0]['_parent'],0.22))
+#        start_time = time.time()           
+        img = self.get_image_for_sceneID(self.db.scene.find({'timestamp':ts})[0]['_parent'],0.22)
+#        print("getting image took: %s seconds ---" % (time.time() - start_time),file=sys.stderr)
+#        start_time = time.time()           
+        base64Img = self.getBase64Img(img)
+#        print("converting to base64 took: %s seconds ---" % (time.time() - start_time),file=sys.stderr)
+        return base64Img
         
   

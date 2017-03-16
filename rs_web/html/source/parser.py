@@ -9,6 +9,18 @@ from pyparsing import *
 
 #####new parsing: more designator like
 
+#param is token found in string
+def kvp_cb_(toks):
+    print "Token: ",toks
+    #as long as we us add Parse action we don't need to return anything
+    #return toks    
+    
+def res_specif_cp_(toks):
+    #now search DB based on what is queried.
+    print "Result Specifier: ",toks
+
+
+    
 bq = Literal('{').suppress()
 eq = Literal('}').suppress()
 bl = Literal('[').suppress()
@@ -16,14 +28,14 @@ el = Literal(']').suppress()
 delimiter = Literal(':').suppress()
 separator = oneOf(', ;').suppress()
 
-resultSpecifier = oneOf('scene hypotheses object')
+resultSpecifier = oneOf('scene hypotheses object').setParseAction(res_specif_cp_)
 key = oneOf('location shape color size detection id ts type value confidence') | resultSpecifier
 value = Word(alphanums)
 
  
 kvps = Forward() 
 description = bl+ kvps +el 
-kvp = Group(key+delimiter+value) | Group(key+delimiter+description)
+kvp = Group(key+delimiter+value).addParseAction(kvp_cb_) | Group(key+delimiter+description)
 kvps << OneOrMore(kvp+Optional(separator)) |kvps
 
 query = bq+resultSpecifier+delimiter+description+eq
@@ -43,6 +55,9 @@ if __name__ == "__main__":
         results = query.parseString(s)
         print s,'->', results 
         
+        s = '{scene:[hypotheses:[id:2],hypotheses:[color:blue, shape:box, type:crap]]}'
+        results = query.parseString(s)
+        print s,'->', results
         
     except (ParseException):
         print('Malformed query. RTFM')

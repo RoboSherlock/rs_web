@@ -20,8 +20,7 @@ class QueryHandler:
         
 
     def res_specif_cb_(self,toks):
-        self.count+=1
-        print " : Result Specifier (%d) : %s." % (self.count, toks)
+        print " : Result Specifier : %s." % (toks)
 
     def operator_cb_(self,toks):
         print ":Operator call-back: %s" % (toks)

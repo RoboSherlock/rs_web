@@ -66,7 +66,7 @@ class RSQueryGrammar:
         
 #         kvp =  simpleKvp | nestedKvP | valueKvp #matchfirst sux...use or instead..which is end...FFS
         kvp =  simpleKvp ^ nestedKvP ^ valueKvp #matchfirst sux...use or instead..which is end...FFS
-        kvps << (OneOrMore(kvp+Optional(separator)) |kvps)
+        kvps << (ZeroOrMore(kvp+Optional(separator)) |kvps)
 
         query = bq+resultSpecifier+delimiter+resultDescription+eq
         
@@ -87,6 +87,11 @@ if __name__ == "__main__":
         s ='{object:[shape:blue, size:small]}'
         results = gr.parseQuery(s)
         print s,'->', results
+        
+        s ='{object:[]}'
+        results = gr.parseQuery(s)
+        print s,'->', results
+        
 #         
 #        s = '{scene:[object:[id:2],object:[id:4]]}'
 #        results = gr.parseQuery(s)

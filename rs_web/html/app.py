@@ -8,22 +8,12 @@ import re
 import json
 import time
 
-
-
-from pyswip import Prolog, registerForeign
 from source import RSMongoClient as RSMC
 
 app = Flask(__name__)
 app.config.from_pyfile('app.cfg')
 
 mc = RSMC.RSMongoClient('Scenes_annotated')
-
-
-#@app.route('/rs_test.html')
-#def hello(dbname=None,rows=[],images =[]):
-#  imgs = getImages(1,10)
-#  return render_template('objects.html', dbname=dbName,rows=timestamps,images=imgs)
-#mc.getObjectInstances(0)
 
 @app.route('/', methods= ['GET','POST'])
 @app.route('/query',methods= ['GET','POST'])

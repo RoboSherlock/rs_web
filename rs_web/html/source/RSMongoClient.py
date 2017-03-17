@@ -19,9 +19,6 @@ import time
 
 
 class RSMongoClient:
-  
-#    client = MongoClient()
-#    db = client["Scenes_annotated"]
 
     def __init__(self,dbName):
         self.client = MongoClient()

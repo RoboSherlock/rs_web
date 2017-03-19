@@ -8,7 +8,7 @@ import re
 import json
 import time
 
-from source import RSMongoClient as RSMC
+from source import mongoclient as RSMC
 
 app = Flask(__name__)
 app.config.from_pyfile('app.cfg')
@@ -50,7 +50,7 @@ def serveStaticFile():
  
 
 def handle_objects():
-    objs = mc.getPersistentObjects()
+    objs = mc.get_persistent_objects()
     print("handle_objects.",file=sys.stderr)
     return render_template('objects.html', objects=objs)
 
@@ -71,7 +71,7 @@ def handle_scenes():
     for ts in timestamps:#[idxB:idxE]:
         scene = {}
         scene['ts']= ts
-        scene['rgb'] = mc.getSceneImage(ts)
+        scene['rgb'] = mc.get_scene_image(ts)
         scene['objects'] = mc.getObjectHypsForScene(ts)
         scenes.append(scene)
     print("getting data took: %s seconds ---" % (time.time() - start_time),file=sys.stderr)

@@ -8,12 +8,12 @@ import re
 import json
 import time
 
-from source import mongoclient as RSMC
+from source.mongoclient import RSMongoClient
 
 app = Flask(__name__)
 app.config.from_pyfile('app.cfg')
 
-mc = RSMC.RSMongoClient('Scenes_annotated')
+mc = RSMongoClient('Scenes_annotated')
 
 @app.route('/', methods= ['GET','POST'])
 @app.route('/query',methods= ['GET','POST'])
@@ -93,7 +93,7 @@ def handle_scenes():
 #                               pagination=pagination)
   
 def findObjectInstances(objID):
-    objs = mc.getObjectInstances(objID)    
+    objs = mc.get_object_instances(objID)
     print("handle_object_instances",file=sys.stderr)
     return render_template('objects.html', objects=objs)
     

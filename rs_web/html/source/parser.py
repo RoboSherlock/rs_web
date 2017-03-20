@@ -8,33 +8,31 @@ Created on Mon Dec 12 11:19:44 2016
 from pyparsing import *
 from mongoclient import RSMongoClient
 
+"""
+    @type mc: RSMongoClient
+"""
+mc = RSMongoClient("Scenes_annotated")
 
 class QueryHandler(object):
 
     def __init__(self):
         print "Init Query Handler"
-        """
-           @type self.mc: RSMongoClient
-        """
-        self.mc = RSMongoClient("Scenes_annotated")
-        self.status = 'begin'
+        self.status = 0
 
     def kvp_cb_(self, t):
         print "KVP %s" % t
 
-    def res_specif_cb_(self, t,mc=None):
-        if mc is None:
-            mc = self.mc
-
-        """
-           @type self.mc: RSMongoClient
-        """
+    def res_specif_cb_(self, t):
         print "Result Specifier: %s." % t
-        if t[0] == 'object' and self.status =='begin':
-            print 'final result should be collection of objects matching description'
-        if t[0] == 'scene' and self.status =='begin':
-            print 'final result should be collection of scenes matching description'
-        mc.get_persistent_objects()
+        if self.status == 0:
+            if t[0] == 'object':
+                print 'final result should be collection of objects matching description'
+            elif t[0] == 'scene':
+                print 'final result should be collection of scenes matching description'
+            elif t[0] == 'hypotheses':
+                print 'final result should be collection of obj-hypotheses matching description'
+            self.status = 1
+        a = mc.get_cursor(t[0])#some parametrization that gives all views all objects or all scenes?
 
 
     def operator_cb_(self, t):
@@ -43,7 +41,7 @@ class QueryHandler(object):
     def end_cb_(self, t):
         print "Query %s" % t
         print 'End of parsing'
-        self.status = 'begin'
+        self.status = 0
 
 
 class RSQueryGrammar:
@@ -60,8 +58,8 @@ class RSQueryGrammar:
         operator = oneOf('= < >')
         separator = oneOf(', ;').suppress()
 
-        resultSpecifier = oneOf('scene hypotheses object')
-        key = oneOf('location shape color size detection id ts type value ratio confidence') ^ resultSpecifier
+        result_specifier = oneOf('scene hypotheses object')
+        key = oneOf('location shape color size detection id ts type value ratio confidence') ^ result_specifier
 
         point = Literal('.')
         number = Word(nums)
@@ -71,7 +69,7 @@ class RSQueryGrammar:
                               Optional(point + Optional(number))
                               )
         kvps = Forward()
-        resultDescription = bl + kvps + el
+        result_description = bl + kvps + el
         description = bp + kvps + ep
 
         value = Word(alphanums) | description
@@ -81,15 +79,15 @@ class RSQueryGrammar:
 
         # numerical comparison confidence > 0.0
         valueKvp = key + operator + (floatnumber | value)
-        nestedKvP = key + delimiter + resultDescription
+        nestedKvP = key + delimiter + result_description
 
         # kvp =  simpleKvp | nestedKvP | valueKvp #matchfirst sux...use or instead..which is end...FFS
         kvp = simpleKvp ^ nestedKvP ^ valueKvp
         kvps << ZeroOrMore(kvp + Optional(separator))
 
-        query = bq + resultSpecifier + delimiter + resultDescription + eq
+        query = bq + result_specifier + delimiter + result_description + eq
 
-        resultSpecifier.addParseAction(self.qh.res_specif_cb_)
+        result_specifier.addParseAction(self.qh.res_specif_cb_)
         simpleKvp.addParseAction(self.qh.kvp_cb_)
         valueKvp.addParseAction(self.qh.operator_cb_)
         query.addParseAction(self.qh.end_cb_)

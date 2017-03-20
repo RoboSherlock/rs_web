@@ -19,7 +19,7 @@ import base64
 import time
 
 
-class RSMongoClient(object):
+class RSMongoClient:
 
     def __init__(self, db_name):
         """
@@ -29,6 +29,14 @@ class RSMongoClient(object):
         self.client = MongoClient()
         self.db = self.client[db_name]
 
+    def get_cursor(self,type):
+        cursor=None
+        if type =='object':
+            cursor = self.db.persistent_objects.find()
+        elif type =='scene':
+            cursor = self.db.scenes.find()
+        return cursor
+
     def get_object_image(self, obj_entry, ts):
         # start_time =time.time()
         x = obj_entry['rois']['roi_hires']['pos']['x']
@@ -36,17 +44,17 @@ class RSMongoClient(object):
         objheight = obj_entry['rois']['roi_hires']['size']['height']
         objwidth = obj_entry['rois']['roi_hires']['size']['width']
         img_id = self.db.cas.find({'_timestamp': ts})[0]['color_image_hd']
-        colorCursor = self.db.color_image_hd.find({'_id': img_id})
-        if colorCursor.count() != 0:
-            width = colorCursor[0]['cols']
-            height = colorCursor[0]['rows']
-            imgData = colorCursor[0]['data']
-            image = np.reshape(np.fromstring(imgData, np.uint8), (height, width, 3))
-            objImg = image[y:y + objheight, x:x + objwidth]
-            small = cv2.resize(objImg, (0, 0), fx=100 / objheight, fy=100 / objheight)
+        color_cursor = self.db.color_image_hd.find({'_id': img_id})
+        if color_cursor.count() != 0:
+            width = color_cursor[0]['cols']
+            height = color_cursor[0]['rows']
+            img_data = color_cursor[0]['data']
+            image = np.reshape(np.fromstring(img_data, np.uint8), (height, width, 3))
+            obj_img = image[y:y + objheight, x:x + objwidth]
+            small = cv2.resize(obj_img, (0, 0), fx=100 / objheight, fy=100 / objheight)
             height, width = small.shape[:2]
             if width > 150:
-                small = cv2.resize(objImg, (0, 0), fx=150 / objwidth, fy=150 / objwidth)
+                small = cv2.resize(obj_img, (0, 0), fx=150 / objwidth, fy=150 / objwidth)
             # print("getting objHyps image: %s seconds ---" % (time.time() - start_time),file=sys.stderr)
             return small
 
@@ -68,9 +76,9 @@ class RSMongoClient(object):
             b = a
             width = a['hist']['cols']
             height = a['hist']['rows']
-            imgData = a['hist']['data']
+            img_data = a['hist']['data']
 
-            b['values'] = np.fromstring(imgData, np.float32)
+            b['values'] = np.fromstring(img_data, np.float32)
             b['bins'] = height * width
             return b
         elif a['_type'] == 'rs.pcl.PclFeature':
@@ -82,16 +90,16 @@ class RSMongoClient(object):
             return a
 
     def get_persistent_objects(self):
-        poCursor = self.db.persistent_objects.find()
+        po_cursor = self.db.persistent_objects.find()
         objects = []
-        for objEntry in poCursor:
+        for objEntry in po_cursor:
             obj = {}
             obj['image'] = self.getBase64Img(self.get_object_image(objEntry, objEntry['lastSeen']))
             obj['annotations'] = self.get_persistent_object_annotations(objEntry)
             objects.append(obj)
         return objects
 
-    def getObjectInstances(self, id):
+    def get_object_instances(self, id):
         nrOfObjs = self.db.persistent_objects.count()
         if id > nrOfObjs:
             return

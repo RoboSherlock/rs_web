@@ -34,7 +34,9 @@ class RSMongoClient(object):
         else:
             # if we're looking for views of scenes
             self.active_collection =  self.db.scenes
-
+    def call_query(self,query):
+        cursor = self.active_collection.find(query)
+        print('Query resulted in %d results' %cursor.count())
 
     def get_object_image(self, obj_entry, ts):
         # start_time =time.time()

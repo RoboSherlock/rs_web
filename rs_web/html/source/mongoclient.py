@@ -10,8 +10,6 @@ from __future__ import print_function  # In python 2.7
 
 from bson.objectid import ObjectId
 
-import sys
-
 from pymongo import MongoClient
 import cv2
 import numpy as np
@@ -19,7 +17,7 @@ import base64
 import time
 
 
-class RSMongoClient:
+class RSMongoClient(object):
 
     def __init__(self, db_name):
         """
@@ -28,14 +26,15 @@ class RSMongoClient:
         """
         self.client = MongoClient()
         self.db = self.client[db_name]
+        self.active_collection = None
 
-    def get_cursor(self,type):
-        cursor=None
+    def set_main_collection(self,type):
         if type =='object':
-            cursor = self.db.persistent_objects.find()
-        elif type =='scene':
-            cursor = self.db.scenes.find()
-        return cursor
+            self.active_collection = self.db.persistent_objects
+        else:
+            # if we're looking for views of scenes
+            self.active_collection =  self.db.scenes
+
 
     def get_object_image(self, obj_entry, ts):
         # start_time =time.time()

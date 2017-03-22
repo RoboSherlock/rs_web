@@ -37,16 +37,36 @@ class QueryHandler(object):
 
     def __init__(self):
         print "Init Query Handler"
+        # initialize the grammar
+        self.grammar = RSQueryGrammar(self)
         self.status = 0
+        # track the no of kvps extracted so we can format mongo query adequately
         self.kvp_counter=0
         self.query = {}
         self.kvp_map = {}
 
     def reset(self):
+        """
+        reset all variables used to track the status of one query
+        """
         self.status = 0
         self.kvp_counter = 0
         self.query = {}
         self.kvp_map = {}
+
+    @property
+    def gen_dict(self):
+        """
+
+        :return: the specific nesting of a dic needed for a mongo query
+        """
+        dict={}
+        dict['annotations'] = {}
+        dict['annotations']['$elemMatch'] = {}
+        return dict
+
+    def parse_query(self,q):
+        self.grammar.parse_query(q)
 
     def kvp_cb_(self, t):
         if len(t) == 2:
@@ -54,15 +74,13 @@ class QueryHandler(object):
             print '(%d) %s' % (self.kvp_counter,t.key)
             res= {t.key:t.value}
             print '(%d) kvp out: %s' %(self.kvp_counter, res)
-            element={}
-            element['annotations'] = {}
-            element['annotations']['$elemMatch']={}
+
+            element=self.gen_dict
             element['annotations']['$elemMatch']=res
             self.query['$and'].append(element)
             self.kvp_map[self.kvp_counter] = element
             self.kvp_counter += 1
             print self.query
-
         else:
             print '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
             print 'Now what..this mean that everything inside was already processed'
@@ -73,10 +91,10 @@ class QueryHandler(object):
         print '(%d) constraint: Value: %s' % (self.kvp_counter, t.value)
         res = {t.key: {op_dict[t.op]: float(t.value)}}
         print '(%d) constraint: Key out: %s,' % (self.kvp_counter, res)
-        element = {}
-        element['annotations'] = {}
-        element['annotations']['$elemMatch'] = {}
+
+        element = self.gen_dict
         element['annotations']['$elemMatch'] = res
+
         self.query['$and'].append(element)
         self.kvp_map[self.kvp_counter] = element
         self.kvp_counter += 1
@@ -87,17 +105,14 @@ class QueryHandler(object):
         # delete the las x elements and re add them under the same $elemMatch
         del self.query['$and'][-len(t.description):]
         print 'DELETED the nested ones'
-        element={}
-        element['annotations']= {}
-        element['annotations']['$elemMatch'] = {}
+        element=self.gen_dict
 
         for i in range(len(t.description)):
             # print self.kvp_map[self.kvp_counter - i - 1]['annotations']['$elemMatch'].items()
-            element["annotations"]["$elemMatch"][
-                self.kvp_map[self.kvp_counter - i - 1]['annotations']['$elemMatch'].items()[0][0]] = \
-                self.kvp_map[self.kvp_counter - i - 1]['annotations']['$elemMatch'].items()[0][1]
+            idx=self.kvp_counter - i - 1
+            element["annotations"]["$elemMatch"].update(self.kvp_map[idx]['annotations']['$elemMatch'])
+        element["annotations"]["$elemMatch"].update(key_dict[t.key])
 
-        element["annotations"]["$elemMatch"][key_dict[t.key].items()[0][0]]=key_dict[t.key].items()[0][1]
         self.query['$and'].append(element)
 
     def res_specif_cb_(self, t):
@@ -128,8 +143,8 @@ class QueryHandler(object):
 
 
 class RSQueryGrammar:
-    def __init__(self):
-        self.qh = QueryHandler()
+    def __init__(self, qh):
+        print "Initializing Grammar"
         bq = Literal('{').suppress()
         eq = Literal('}').suppress()
         bl = Literal('[').suppress()
@@ -172,27 +187,28 @@ class RSQueryGrammar:
         query = bq + result_specifier + delimiter + result_description + eq
 
         floatnumber.addParseAction( lambda s,l,t: [ float(t[0]) ] )
-        result_specifier.addParseAction(self.qh.res_specif_cb_)
-        simpleKvp.addParseAction(self.qh.kvp_cb_)
-        valueKvp.addParseAction(self.qh.operator_cb_)
-        descriptionKvP.addParseAction(self.qh.description_cb_)
-        query.addParseAction(self.qh.end_cb_)
+        result_specifier.addParseAction(qh.res_specif_cb_)
+        simpleKvp.addParseAction(qh.kvp_cb_)
+        valueKvp.addParseAction(qh.operator_cb_)
+        descriptionKvP.addParseAction(qh.description_cb_)
+        query.addParseAction(qh.end_cb_)
         self.query = query
 
-    def parseQuery(self, q):
-        print 'Parsing ', q
-        res = self.query.parseString(q)
-        return res
+    def parse_query(self, q):
+        if q!=None:
+            print 'Parsing ', q
+            res = self.query.parseString(q)
+            return res
 
 
 if __name__ == "__main__":
-        gr = RSQueryGrammar()
+        gr = QueryHandler()
     # try:
 
         # s = '{object:[color:(value:blue, ratio>0.2), shape:(value:box,confidence>0.6), size:small]}'
-        s = '{object:[shape:round,size:(size:medium,confidence<0.5)]}'
-        gr.parseQuery(s)
-
+        s = '{object:[shape:(shape:round),size:(size:medium,confidence<0.5)]}'
+        gr.parse_query(s)
+        #
         # s = '{object:[]}'
         # gr.parseQuery(s)
         #

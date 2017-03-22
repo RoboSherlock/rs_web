@@ -9,25 +9,29 @@ import json
 import time
 
 from source.mongoclient import RSMongoClient
+from source.parser import QueryHandler
 
 app = Flask(__name__)
 app.config.from_pyfile('app.cfg')
 
 mc = RSMongoClient('Scenes_annotated')
+qh = QueryHandler()
 
 @app.route('/', methods= ['GET','POST'])
 @app.route('/query',methods= ['GET','POST'])
 def index():
+    query_in=None
     if (request.method == 'POST'):
-        query = request.data
-        print("Query is : ",query,file = sys.stderr)
-        param = re.search(r"\(([0-9])\)",query)
+        query_in = request.data
+        print("Query is : ",query_in,file = sys.stderr)
+        param = re.search(r"\(([0-9])\)",query_in)
         if param:            
             return findObjectInstances(int(param.group(1)))
-        elif query == 'objects':
+        elif query_in == 'objects':
             return handle_objects()
-        elif query == 'scenes':
+        elif query_in == 'scenes':
             return handle_scenes()
+    qh.parse_query(query_in)
     print("Method was not POST",file = sys.stderr) 
     print(request.data,file = sys.stderr)
     print("Rendering base.html",file=sys.stderr)
@@ -35,13 +39,17 @@ def index():
 
 @app.route('/prolog_query',methods= ['GET','POST'])
 def query_wrapper():
+    query_in = None
     if (request.method == 'POST'):
-        query = request.data
-        print("query is: "+query,file=sys.stderr)
-        if query == 'objects':
+        query_in = request.data
+        print("query is: "+query_in,file=sys.stderr)
+        if query_in == 'objects':
             return handle_objects()
-        elif query == 'scenes':
+        elif query_in == 'scenes':
             return handle_scenes()
+        else:
+            qh.parse_query(query_in)
+
 
 @app.route('/_get_queries', methods = ['GET'])
 def serveStaticFile():

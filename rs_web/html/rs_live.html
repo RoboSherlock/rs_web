@@ -40,7 +40,8 @@
     
     $(document).ready(function () {
       knowrob = new Knowrob({
-          ros_url : 'ws://192.168.100.199:9090'
+         // ros_url : 'ws://192.168.100.199:9090'
+          ros_url : 'ws://localhost:9090'
       });
       knowrob.init();
       $('#container').layout({
@@ -155,7 +156,7 @@
     <div class="ui-layout-east">
       <div id="designator"></div>
       <div id="mjpeg">
-        <img align=center src="http://onyxia:8080/stream?topic=/RoboSherlock/result_image" height="100%" />
+        <img align=center src="http://localhost:8080/stream?topic=/RoboSherlock/result_image" height="100%" />
       </div>
 <!--      <div id="mjpeg2">
 	<img align=center src="http://localhost:8080/stream?topic=/RoboSherlock/output_image" height ="100%"></img>

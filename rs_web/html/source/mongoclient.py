@@ -17,35 +17,30 @@ import base64
 import time
 
 
-class RSMongoClient(object):
-
-    def __init__(self, db_name):
-        """
-
-        :rtype: object
-        """
+class MongoWrapper(object):
+    def __init__(self):
         self.client = MongoClient()
-        self.db = self.client[db_name]
+        self.db = self.client["Scenes_annotated"]
         self.active_collection = None
 
-    def set_main_collection(self,type):
-        if type =='object':
+    def set_main_collection(self, _type):
+        if _type == 'object':
             self.active_collection = self.db.persistent_objects
         else:
-            # if we're looking for views of scenes
-            self.active_collection =  self.db.scenes
+            # if we're looking for views or scenes
+            self.active_collection = self.db.scenes
 
-    def call_query(self,query):
+    def call_query(self, query):
         cursor = self.active_collection.find(query)
-        print('Query resulted in %d results' %cursor.count())
+        print('Query resulted in %d results' % cursor.count())
         return cursor
 
     def get_object_image(self, obj_entry, ts):
         # start_time =time.time()
         x = obj_entry['rois']['roi_hires']['pos']['x']
         y = obj_entry['rois']['roi_hires']['pos']['y']
-        objheight = obj_entry['rois']['roi_hires']['size']['height']
-        objwidth = obj_entry['rois']['roi_hires']['size']['width']
+        obj_height = obj_entry['rois']['roi_hires']['size']['height']
+        obj_width = obj_entry['rois']['roi_hires']['size']['width']
         img_id = self.db.cas.find({'_timestamp': ts})[0]['color_image_hd']
         color_cursor = self.db.color_image_hd.find({'_id': img_id})
         if color_cursor.count() != 0:
@@ -53,11 +48,11 @@ class RSMongoClient(object):
             height = color_cursor[0]['rows']
             img_data = color_cursor[0]['data']
             image = np.reshape(np.fromstring(img_data, np.uint8), (height, width, 3))
-            obj_img = image[y:y + objheight, x:x + objwidth]
-            small = cv2.resize(obj_img, (0, 0), fx=100 / objheight, fy=100 / objheight)
+            obj_image = image[y:y + obj_height, x:x + obj_width]
+            small = cv2.resize(obj_image, (0, 0), fx=100 / obj_height, fy=100 / obj_height)
             height, width = small.shape[:2]
             if width > 150:
-                small = cv2.resize(obj_img, (0, 0), fx=150 / objwidth, fy=150 / objwidth)
+                small = cv2.resize(obj_image, (0, 0), fx=150 / obj_width, fy=150 / obj_width)
             # print("getting objHyps image: %s seconds ---" % (time.time() - start_time),file=sys.stderr)
             return small
 
@@ -74,7 +69,8 @@ class RSMongoClient(object):
         return ann
 
     # adjust values in annotation for simpler js vis
-    def adjust_annotation(self, a):
+    @staticmethod
+    def adjust_annotation(a):
         if a['_type'] == 'rs.annotation.ColorHistogram':
             b = a
             width = a['hist']['cols']
@@ -96,84 +92,83 @@ class RSMongoClient(object):
         po_cursor = self.db.persistent_objects.find()
         return self.process_objects_cursor(po_cursor)
 
-    def process_objects_cursor(self,ob_cursor):
+    def process_objects_cursor(self, ob_cursor):
         objects = []
         for objEntry in ob_cursor:
-            obj = {}
-            obj['image'] = self.getBase64Img(self.get_object_image(objEntry, objEntry['lastSeen']))
-            obj['annotations'] = self.get_persistent_object_annotations(objEntry)
+            obj = {'image': self.get_base64_img(self.get_object_image(objEntry, objEntry['lastSeen'])),
+                   'annotations': self.get_persistent_object_annotations(objEntry)}
             objects.append(obj)
         return objects
 
-    def get_object_instances(self, id):
-        nrOfObjs = self.db.persistent_objects.count()
-        if id > nrOfObjs:
+    def get_object_instances(self, object_id):
+        nr_of_objs = self.db.persistent_objects.count()
+        if object_id > nr_of_objs:
             return
-        poCursor = self.db.persistent_objects.find()
-        clusterIDs = poCursor[id]['clusters']
+        po_cursor = self.db.persistent_objects.find()
+        cluster_ids = po_cursor[object_id]['clusters']
         clusters = []
-        for c in clusterIDs:
+        for c in cluster_ids:
             document = self.db.scene.find({'identifiables._id': ObjectId(c)},
                                           {'_id': 0, 'identifiables._id.$': 1, 'timestamp': 1})
             if document.count() != 0:
                 cluster = {}
                 ts = document[0]['timestamp']
-                cluster['image'] = self.getBase64Img(self.get_object_image(document[0]['identifiables'][0], ts))
+                cluster['image'] = self.get_base64_img(self.get_object_image(document[0]['identifiables'][0], ts))
                 cluster['annotations'] = self.get_persistent_object_annotations(document[0]['identifiables'][0])
                 clusters.append(cluster)
         return clusters
 
-    def getObjectHypsForScene(self, ts):
+    def get_object_hypotheses_for_scene(self, ts):
         # start_time = time.time()
-        sceneDoc = self.db.scene.find({'timestamp': ts})
+        scene_doc = self.db.scene.find({'timestamp': ts})
         # print("finding TS took: %s seconds ---" % (time.time() - start_time),file=sys.stderr)
-        objHyps = []
-        if sceneDoc.count() != 0:
-            hyps = sceneDoc[0]['identifiables']
+        obj_hyps = []
+        if scene_doc.count() != 0:
+            hyps = scene_doc[0]['identifiables']
             for hyp in hyps:
-                objHyp = {}
-                objHyp['image'] = self.getBase64Img(self.get_object_image(hyp, ts))
-                objHyp['annotations'] = self.get_persistent_object_annotations(hyp)
-                objHyps.append(objHyp)
-        # print("getting objHyps for scene took: %s seconds ---" % (time.time() - start_time),file=sys.stderr)
-        return objHyps
+                obj_hyp = {'image': self.get_base64_img(self.get_object_image(hyp, ts)),
+                        'annotations': self.get_persistent_object_annotations(hyp)}
+                obj_hyps.append(obj_hyp)
+        # print("getting obj_hyps for scene took: %s seconds ---" % (time.time() - start_time),file=sys.stderr)
+        return obj_hyps
 
-    def getBase64Img(self, img):
+    def get_base64_img(self, img):
         [ret, png] = cv2.imencode('.png', img)
         b64 = base64.b64encode(png.tostring())
         return 'data:image/png;base64,' + b64
 
-    def getTimestamps(self):
+    def get_timestamps(self):
         scene_cursor = self.db.cas.find()
         timestamps = []
         for sc in scene_cursor:
             timestamps.append(sc['_timestamp'])
         return timestamps
 
-    def get_image_for_sceneID(self, sceneId, scaleFactor):
-        casDocument = self.db.cas.find({'_id': sceneId})
-        if casDocument.count() != 0:
-            colorCursor = self.db.color_image_hd.find({'_id': casDocument[0]['color_image_hd']})
-        if colorCursor.count() != 0:
-            width = colorCursor[0]['cols']
-            height = colorCursor[0]['rows']
-            imgData = colorCursor[0]['data']
-            image = np.reshape(np.fromstring(imgData, np.uint8), (height, width, 3))
-            small = cv2.resize(image, (0, 0), fx=scaleFactor, fy=scaleFactor)
+    def get_image_for_scene_id(self, scene_id, scale_factor):
+        cas_document = self.db.cas.find({'_id': scene_id})
+        color_cursor = None
+        if cas_document.count() != 0:
+            color_cursor = self.db.color_image_hd.find({'_id': cas_document[0]['color_image_hd']})
+        if color_cursor.count() != 0:
+            width = color_cursor[0]['cols']
+            height = color_cursor[0]['rows']
+            img_data = color_cursor[0]['data']
+            image = np.reshape(np.fromstring(img_data, np.uint8), (height, width, 3))
+            small = cv2.resize(image, (0, 0), fx=scale_factor, fy=scale_factor)
             return small
 
-    def getSceneImages(self, timestamps):
-        imgs = []
+    def get_scene_images(self, timestamps):
+        images = []
         for ts in timestamps:
-            imgs.append(self.getBase64Img(
-                self.get_image_for_sceneID(self.db.scene.find({'timestamp': ts})[0]['_parent'], 0.22)))
-        return imgs
+            images.append(self.get_base64_img(
+                self.get_image_for_scene_id(self.db.scene.find({'timestamp': ts})[0]['_parent'], 0.22)))
+        return images
 
     def get_scene_image(self, ts):
         # start_time = time.time()
-        img = self.get_image_for_sceneID(self.db.scene.find({'timestamp': ts})[0]['_parent'], 0.22)
+        img = self.get_image_for_scene_id(self.db.scene.find({'timestamp': ts})[0]['_parent'], 0.22)
         # print("getting image took: %s seconds ---" % (time.time() - start_time),file=sys.stderr)
         # start_time = time.time()
-        base64Img = self.getBase64Img(img)
+        base64_img = self.get_base64_img(img)
         # print("converting to base64 took: %s seconds ---" % (time.time() - start_time),file=sys.stderr)
-        return base64Img
+        return base64_img

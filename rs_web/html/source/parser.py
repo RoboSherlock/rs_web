@@ -6,13 +6,12 @@ Created on Mon Dec 12 11:19:44 2016
 """
 
 from pyparsing import *
-from mongoclient import RSMongoClient
+from mongoclient import MongoWrapper
 
 """
     @type mc: mongoclient.RSMongoClient
 """
-mc = RSMongoClient("Scenes_annotated")
-
+mc = MongoWrapper()
 
 key_dict = {"shape":        {"_type": "rs.annotation.Shape"},
             "size":         {"_type": "rs.annotation.SemanticSize"},
@@ -20,9 +19,12 @@ key_dict = {"shape":        {"_type": "rs.annotation.Shape"},
             }
 
 """
-res = mc.db.persistent_objects.find({'$and' : [ {"annotations": {'$elemMatch': {'distanceToPlane': {'$gt':0.03}}}},
-                                                {"annotations": {'$elemMatch': {'confidence':{'$lt':0.8},'source':'DeCafClassifier'}}},
-                                                {"annotations": {'$elemMatch': {'_type':'rs.annotation.Shape','shape':'box'}}}]})
+res = mc.db.persistent_objects.find({'$and' : [ {"annotations": {'$elemMatch':
+                                                    {'distanceToPlane': {'$gt':0.03}}}},
+                                                {"annotations": {'$elemMatch':
+                                                    {'confidence':{'$lt':0.8},'source':'DeCafClassifier'}}},
+                                                {"annotations": {'$elemMatch':
+                                                    {'_type':'rs.annotation.Shape','shape':'box'}}}]})
 if res.count() != 0:
     print 'found results...OMG..count: %d' %res.count()
 """
@@ -41,7 +43,7 @@ class QueryHandler(object):
         self.grammar = RSQueryGrammar(self)
         self.status = 0
         # track the no of kvps extracted so we can format mongo query adequately
-        self.kvp_counter=0
+        self.kvp_counter = 0
         self.query = {}
         self.kvp_map = {}
 
@@ -193,7 +195,7 @@ class RSQueryGrammar:
 
         query = bq + result_specifier + delimiter + result_description + eq
 
-        floatnumber.addParseAction( lambda s,l,t: [ float(t[0]) ] )
+        floatnumber.addParseAction( lambda s, l, t: [ float(t[0]) ] )
         result_specifier.addParseAction(qh.res_specif_cb_)
         simpleKvp.addParseAction(qh.kvp_cb_)
         valueKvp.addParseAction(qh.operator_cb_)
@@ -202,7 +204,7 @@ class RSQueryGrammar:
         self.query = query
 
     def parse_query(self, q):
-        if q!=None:
+        if q != None:
             print 'Parsing ', q
             res = self.query.parseString(q)
             return res

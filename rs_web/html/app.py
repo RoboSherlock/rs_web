@@ -14,13 +14,15 @@ from source.parser import QueryHandler
 app = Flask(__name__)
 app.config.from_pyfile('app.cfg')
 
+"""
+:type mc:RSMongoClient
+"""
 mc = RSMongoClient('Scenes_annotated')
 qh = QueryHandler()
 
 @app.route('/', methods= ['GET','POST'])
 @app.route('/query',methods= ['GET','POST'])
 def index():
-    query_in=None
     if (request.method == 'POST'):
         query_in = request.data
         print("Query is : ",query_in,file = sys.stderr)
@@ -31,7 +33,6 @@ def index():
             return handle_objects()
         elif query_in == 'scenes':
             return handle_scenes()
-    qh.parse_query(query_in)
     print("Method was not POST",file = sys.stderr) 
     print(request.data,file = sys.stderr)
     print("Rendering base.html",file=sys.stderr)
@@ -48,8 +49,14 @@ def query_wrapper():
         elif query_in == 'scenes':
             return handle_scenes()
         else:
-            qh.parse_query(query_in)
-
+            try:
+                objs = qh.exec_query(query_in)
+                if len(objs)!=0:
+                    return render_template("objects.html",objects=objs)
+                else:
+                    return render_template("emptyPage.html")
+            except Exception:
+                return render_template("emptyPage.html")
 
 @app.route('/_get_queries', methods = ['GET'])
 def serveStaticFile():
@@ -58,7 +65,7 @@ def serveStaticFile():
  
 
 def handle_objects():
-    objs = mc.get_persistent_objects()
+    objs = mc.get_all_persistent_objects()
     print("handle_objects.",file=sys.stderr)
     return render_template('objects.html', objects=objs)
 

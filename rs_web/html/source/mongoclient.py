@@ -34,9 +34,11 @@ class RSMongoClient(object):
         else:
             # if we're looking for views of scenes
             self.active_collection =  self.db.scenes
+
     def call_query(self,query):
         cursor = self.active_collection.find(query)
         print('Query resulted in %d results' %cursor.count())
+        return cursor
 
     def get_object_image(self, obj_entry, ts):
         # start_time =time.time()
@@ -90,10 +92,13 @@ class RSMongoClient(object):
         else:
             return a
 
-    def get_persistent_objects(self):
+    def get_all_persistent_objects(self):
         po_cursor = self.db.persistent_objects.find()
+        return self.process_objects_cursor(po_cursor)
+
+    def process_objects_cursor(self,ob_cursor):
         objects = []
-        for objEntry in po_cursor:
+        for objEntry in ob_cursor:
             obj = {}
             obj['image'] = self.getBase64Img(self.get_object_image(objEntry, objEntry['lastSeen']))
             obj['annotations'] = self.get_persistent_object_annotations(objEntry)

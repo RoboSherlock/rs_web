@@ -65,8 +65,15 @@ class QueryHandler(object):
         dict['annotations']['$elemMatch'] = {}
         return dict
 
-    def parse_query(self,q):
+    def exec_query(self,q):
+        """
+
+        :param q: the query string
+        """
+        self.reset()
         self.grammar.parse_query(q)
+        cursor = mc.call_query(self.query)
+        return mc.process_objects_cursor(cursor)
 
     def kvp_cb_(self, t):
         if len(t) == 2:
@@ -137,8 +144,8 @@ class QueryHandler(object):
         print "Query %s" % t
         print 'End of parsing'
         print self.query
-        mc.call_query(self.query)
-        self.reset()
+        # mc.call_query(self.query)
+        # self.reset()
 
 
 

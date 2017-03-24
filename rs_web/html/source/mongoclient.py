@@ -28,11 +28,11 @@ class MongoWrapper(object):
             self.active_collection = self.db.persistent_objects
         else:
             # if we're looking for views or scenes
-            self.active_collection = self.db.scenes
+            self.active_collection = self.db.scene
 
     def call_query(self, query):
         cursor = self.active_collection.find(query)
-        print('Query resulted in %d results' % cursor.count())
+        print('\033[93mQuery resulted in %d results\033[0m' % cursor.count())
         return cursor
 
     def get_object_image(self, obj_entry, ts):
@@ -95,7 +95,12 @@ class MongoWrapper(object):
     def process_objects_cursor(self, ob_cursor):
         objects = []
         for objEntry in ob_cursor:
-            obj = {'image': self.get_base64_img(self.get_object_image(objEntry, objEntry['lastSeen'])),
+            ts=0
+            try:
+                ts = objEntry['lasSeen']
+            except:
+
+            obj = {'image': self.get_base64_img(self.get_object_image(objEntry, ts)),
                    'annotations': self.get_persistent_object_annotations(objEntry)}
             objects.append(obj)
         return objects

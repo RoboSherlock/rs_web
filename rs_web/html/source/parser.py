@@ -43,8 +43,10 @@ class QueryHandler(object):
         self.grammar = RSQueryGrammar(self)
         self.status = 0
         # track the no of kvps extracted so we can format mongo query adequately
+        self.query_type = ""
         self.kvp_counter = 0
-        self.query = {}
+        self.query = {} # rename
+        self.final_query ={} # we will use this to concatenate compositions ($and's)
         self.kvp_map = {}
 
     def reset(self):
@@ -54,18 +56,20 @@ class QueryHandler(object):
         self.status = 0
         self.kvp_counter = 0
         self.query = {}
+        self.final_query = {}
         self.kvp_map = {}
 
     @property
-    def gen_dict(self):
+    def gen_dict(self, query_type="object"):
         """
 
         :return: the specific nesting of a dic needed for a mongo query
         """
-        dict={}
+        dict = {}
         dict['annotations'] = {}
         dict['annotations']['$elemMatch'] = {}
         return dict
+
 
     def exec_query(self,q):
         """
@@ -74,18 +78,26 @@ class QueryHandler(object):
         """
         self.reset()
         self.grammar.parse_query(q)
-        cursor = mc.call_query(self.query)
+        # if self.query['$and'] == []:
+        #     print 'Empty query, resetting'
+        #     self.query = {}
+        if self.query_type == "hypotheses":
+            self.final_query = {'identifiables': {'$elemMatch': self.query}}
+        elif self.query_type =="object":
+            self.final_query =self.query
+        print 'MongoQuery: %s ' % self.final_query
+        cursor = mc.call_query(self.final_query)
         return mc.process_objects_cursor(cursor)
 
     def kvp_cb_(self, t):
         if len(t) == 2:
-            print '(%d) kvp in : %s' %(self.kvp_counter,t)
-            print '(%d) %s' % (self.kvp_counter,t.key)
-            res= {t.key:t.value}
+            print '(%d) kvp in : %s' %(self.kvp_counter, t)
+            print '(%d) %s' % (self.kvp_counter, t.key)
+            res = {t.key: t.value}
             print '(%d) kvp out: %s' %(self.kvp_counter, res)
 
-            element=self.gen_dict
-            element['annotations']['$elemMatch']=res
+            element = self.gen_dict
+            element['annotations']['$elemMatch'] = res
             self.query['$and'].append(element)
             self.kvp_map[self.kvp_counter] = element
             self.kvp_counter += 1
@@ -129,26 +141,23 @@ class QueryHandler(object):
         print  'getting res_spec %s ' %t.result_specifier
         if self.status == 0:
             if t.result_specifier == 'object':
-                print '(%d) final result should be collection of objects matching description' % self.status
                 self.query['$and'] = []
+                self.query_type = "object"
             elif t.result_specifier == 'scene':
-                print '(%d) final result should be collection of scenes matching description' %self.status
+                self.query_type = "scene"
             elif t.result_specifier == 'hypotheses':
-                print '(%d) final result should be collection of obj-hypotheses matching description'
+                self.query['$and'] = []
+                self.query_type = "hypotheses"
             self.status += 1
         elif self.status > 0:
             print '(%d) This is a nested query' % self.status
             self.status += 1
         print self.query
-        mc.set_main_collection(t.result_specifier)#some parametrization that gives all views all objects or all scenes?
+        mc.set_main_collection(t.result_specifier)  # some that gives all views all objects or all scenes?
 
     def end_cb_(self, t):
         print "Query %s" % t
         print 'End of parsing'
-        print self.query
-        # mc.call_query(self.query)
-        # self.reset()
-
 
 
 class RSQueryGrammar:
@@ -186,11 +195,11 @@ class RSQueryGrammar:
 
         # numerical comparison confidence > 0.0
         valueKvp = key("key") + operator("op") + (floatnumber | value)("value")
-        nestedKvP = key + delimiter + result_description
+        nested_kvp = key + delimiter + result_description
         descriptionKvP = key("key") + delimiter + description
 
         # kvp =  simpleKvp | nestedKvP | valueKvp #matchfirst sux...use or instead..which is end...FFS
-        kvp = descriptionKvP | simpleKvp ^ valueKvp ^ nestedKvP
+        kvp = descriptionKvP | simpleKvp ^ valueKvp ^ nested_kvp
         kvps << ZeroOrMore(Group(kvp + Optional(separator)))
 
         query = bq + result_specifier + delimiter + result_description + eq
@@ -216,10 +225,13 @@ if __name__ == "__main__":
 
         # s = '{object:[color:(value:blue, ratio>0.2), shape:(value:box,confidence>0.6), size:small]}'
         s = '{object:[shape:(shape:round),size:(size:medium,confidence<0.5)]}'
-        gr.parse_query(s)
+        gr.exec_query(s)
         #
         # s = '{object:[]}'
-        # gr.parseQuery(s)
+        # gr.exec_query(s)
+
+        s = '{hypotheses:[shape:(shape:round),size:(size:medium,confidence<0.5)]}'
+        gr.exec_query(s)
         #
         # s = '{scene:[hypotheses:[type:Plate,shape:(value:blue, confidence=0.5)],hypotheses:[color:blue, shape:box, ' \
         #     'type:crap]]} '

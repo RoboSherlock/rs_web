@@ -95,13 +95,18 @@ class MongoWrapper(object):
     def process_objects_cursor(self, ob_cursor):
         objects = []
         for objEntry in ob_cursor:
-            ts=0
+            ts = 0
+            obj = {}
             try:
-                ts = objEntry['lasSeen']
+                ts = objEntry['lastSeen']
+                obj = {'image': self.get_base64_img(self.get_object_image(objEntry, ts)),
+                       'annotations': self.get_persistent_object_annotations(objEntry)}
             except:
-
-            obj = {'image': self.get_base64_img(self.get_object_image(objEntry, ts)),
-                   'annotations': self.get_persistent_object_annotations(objEntry)}
+                cas_cursor = self.db.cas.find({'_id': objEntry['_parent']})
+                if cas_cursor.count() != 0:
+                    ts =cas_cursor[0]['_timestamp']
+                obj = {'image': self.get_base64_img(self.get_object_image(objEntry['identifiables'][0], ts)),
+                   'annotations': self.get_persistent_object_annotations(objEntry['identifiables'][0])}
             objects.append(obj)
         return objects
 
@@ -118,8 +123,8 @@ class MongoWrapper(object):
             if document.count() != 0:
                 cluster = {}
                 ts = document[0]['timestamp']
-                cluster['image'] = self.get_base64_img(self.get_object_image(document[0]['identifiables'][0], ts))
-                cluster['annotations'] = self.get_persistent_object_annotations(document[0]['identifiables'][0])
+                cluster= {'image':self.get_base64_img(self.get_object_image(document[0]['identifiables'][0], ts)),
+                          'annotations':self.get_persistent_object_annotations(document[0]['identifiables'][0])}
                 clusters.append(cluster)
         return clusters
 

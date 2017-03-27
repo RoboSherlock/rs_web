@@ -36,7 +36,7 @@ def index():
     print("Method was not POST", file=sys.stderr)
     print(request.data, file=sys.stderr)
     print("Rendering base.html", file=sys.stderr)
-    return render_template('base.html')
+    return render_template('startup.html')
 
 
 @app.route('/prolog_query', methods=['GET', 'POST'])

@@ -25,7 +25,9 @@
     
     <script type="text/javascript" src="{{ url_for('static', filename='ace/ace.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='ace/ext-language_tools.js') }}"></script>
-      
+    
+    <script type="text/javascript" src="{{ url_for('static', filename='three.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='RSWelcomeAnimation.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='robosherlock.js') }}"></script>
       
     
@@ -122,12 +124,13 @@
     </div>
     {% block body %}
       <div class="ui-layout-center" id="bodyDiv">
+      <h1 id = "title-header">RoboSherlock Perceptual Memories</h1>
       </div>
     {% endblock %}
-<!--
+      <!--
         <div class="ui-layout-north">North</div>
-<div class="ui-layout-south">South</div>
-<div class="ui-layout-east">East</div>
--->
+        <div class="ui-layout-south">South</div>
+        <div class="ui-layout-east">East</div>
+        -->
   </body>
 </html>

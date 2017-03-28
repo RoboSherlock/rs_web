@@ -2,6 +2,53 @@ body{
     padding-top:0px;
     font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
 }
+
+#title-header{
+  margin-top: 5px;
+  margin-bottom: 5px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  color: #336789;
+  font-style: normal;
+  font-family: serif, monospace;
+}
+
+#canvas-container
+{
+    width: 100%;
+    height: 100%;
+    background-color: #a3c8d3;
+}
+
+#empty-results{
+    width: 100%;
+    height: 100%;
+    background-color: #a3c8d3;
+}
+#img-container{
+    margin-top: inherit;
+    margin-bottom: auto;
+}
+#empty-results img{
+  height:250px;
+  width:auto;
+  margin-left: auto;
+  margin-right: auto;
+    margin-top: auto;
+    margin-bottom: auto;
+  display: block;
+}
+
+#empty-results p{
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 10px;
+  margin-top: 20px;
+/*  display: block;*/
+}
+
 .page-subnav,
 .pagination-nav {
     width: 100%;

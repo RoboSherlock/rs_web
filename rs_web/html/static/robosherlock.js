@@ -19,10 +19,21 @@ function RoboSherlock(options){
         this.get_query_data();
     }
             
-    //need jQuery here so javascript is evluated in
     $("#btn_query").click(function (){
-        var user_query = ace.edit(queryDiv);
+        that.query()
+    });
+    
+    
+    this.query = function()
+    {
+       var user_query = ace.edit(queryDiv);
+       var history = ace.edit(historyDiv);
+        
         var q = user_query.getValue().trim();
+        history.renderer.$cursorLayer.element.style.display = "none"
+        history.setValue(history.getValue() + "\n\n?- " + q +  "\n", -1);
+        history.navigateFileEnd();
+        
         $.ajax({
            type: "POST",
            url: "/prolog_query",
@@ -36,7 +47,9 @@ function RoboSherlock(options){
                 }); 
            }
          });
-    });
+        user_query.setValue("") 
+    }
+    
     
     this.get_query_data = function () {
         if(!that.queryData) {
@@ -61,7 +74,7 @@ function RoboSherlock(options){
     this.setup_history_field = function () {
         var history = ace.edit(historyDiv);
         history.setTheme("ace/theme/solarized_light");
-        history.getSession().setMode("ace/mode/prolog");
+        history.getSession().setMode("ace/mode/json");
         history.getSession().setUseWrapMode(true);
         history.setOptions({
             readOnly: true,
@@ -77,7 +90,7 @@ function RoboSherlock(options){
         var userQuery = ace.edit(queryDiv);
         userQuery.resize(true);
         userQuery.setTheme("ace/theme/solarized_light");
-        userQuery.getSession().setMode("ace/mode/prolog");
+        userQuery.getSession().setMode("ace/mode/json");
         userQuery.getSession().setUseWrapMode(true);
         userQuery.setOptions({
             showGutter: false,

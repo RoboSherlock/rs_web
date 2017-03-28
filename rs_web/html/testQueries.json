@@ -10,8 +10,8 @@
             "text":"Show scenes"
         },
         {
-            "q":"objects",
-            "text":"Show objects"
+            "q":"{object:[]}",
+            "text":"Show all objects"
         },
         {
             "q":"views(object(2))",

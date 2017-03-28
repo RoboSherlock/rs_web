@@ -79,8 +79,10 @@ class QueryHandler(object):
         self.reset()
         self.grammar.parse_query(q)
         # if self.query['$and'] == []:
-        #     print 'Empty query, resetting'
-        #     self.query = {}
+
+        if '$and' in self.query and self.query['$and']==[]:
+            print 'Empty query, resetting'
+            self.query = {}
         if self.query_type == "hypotheses":
             self.final_query = {'identifiables': {'$elemMatch': self.query}}
         elif self.query_type =="object":

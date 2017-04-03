@@ -9,24 +9,36 @@ import rospkg
 
 from pyswip import Prolog  #,registerForeign
 
-class PySWIPWrapper:
-   
+class PySWIPWrapper(object):
+
+    prolog = Prolog()
+
     def __init__(self,initPkg):
-        self.prolog = Prolog()
+
         path_to_rosprolog = rospkg.RosPack().get_path('rosprolog')
-        self.prolog.consult(path_to_rosprolog+"/prolog/init.pl")
-        print(list(self.prolog.query("register_ros_package(knowrob_robosherlock).")))
+        PySWIPWrapper.prolog.consult(path_to_rosprolog+"/prolog/init.pl")
+        try:
+            print(list(PySWIPWrapper.prolog.query("register_ros_package("+initPkg+").")))
+        except:
+            print ('%s ROS package does not exist.')
         print("PySwipWrapper initialized")
            
    
+    def __end__(self):
+        print('End of the Road')
+
+
     def scenes(self):
-        for i in list(self.prolog.query("knowrob_robosherlock:keyword(A)")):
+        for i in list(PySWIPWrapper.prolog.query("knowrob_robosherlock:keyword(A)")):
             print (i)
 
 def main():
     pl = PySWIPWrapper("knowrob_robosherlock")
-    pl.scenes()
-    
-    
+    try:
+        pl.scenes()
+    except:
+        print('Computer says NOoooo')
+    print 'Done'
+    pl.__end__()
 if __name__ == "__main__":
-    main()   
+    main()

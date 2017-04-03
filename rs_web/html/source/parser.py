@@ -142,12 +142,12 @@ class QueryHandler(object):
         # print "Result Specifier: %s." % t
         print  'getting res_spec %s ' %t.result_specifier
         if self.status == 0:
-            if t.result_specifier == 'object':
+            if t.result_specifier == 'persistentObject':
                 self.query['$and'] = []
                 self.query_type = "object"
             elif t.result_specifier == 'scene':
                 self.query_type = "scene"
-            elif t.result_specifier == 'hypotheses':
+            elif t.result_specifier == 'objectHypotheses':
                 self.query['$and'] = []
                 self.query_type = "hypotheses"
             self.status += 1
@@ -155,7 +155,7 @@ class QueryHandler(object):
             print '(%d) This is a nested query' % self.status
             self.status += 1
         print self.query
-        mc.set_main_collection(t.result_specifier)  # some that gives all views all objects or all scenes?
+        mc.set_main_collection(self.query_type)  # some that gives all views all objects or all scenes?
 
     def end_cb_(self, t):
         print "Query %s" % t
@@ -163,20 +163,22 @@ class QueryHandler(object):
 
 
 class RSQueryGrammar:
-    def __init__(self, qh):
+    def __init__(self,qh):
         print "Initializing Grammar"
-        bq = Literal('{').suppress()
-        eq = Literal('}').suppress()
+
         bl = Literal('[').suppress()
         el = Literal(']').suppress()
         bp = Literal('(').suppress()
         ep = Literal(')').suppress()
+        dot = Literal('.').suppress()
+        comma = Literal(',').suppress()
+        titleLikeWord = Word(alphas.upper(), alphas, asKeyword=True)
 
         delimiter = oneOf(':').suppress()
         operator = oneOf('= < >')
         separator = oneOf(', ;').suppress()
 
-        result_specifier = oneOf('scene hypotheses object')("result_specifier")
+        result_specifier = oneOf('scene objectHypotheses persistentObject')("result_specifier")
         key = oneOf('location shape color size detection id ts type value confidence') ^ result_specifier
 
         point = Literal('.')
@@ -187,8 +189,7 @@ class RSQueryGrammar:
                               Optional(point + Optional(number))
                               )
         kvps = Forward()
-        result_description = bl + kvps + el
-        description = Group(bp + kvps + ep)("description")
+        result_description = Group(bl + kvps + el)("description")
 
         value = Word(alphanums)
 
@@ -197,20 +198,21 @@ class RSQueryGrammar:
 
         # numerical comparison confidence > 0.0
         valueKvp = key("key") + operator("op") + (floatnumber | value)("value")
-        nested_kvp = key + delimiter + result_description
-        descriptionKvP = key("key") + delimiter + description
+        nested_kvp = key("key") + delimiter + result_description
 
         # kvp =  simpleKvp | nestedKvP | valueKvp #matchfirst sux...use or instead..which is end...FFS
-        kvp = descriptionKvP | simpleKvp ^ valueKvp ^ nested_kvp
+        kvp = nested_kvp | simpleKvp ^ valueKvp
         kvps << ZeroOrMore(Group(kvp + Optional(separator)))
 
-        query = bq + result_specifier + delimiter + result_description + eq
+        # query = bq + result_specifier + delimiter + result_description + eq
+        query = result_specifier + bp + titleLikeWord + comma + result_description+ ep + dot
 
         floatnumber.addParseAction( lambda s, l, t: [ float(t[0]) ] )
         result_specifier.addParseAction(qh.res_specif_cb_)
         simpleKvp.addParseAction(qh.kvp_cb_)
         valueKvp.addParseAction(qh.operator_cb_)
-        descriptionKvP.addParseAction(qh.description_cb_)
+        nested_kvp.addParseAction(qh.description_cb_)
+
         query.addParseAction(qh.end_cb_)
         self.query = query
 
@@ -222,18 +224,22 @@ class RSQueryGrammar:
 
 
 if __name__ == "__main__":
+
         gr = QueryHandler()
-    # try:
+        s = 'persistentObject(Object,[shape:[shape:round],size:[size:medium,confidence<0.5]]).'
+        s = 'persistentObject(Object, [shape:[shape:round], size:[size:medium, confidence < 0.5]).'
+        gr.exec_query(s)
+
 
         # s = '{object:[color:(value:blue, ratio>0.2), shape:(value:box,confidence>0.6), size:small]}'
-        s = '{object:[shape:(shape:round),size:(size:medium,confidence<0.5)]}'
-        gr.exec_query(s)
+        # s = '{object:[shape:(shape:round),size:(size:medium,confidence<0.5)]}'
+        # gr.exec_query(s)
         #
         # s = '{object:[]}'
         # gr.exec_query(s)
 
-        s = '{hypotheses:[shape:(shape:round),size:(size:medium,confidence<0.5)]}'
-        gr.exec_query(s)
+        # s = '{hypotheses:[shape:(shape:round),size:(size:medium,confidence<0.5)]}'
+        # gr.exec_query(s)
         #
         # s = '{scene:[hypotheses:[type:Plate,shape:(value:blue, confidence=0.5)],hypotheses:[color:blue, shape:box, ' \
         #     'type:crap]]} '

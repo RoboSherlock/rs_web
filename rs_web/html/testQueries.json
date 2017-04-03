@@ -18,8 +18,8 @@
             "text":"Views for object_id 2"
         },
         {
-            "q":"{object:[shape:(shape:round),size:(size:medium,confidence<0.5)]}",
-            "text":"new parser test"
+            "q":"persistentObject(O,[shape:[shape:round],size:[size:medium,confidence<0.5]]).",
+            "text":"Object, "
         }
 		
     ]

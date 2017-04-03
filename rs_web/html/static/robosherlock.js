@@ -74,7 +74,7 @@ function RoboSherlock(options){
     this.setup_history_field = function () {
         var history = ace.edit(historyDiv);
         history.setTheme("ace/theme/solarized_light");
-        history.getSession().setMode("ace/mode/json");
+        history.getSession().setMode("ace/mode/prolog");
         history.getSession().setUseWrapMode(true);
         history.setOptions({
             readOnly: true,
@@ -90,7 +90,7 @@ function RoboSherlock(options){
         var userQuery = ace.edit(queryDiv);
         userQuery.resize(true);
         userQuery.setTheme("ace/theme/solarized_light");
-        userQuery.getSession().setMode("ace/mode/json");
+        userQuery.getSession().setMode("ace/mode/prolog");
         userQuery.getSession().setUseWrapMode(true);
         userQuery.setOptions({
             showGutter: false,

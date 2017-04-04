@@ -163,7 +163,9 @@ class QueryHandler(object):
 
 
 class RSQueryGrammar:
-    def __init__(self,qh):
+
+
+    def __init__(self,qh=None):
         print "Initializing Grammar"
 
         bl = Literal('[').suppress()
@@ -172,14 +174,14 @@ class RSQueryGrammar:
         ep = Literal(')').suppress()
         dot = Literal('.').suppress()
         comma = Literal(',').suppress()
-        titleLikeWord = Word(alphas.upper(), alphas, asKeyword=True)
+        variable = Word(alphas.upper(), alphas, asKeyword=True)
 
         delimiter = oneOf(':').suppress()
         operator = oneOf('= < >')
         separator = oneOf(', ;').suppress()
 
-        result_specifier = oneOf('scene objectHypotheses persistentObject')("result_specifier")
-        key = oneOf('location shape color size detection id ts type value confidence') ^ result_specifier
+        result_specifier = oneOf('scene objectHypotheses persistentObject objectInScene')("result_specifier")
+        key = oneOf('location shape color size detection id ts type value confidence distance value') ^ result_specifier
 
         point = Literal('.')
         number = Word(nums)
@@ -205,16 +207,27 @@ class RSQueryGrammar:
         kvps << ZeroOrMore(Group(kvp + Optional(separator)))
 
         # query = bq + result_specifier + delimiter + result_description + eq
-        query = result_specifier + bp + titleLikeWord + comma + result_description+ ep + dot
+        query = result_specifier + bp + variable + comma + (variable^result_description)+ Optional(comma +variable) +  ep
 
-        floatnumber.addParseAction( lambda s, l, t: [ float(t[0]) ] )
-        result_specifier.addParseAction(qh.res_specif_cb_)
-        simpleKvp.addParseAction(qh.kvp_cb_)
-        valueKvp.addParseAction(qh.operator_cb_)
-        nested_kvp.addParseAction(qh.description_cb_)
+        expression = Forward()
+        expression << OneOrMore(query+Optional(comma))+dot
 
-        query.addParseAction(qh.end_cb_)
+        if qh != None:
+            floatnumber.addParseAction( lambda s, l, t: [ float(t[0]) ] )
+            result_specifier.addParseAction(qh.res_specif_cb_)
+            simpleKvp.addParseAction(qh.kvp_cb_)
+            valueKvp.addParseAction(qh.operator_cb_)
+            nested_kvp.addParseAction(qh.description_cb_)
+            query.addParseAction(qh.end_cb_)
+
         self.query = query
+        self.expression =expression
+
+    def exec_rule(self,r):
+        if r!=None:
+            print 'executing Rule: '
+            res = self.expression.parseString(r)
+            return res
 
     def parse_query(self, q):
         if q != None:
@@ -225,11 +238,17 @@ class RSQueryGrammar:
 
 if __name__ == "__main__":
 
-        gr = QueryHandler()
+        qh = QueryHandler()
         s = 'persistentObject(Object,[shape:[shape:round],size:[size:medium,confidence<0.5]]).'
-        s = 'persistentObject(Object, [shape:[shape:round], size:[size:medium, confidence < 0.5]).'
-        gr.exec_query(s)
+        s = 'persistentObject(Object, [shape:[shape:round], size:[size:medium, confidence < 0.5]]).'
+        qh.exec_query(s)
 
+
+        gr = RSQueryGrammar()
+        str = 'persistentObject(Object,[shape:[shape:round],size:[size:medium,confidence<0.5]]),' \
+              'scene(Ss,[distance:[value>0.15,value<0.30]]),' \
+              'objectInScene(Object,Scene, Res).'
+        print  gr.exec_rule(str)
 
         # s = '{object:[color:(value:blue, ratio>0.2), shape:(value:box,confidence>0.6), size:small]}'
         # s = '{object:[shape:(shape:round),size:(size:medium,confidence<0.5)]}'

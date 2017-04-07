@@ -15,7 +15,8 @@ mc = MongoWrapper()
 
 key_dict = {"shape":        {"_type": "rs.annotation.Shape"},
             "size":         {"_type": "rs.annotation.SemanticSize"},
-            "color":        {"_type": "rs.annotation.SemanticColor"}
+            "color":        {"_type": "rs.annotation.SemanticColor"},
+            "detection":    {"_type": "rs.annotation.Detection"}
             }
 
 """
@@ -140,14 +141,14 @@ class QueryHandler(object):
 
     def res_specif_cb_(self, t):
         # print "Result Specifier: %s." % t
-        print  'getting res_spec %s ' %t.result_specifier
+        print  'getting res_spec %s ' %t.query_specifier
         if self.status == 0:
-            if t.result_specifier == 'persistentObject':
+            if t.query_specifier == 'persistentObject':
                 self.query['$and'] = []
                 self.query_type = "object"
-            elif t.result_specifier == 'scene':
+            elif t.query_specifier == 'scene':
                 self.query_type = "scene"
-            elif t.result_specifier == 'objectHypotheses':
+            elif t.query_specifier == 'objectHypotheses':
                 self.query['$and'] = []
                 self.query_type = "hypotheses"
             self.status += 1
@@ -180,8 +181,8 @@ class RSQueryGrammar:
         operator = oneOf('= < >')
         separator = oneOf(', ;').suppress()
 
-        result_specifier = oneOf('scene objectHypotheses persistentObject objectInScene')("result_specifier")
-        key = oneOf('location shape color size detection id ts type value confidence distance value') ^ result_specifier
+        query_specifier = oneOf('scene objectHypotheses persistentObject objectInScene')("query_specifier")
+        key = oneOf('location shape color size detection id ts type value confidence distance value') ^ query_specifier
 
         point = Literal('.')
         number = Word(nums)
@@ -206,15 +207,16 @@ class RSQueryGrammar:
         kvp = nested_kvp | simpleKvp ^ valueKvp
         kvps << ZeroOrMore(Group(kvp + Optional(separator)))
 
-        # query = bq + result_specifier + delimiter + result_description + eq
-        query = result_specifier + bp + variable + comma + (variable^result_description)+ Optional(comma +variable) +  ep
+        # query = bq + query_specifier + delimiter + result_description + eq
+        query = query_specifier + bp + variable + comma + \
+                (variable^result_description)+ Optional(comma +variable) +  ep
 
         expression = Forward()
         expression << OneOrMore(query+Optional(comma))+dot
 
         if qh != None:
             floatnumber.addParseAction( lambda s, l, t: [ float(t[0]) ] )
-            result_specifier.addParseAction(qh.res_specif_cb_)
+            query_specifier.addParseAction(qh.res_specif_cb_)
             simpleKvp.addParseAction(qh.kvp_cb_)
             valueKvp.addParseAction(qh.operator_cb_)
             nested_kvp.addParseAction(qh.description_cb_)
@@ -239,8 +241,7 @@ class RSQueryGrammar:
 if __name__ == "__main__":
 
         qh = QueryHandler()
-        s = 'persistentObject(Object,[shape:[shape:round],size:[size:medium,confidence<0.5]]).'
-        s = 'persistentObject(Object, [shape:[shape:round], size:[size:medium, confidence < 0.5]]).'
+        s = 'objectHypotheses(Hyp, [shape:[shape:round], size:[size:medium, confidence < 0.5]]).'
         qh.exec_query(s)
 
 
@@ -250,12 +251,11 @@ if __name__ == "__main__":
               'objectInScene(Object,Scene, Res).'
         print  gr.exec_rule(str)
 
-        # s = '{object:[color:(value:blue, ratio>0.2), shape:(value:box,confidence>0.6), size:small]}'
-        # s = '{object:[shape:(shape:round),size:(size:medium,confidence<0.5)]}'
-        # gr.exec_query(s)
-        #
-        # s = '{object:[]}'
-        # gr.exec_query(s)
+        # str = 'objectHypotheses(Obj, [color:[value:blue, ratio>0.2]]).' #, shape:[value:box,confidence>0.6], size:small]).'
+        # qh.exec_query(str)
+
+        s = 'objectHypotheses(Obj,[]).'
+        qh.exec_query(s)
 
         # s = '{hypotheses:[shape:(shape:round),size:(size:medium,confidence<0.5)]}'
         # gr.exec_query(s)

@@ -35,6 +35,8 @@ op_dict = {'<': '$lt',
            '>': '$gt',
            '=': '$eq'}
 
+aDict = {'object':'annotations',
+         'hypotheses':'identifiables.annotations'}
 
 class QueryHandler(object):
 
@@ -67,27 +69,53 @@ class QueryHandler(object):
         :return: the specific nesting of a dic needed for a mongo query
         """
         dict = {}
-        dict['annotations'] = {}
-        dict['annotations']['$elemMatch'] = {}
+        if query_type == "object":
+            dict = {aDict[self.query_type]: {'$elemMatch':{}}}
+        # elif query_type == "hypotheses"
+        #     dict = {'identifiables.annotations': {'$elemMatch': {}}}
+        # dict['annotations'] = {}
+        # dict['annotations']['$elemMatch'] = {}
         return dict
 
 
-    def exec_query(self,q):
+    def exec_query(self,q,hack=None):
         """
 
         :param q: the query string
         """
+        if hack == 1:
+            mc.set_main_collection('hypotheses')
+            cursor = mc.call_query([{'$project': {'_parent': 1, 'identifiables': 1, '_id': 0}},
+                                    {'$unwind': '$identifiables'}, {'$match': {'$and':
+                                        [{'identifiables.annotations':
+                                              {'$elemMatch':{'source': 'DeCafClassifier', 'confidence': {'$gt': 0.5}, '_type': 'rs.annotation.Detection','name':{'$in':['fork_red_plastic','fork_blue_plastic','knife_red_plastic','knife_blue_plastic']}}}}]}}])
+            return mc.process_objects_cursor(cursor)
+        elif hack == 2:
+            mc.set_main_collection('hypotheses')
+            cursor = mc.call_query([{'$match':{'$and':[{'timestamp': {'$gt':1482401694215166627}},
+                                                        {'timestamp': {'$lt':1482401807402294324}}]}},
+                                    {'$project': {'_parent': 1, 'identifiables': 1, '_id': 0}},
+                                    {'$unwind': '$identifiables'},
+                                    {'$match': {'$and':[{'identifiables.annotations':
+                                                                                         {'$elemMatch': {
+                                                                                             'source': 'DeCafClassifier',
+                                                                                             'confidence': {'$gt': 0.5},
+                                                                                             '_type': 'rs.annotation.Detection'}}}]}}])
+            return mc.process_objects_cursor(cursor)
         self.reset()
         self.grammar.parse_query(q)
         # if self.query['$and'] == []:
-
+        print 'Query after parsing : %s ' % self.query
         if '$and' in self.query and self.query['$and']==[]:
             print 'Empty query, resetting'
             self.query = {}
+            self.final_query = []
         if self.query_type == "hypotheses":
-            self.final_query = {'identifiables': {'$elemMatch': self.query}}
-        elif self.query_type =="object":
-            self.final_query =self.query
+            self.final_query = [{'$project':{'_id':0,'identifiables':1,'_parent':1}},{'$unwind':'$identifiables'},{'$match': self.query}]
+            print 'Asked for a hyp: extending query to look in the identifiables of scenes'
+        elif self.query_type =="object" and self.query != {}:
+            self.final_query = [ {'$match':self.query} ]
+            print 'Asked for an obj. Not doins anything'
         print 'MongoQuery: %s ' % self.final_query
         cursor = mc.call_query(self.final_query)
         return mc.process_objects_cursor(cursor)
@@ -100,7 +128,7 @@ class QueryHandler(object):
             print '(%d) kvp out: %s' %(self.kvp_counter, res)
 
             element = self.gen_dict
-            element['annotations']['$elemMatch'] = res
+            element[aDict[self.query_type]]['$elemMatch'] = res
             self.query['$and'].append(element)
             self.kvp_map[self.kvp_counter] = element
             self.kvp_counter += 1
@@ -117,7 +145,7 @@ class QueryHandler(object):
         print '(%d) constraint: Key out: %s,' % (self.kvp_counter, res)
 
         element = self.gen_dict
-        element['annotations']['$elemMatch'] = res
+        element[aDict[self.query_type]]['$elemMatch'] = res
 
         self.query['$and'].append(element)
         self.kvp_map[self.kvp_counter] = element
@@ -126,7 +154,7 @@ class QueryHandler(object):
     def description_cb_(self,t):
         print 'Key: %s No. Of Elements: %d' %(t.key ,len(t.description))
         # order of parsing workaround...there might be nicer ways of doing this
-        # delete the las x elements and re add them under the same $elemMatch
+        # delete the last x elements and re add them under the same $elemMatch
         del self.query['$and'][-len(t.description):]
         print 'DELETED the nested ones'
         element=self.gen_dict
@@ -134,8 +162,8 @@ class QueryHandler(object):
         for i in range(len(t.description)):
             # print self.kvp_map[self.kvp_counter - i - 1]['annotations']['$elemMatch'].items()
             idx=self.kvp_counter - i - 1
-            element["annotations"]["$elemMatch"].update(self.kvp_map[idx]['annotations']['$elemMatch'])
-        element["annotations"]["$elemMatch"].update(key_dict[t.key])
+            element[aDict[self.query_type]]["$elemMatch"].update(self.kvp_map[idx][aDict[self.query_type]]['$elemMatch'])
+        element[aDict[self.query_type]]["$elemMatch"].update(key_dict[t.key])
 
         self.query['$and'].append(element)
 
@@ -143,12 +171,12 @@ class QueryHandler(object):
         # print "Result Specifier: %s." % t
         print  'getting res_spec %s ' %t.query_specifier
         if self.status == 0:
-            if t.query_specifier == 'persistentObject':
+            if t.query_specifier == 'object':
                 self.query['$and'] = []
                 self.query_type = "object"
             elif t.query_specifier == 'scene':
                 self.query_type = "scene"
-            elif t.query_specifier == 'objectHypotheses':
+            elif t.query_specifier == 'hypotheses':
                 self.query['$and'] = []
                 self.query_type = "hypotheses"
             self.status += 1
@@ -181,8 +209,8 @@ class RSQueryGrammar:
         operator = oneOf('= < >')
         separator = oneOf(', ;').suppress()
 
-        query_specifier = oneOf('scene objectHypotheses persistentObject objectInScene')("query_specifier")
-        key = oneOf('location shape color size detection id ts type value confidence distance value') ^ query_specifier
+        query_specifier = oneOf('scene object hypotheses objectInScene')("query_specifier")
+        key = oneOf('source objectID location shape color size detection id ts type value confidence distance value name') ^ query_specifier
 
         point = Literal('.')
         number = Word(nums)
@@ -194,7 +222,7 @@ class RSQueryGrammar:
         kvps = Forward()
         result_description = Group(bl + kvps + el)("description")
 
-        value = Word(alphanums)
+        value = Word(alphanums+'_')
 
         # e.g. simple symbolic assignment
         simpleKvp = key("key") + delimiter + value("value")
@@ -241,28 +269,23 @@ class RSQueryGrammar:
 if __name__ == "__main__":
 
         qh = QueryHandler()
-        s = 'objectHypotheses(Hyp, [shape:[shape:round], size:[size:medium, confidence < 0.5]]).'
+        s = 'hypotheses(Hyp, [ detection:[confidence>0.5, source:DeCafClassifier], size:[size:medium, confidence < 0.5]]).'
         qh.exec_query(s)
 
+        # str = 'object(Object,[shape:[shape:round],size:[size:medium,confidence<0.5]]).'
+        # qh.exec_query(str)
 
-        gr = RSQueryGrammar()
-        str = 'persistentObject(Object,[shape:[shape:round],size:[size:medium,confidence<0.5]]),' \
-              'scene(Ss,[distance:[value>0.15,value<0.30]]),' \
-              'objectInScene(Object,Scene, Res).'
-        print  gr.exec_rule(str)
+        # str = 'object(Object,[]).'
+        # qh.exec_query(str)
+              # 'scene(Ss,[distance:[value>0.15,value<0.30]]),' \
+              # 'objectInScene(Object,Scene, Res).'
+        # print  gr.exec_rule(str)
 
         # str = 'objectHypotheses(Obj, [color:[value:blue, ratio>0.2]]).' #, shape:[value:box,confidence>0.6], size:small]).'
         # qh.exec_query(str)
-
-        s = 'objectHypotheses(Obj,[]).'
-        qh.exec_query(s)
-
-        # s = '{hypotheses:[shape:(shape:round),size:(size:medium,confidence<0.5)]}'
-        # gr.exec_query(s)
         #
-        # s = '{scene:[hypotheses:[type:Plate,shape:(value:blue, confidence=0.5)],hypotheses:[color:blue, shape:box, ' \
-        #     'type:crap]]} '
-        # gr.parseQuery(s)
+        # qh.exec_query(s)
+        # s = 'objectHypotheses(Obj,[]).'
 
         # s = '{hypotheses:[ id:6, detection:(confidence>0.05),]}'
         # gr.parseQuery(s)

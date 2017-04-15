@@ -7,6 +7,7 @@ import sys
 import re
 import json
 import time
+import numpy as np
 
 from source.mongoclient import MongoWrapper
 from source.parser import QueryHandler
@@ -21,20 +22,20 @@ qh = QueryHandler()
 
 
 @app.route('/', methods=['GET', 'POST'])
-@app.route('/query', methods=['GET', 'POST'])
+# @app.route('/query', methods=['GET', 'POST'])
 def index():
-    if request.method == 'POST':
-        query_in = request.data
-        print("Query is : ", query_in, file=sys.stderr)
-        param = re.search(r"\(([0-9])\)", query_in)
-        if param:
-            return find_object_instances(int(param.group(1)))
-        elif query_in == 'objects':
-            return handle_objects()
-        elif query_in == 'scenes':
-            return handle_scenes()
-    print("Method was not POST", file=sys.stderr)
-    print(request.data, file=sys.stderr)
+    # if request.method == 'POST':
+    #     query_in = request.data
+    #     print("Query is : ", query_in, file=sys.stderr)
+    #     param = re.search(r"\(([0-9])\)", query_in)
+    #     if param:
+    #         return find_object_instances(int(param.group(1)))
+    #     elif query_in == 'objects':
+    #         return handle_objects()
+    #     elif query_in == 'scenes':
+    #         return handle_scenes()
+    # print("Method was not POST", file=sys.stderr)
+    # print(request.data, file=sys.stderr)
     print("Rendering base.html", file=sys.stderr)
     return render_template('startup.html')
 
@@ -46,8 +47,17 @@ def query_wrapper():
         print("query is: " + query_in, file=sys.stderr)
         if query_in == 'objects':
             return handle_objects()
-        elif query_in == 'scenes':
+        elif query_in == 'scenes(Sc,[]).':
             return handle_scenes()
+        elif query_in == 'scenes(Sc,[ts>1482401694215166627, ts<1482401807402294324]).':
+            return handle_scenes(1482401694215166627,1482401807402294324)
+        elif query_in == 'hypotheses(Hyp, [detection:[confidence>0.5, source:DeCafClassifier], type:\'Cutlery\']).':
+            print( 'DO SOME MAGIC',file=sys.stderr)
+            o = qh.exec_query(query_in,1)
+            return render_template("objects.html", objects=o)
+        elif query_in == 'hypotheses(Hyp1, [detection:[confidence>0.5, source:DeCafClassifier]]),scenes(Sc1,[ts>1482401694215166627, ts<1482401807402294324]),hypothesesInScenes(Hyp2,Sc),intersect(Hyp1, Hyp2, R).':
+            o = qh.exec_query(query_in,2)
+            return render_template("objects.html", objects=o)
         else:
             try:
                 objects = qh.exec_query(query_in)
@@ -71,17 +81,25 @@ def handle_objects():
     return render_template('objects.html', objects=objects)
 
 
-def handle_scenes():
+def handle_scenes(ts1 = None, ts2 = None):
     print("handle_scenes.", file=sys.stderr)
     timestamps = mc.get_timestamps()
     # total = len(timestamps)
     # page, per_page, offset = get_page_args()
     # idxB = (page-1)*per_page
     # idxE = page*per_page
+
     scenes = []
     start_time = time.time()
+    idx_begin = 0
+    idx_end = len(timestamps)
+    if ts1 != None and ts2!=None:
+        idx_begin = timestamps.index(ts1)
+        idx_end = timestamps.index(ts2)
+        # idx_begin = 9
+        # idx_end = 19
 
-    for ts in timestamps:  # [idxB:idxE]:
+    for ts in timestamps[idx_begin:idx_end]:  # [idxB:idxE]:
         scene = {'ts': ts, 'rgb': mc.get_scene_image(ts), 'objects': mc.get_object_hypotheses_for_scene(ts)}
         scenes.append(scene)
     print("getting data took: %s seconds ---" % (time.time() - start_time), file=sys.stderr)

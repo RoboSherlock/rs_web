@@ -28,11 +28,12 @@ class MongoWrapper(object):
             self.active_collection = self.db.persistent_objects
         else:
             # if we're looking for views or scenes
+            print('Setting scene as active collection')
             self.active_collection = self.db.scene
 
     def call_query(self, query):
-        cursor = self.active_collection.find(query)
-        print('\033[93mQuery resulted in %d results\033[0m' % cursor.count())
+        cursor = self.active_collection.aggregate(query)
+        print('\033[93mQuery resulted in %s results\033[0m' % cursor)
         return cursor
 
     def get_object_image(self, obj_entry, ts):
@@ -105,8 +106,8 @@ class MongoWrapper(object):
                 cas_cursor = self.db.cas.find({'_id': objEntry['_parent']})
                 if cas_cursor.count() != 0:
                     ts =cas_cursor[0]['_timestamp']
-                obj = {'image': self.get_base64_img(self.get_object_image(objEntry['identifiables'][0], ts)),
-                   'annotations': self.get_persistent_object_annotations(objEntry['identifiables'][0])}
+                obj = {'image': self.get_base64_img(self.get_object_image(objEntry['identifiables'], ts)),
+                   'annotations': self.get_persistent_object_annotations(objEntry['identifiables'])}
             objects.append(obj)
         return objects
 

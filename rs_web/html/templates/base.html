@@ -39,9 +39,9 @@
         $('body').layout({ 
            applyDemoStyles: true,
            west: {
-            minSize: 210,
-            maxSize: 400,
-            size: 350,
+            minSize: 400,
+            maxSize: 500,
+            size: 500,
            //Inner layout
             childOptions: {
                 north: {
@@ -86,7 +86,7 @@
         <div id="console">
         <div id="console_top">
           <div id="history"></div>
-          <div id="user_query">your query here!</div>
+          <div id="user_query"></div>
         </div>
         <div id="console_bottom">
           <div id="query_buttons">
@@ -104,13 +104,13 @@
       </div>
       <div id="info">
        <br\></br\>
-            <p>Experimental visualization and query interface of perception logs. Existing commands:</p>
+            <p>Visualization and query interface of perception logs. Base queries commands:</p>
             <ul>
-                <li>objects - > shows all percieved objects from the belief state</li>
-                <li>scenes - > shows all scenes processesed by RoboSherlock</li>
-                <li>views(objID) - > shows all views of an object from the belief state; e.g. objects(2)</li>
+                <li><b>object</b>(Ob,Descr) - > shows all percieved objects from the belief state given a description</li>
+                <li><b>scenes</b>(Sc,Descr) - > shows all scenes processesed by RoboSherlock given a description</li>
+                <li><b>hypotheses</b>(objID) - > shows all hypotheses given a description</li>
             </ul>
-            <p>Extending the query language will allow queries such as 'show all views of object2 where the shape annotator had value X'</p>
+            <p>Documentation of the description language is available on the project website</p>
       </div>    
 <!--
         <form  action = "/scenes" method="post">            

@@ -6,21 +6,42 @@
            "text":"----------------"
         },
         {
-            "q":"scenes",
-            "text":"Show scenes"
+            "q":"scenes(Sc,[]).",
+            "text":"Get all logged scenes"
         },
         {
-            "q":"{object:[]}",
-            "text":"Show all objects"
+            "q":"scenes(Sc,[ts>1482401694215166627, ts<1482401807402294324]).",
+            "text":"Get scenes between a time interval"
         },
         {
-            "q":"views(object(2))",
-            "text":"Views for object_id 2"
+            "q":"object(O,[]).",
+            "text":"Get all objects from the belief state."
+        },    
+        {
+            "q":"object(O,[objectID:0]).",
+            "text":"Get object with ID 0"
         },
         {
-            "q":"persistentObject(O,[shape:[shape:round],size:[size:medium,confidence<0.5]]).",
-            "text":"Object, "
+            "q":"object(O,[shape:round,size:[size:small,confidence<0.5]]).",
+            "text":"Get all round objects where the confidence of being small is less than 0.5"
+        },
+        {
+            "q":"hypotheses(Hy,[]).",
+            "text":"Get all hypotheses."
+        },      
+        {
+            "q":"hypotheses(Hyp, [detection:[confidence>0.5, source:DeCafClassifier], shape:round]).",
+            "text":"Hypotheses where confidence of DeCaf>0.5 shape round."
+        },
+        {
+            "q":"hypotheses(Hyp, [detection:[confidence>0.5, source:DeCafClassifier], type:'Cutlery']).",
+            "text":"Hypotheses where confidence of DeCaf>0.5 and type container"
+        },
+        {
+            "q":"hypotheses(Hyp1, [detection:[confidence>0.5, source:DeCafClassifier]]),scenes(Sc1,[ts>1482401694215166627, ts<1482401807402294324]),hypothesesInScenes(Hyp2,Sc),intersect(Hyp1, Hyp2, R).",
+            "text":"Hypotheses where confidence of DeCaf>0.5 and were gnereated for a set of specified scenes."
         }
-		
+      
+      
     ]
 }

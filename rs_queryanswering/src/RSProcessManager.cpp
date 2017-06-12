@@ -94,6 +94,7 @@ void RSProcessManager::run()
       engine.process(true);
     }
     processing_mutex_.unlock();
+    usleep(100000);
     ros::spinOnce();
   }
 }
@@ -190,12 +191,12 @@ bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::
     {
       outError("Undefined command!");
     }
+    return true;
   }
-  else
+  else if(req.query != "")
   {
     Designator reqDesig;
     reqDesig.fillFromJSON(std::string(req.query));
-
     designator_integration_msgs::DesignatorCommunication::Request reqMsg;
     designator_integration_msgs::DesignatorCommunication::Response respMsg;
 
@@ -208,8 +209,13 @@ bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::
       d.setType(Designator::OBJECT);
       res.answer.push_back(d.serializeToJSON());
     }
+    return true;
   }
-  return true;
+  else
+  {
+    return false;
+  }
+
 }
 
 bool RSProcessManager::designatorAllSolutionsCallback(designator_integration_msgs::DesignatorCommunication::Request &req,
@@ -289,7 +295,6 @@ bool RSProcessManager::designatorCallbackLogic(designator_integration_msgs::Desi
   }
   delete ctxRSEvent;
 
-  outInfo(FG_CYAN << "LOCK RELEASE");
   for(auto & kvpPtr : lstDescription)
   {
     delete kvpPtr;
@@ -357,18 +362,15 @@ bool RSProcessManager::handleQuery(Designator *req, std::vector<Designator> &res
       }
     }
   }
-
   std::vector<std::string> keys;
   std::vector<std::string> new_pipeline_order;
   prologInterface.extractQueryKeysFromDesignator(req, keys);
-
   PrologInterface::planPipelineQuery(keys, new_pipeline_order);
   if(new_pipeline_order.empty())
   {
     outInfo("Can't find solution for pipeline planning");
     return false; // Indicate failure
   }
-
   std::for_each(new_pipeline_order.begin(), new_pipeline_order.end(), [](std::string & p)
   {
     outInfo(p);
@@ -391,7 +393,7 @@ bool RSProcessManager::handleQuery(Designator *req, std::vector<Designator> &res
   if(std::find(new_pipeline_order.begin(), new_pipeline_order.end(), "ObjectIdentityResolution") == new_pipeline_order.end())
   {
     new_pipeline_order.push_back("ObjectIdentityResolution");
-//    new_pipeline_order.push_back("GazeboInterface");
+    //    new_pipeline_order.push_back("GazeboInterface");
   }
   new_pipeline_order.push_back("StorageWriter");
 

@@ -1,5 +1,15 @@
 # rs_kbreasoning
 
+##Dependencies:
+* ros-indigo-rosjava
+* Knowrob (http://www.knowrob.org)
+* rs_simulation (consider removing)
+* semrec_client (damn)
+* designator_integration_cpp ->this should be a ROS package
+* rapidjson v.1.0.2
+* ros-indigo-rosbridge-server
+* ros-indigo-web-video-server
+######DEPRECATED
 ## Perception Planning
 RoboSherlock uses Apache UIMA (Unstructured Information Management Architecture) to process the incoming sensor data with image processing algorithms, called experts. 
 The selection and ordering of these experts (e.g. a 'pipeline') is usally hard coded by the developer of a robotic system. 

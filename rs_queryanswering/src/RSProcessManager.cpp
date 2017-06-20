@@ -5,8 +5,9 @@ using namespace designator_integration;
 
 RSProcessManager::RSProcessManager(const bool useVisualizer, const std::string &savePath,
                                    const bool &waitForServiceCall, const bool useCWAssumption, ros::NodeHandle n):
-  engine(n), prologInterface(), nh_(n), waitForServiceCall_(waitForServiceCall),
-  useVisualizer_(useVisualizer), useCWAssumption_(useCWAssumption), useIdentityResolution_(false), pause_(true), visualizer_(savePath)
+  engine(n), nh_(n), waitForServiceCall_(waitForServiceCall),
+  useVisualizer_(useVisualizer), useCWAssumption_(useCWAssumption), useIdentityResolution_(false), withJsonProlog_(false),
+  pause_(true), visualizer_(savePath)
 {
 
   outInfo("Creating resource manager"); // TODO: DEBUG
@@ -55,6 +56,8 @@ RSProcessManager::~RSProcessManager()
 
 void RSProcessManager::init(std::string &xmlFile, std::string configFile)
 {
+  outInfo("initializing");
+  prologInterface = new PrologInterface(withJsonProlog_);
   this->configFile = configFile;
   cv::FileStorage fs(configFile, cv::FileStorage::READ);
   fs["cw_assumption"] >> closedWorldAssumption;
@@ -77,6 +80,7 @@ void RSProcessManager::init(std::string &xmlFile, std::string configFile)
   {
     visualizer_.start();
   }
+  outInfo("done intializing");
 }
 
 
@@ -364,8 +368,8 @@ bool RSProcessManager::handleQuery(Designator *req, std::vector<Designator> &res
   }
   std::vector<std::string> keys;
   std::vector<std::string> new_pipeline_order;
-  prologInterface.extractQueryKeysFromDesignator(req, keys);
-  PrologInterface::planPipelineQuery(keys, new_pipeline_order);
+  prologInterface->extractQueryKeysFromDesignator(req, keys);
+  prologInterface->planPipelineQuery(keys, new_pipeline_order);
   if(new_pipeline_order.empty())
   {
     outInfo("Can't find solution for pipeline planning");
@@ -659,7 +663,7 @@ void RSProcessManager::filterResults(Designator &requestDesignator,
                 {
                   if(superclass != "" && rs_queryanswering::krNameMapping.count(superclass) == 1)
                   {
-                    ok = PrologInterface::q_subClassOf(childrenPair.stringValue(), superclass);
+                    ok = prologInterface->q_subClassOf(childrenPair.stringValue(), superclass);
                   }
                   else if(strcasecmp(childrenPair.stringValue().c_str(), req_kvp.stringValue().c_str()) == 0 || req_kvp.stringValue() == "")
                   {

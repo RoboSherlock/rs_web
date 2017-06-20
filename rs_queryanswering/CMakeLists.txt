@@ -130,9 +130,3 @@ rs_add_library(rs_clusterToPartsSegmenter
 target_link_libraries(rs_clusterToPartsSegmenter 
 	${catkin_LIBRARIES}
 	${SWIPL_LIBRARIES})
-
-add_executable(prologTest
-        src/swiprologinterpreter.cpp)
-target_link_libraries(prologTest
-        ${catkin_LIBRARIES}
-        ${SWIPL_LIBRARIES})

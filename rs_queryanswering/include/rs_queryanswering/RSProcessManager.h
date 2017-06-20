@@ -27,7 +27,7 @@ class RSProcessManager
 private:
 
   RSControledAnalysisEngine engine;
-  PrologInterface prologInterface;
+  PrologInterface *prologInterface;
 
   ros::NodeHandle nh_;
   ros::Publisher desig_pub_;
@@ -36,6 +36,7 @@ private:
   const bool waitForServiceCall_;
   const bool useVisualizer_;
   const bool useCWAssumption_;
+  bool withJsonProlog_;
   bool useIdentityResolution_;
   bool pause_;
 
@@ -99,11 +100,15 @@ public:
     engine.useIdentityResolution(useIdentityResoltuion);
   }
 
+  inline void setUseJsonPrologInterface(bool useJson)
+  {
+    withJsonProlog_ = useJson;
+  }
+
   inline std::string getEngineName()
   {
     return engine.getCurrentAEName();
   }
-
   inline void pause()
   {
     processing_mutex_.lock();

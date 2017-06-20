@@ -41,7 +41,7 @@ private:
   pcl::PointCloud<pcl::Normal>::Ptr normalPtr_;
 
   RSAnalysisEngine engine;
-
+  PrologInterface prologInterface;
   struct ClusterWithParts
   {
     std::vector<pcl::PointIndicesPtr> partsOfClusters;
@@ -72,7 +72,7 @@ private:
 
 public:
 
-  ClusterToPartsSegmenter(): DrawingAnnotator(__func__), dispCloudPtr(new pcl::PointCloud<PointT>), pointSize(2), voxel_resolution(0.008f),
+  ClusterToPartsSegmenter(): DrawingAnnotator(__func__), dispCloudPtr(new pcl::PointCloud<PointT>),prologInterface(), pointSize(2), voxel_resolution(0.008f),
     seed_resolution(0.1f)
   {
 
@@ -318,7 +318,7 @@ private:
     //    }
     outWarn("Object Queried for is: " << objToProcess);
 
-    bool ok = PrologInterface::q_classProperty(objToProcess, "rs_components:'hasVisualProperty'", "rs_objects:'ObjectPart'");
+    bool ok = prologInterface.q_classProperty(objToProcess, "rs_components:'hasVisualProperty'", "rs_objects:'ObjectPart'");
     if(!ok)
     {
       outInfo("Queried Object does not meet requirements of this annotator");

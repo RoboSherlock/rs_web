@@ -76,21 +76,30 @@ bool PrologInterface::extractQueryKeysFromDesignator(designator_integration::Des
 bool PrologInterface::buildPrologQueryFromDesignator(designator_integration::Designator *desig,
     std::string &prologQuery)
 {
-
-  prologQuery = "build_single_pipeline_from_predicates([";
   std::vector<std::string> queriedKeys;
   extractQueryKeysFromDesignator(desig, queriedKeys);
-  for(int i = 0; i < queriedKeys.size(); i++)
+  prologQuery = buildPrologQueryFromKeys(queriedKeys);
+  return true;
+}
+
+
+std::string PrologInterface::buildPrologQueryFromKeys(const std::vector<std::string> &keys)
+{
+
+  std::string prologQuery = "build_single_pipeline_from_predicates([";
+  for(int i = 0; i < keys.size(); i++)
   {
-    prologQuery += queriedKeys.at(i);
-    if(i < queriedKeys.size() - 1)
+    prologQuery += keys.at(i);
+    if(i < keys.size() - 1)
     {
       prologQuery += ",";
     }
   }
   prologQuery += "], A)";
-  return true;
+  return prologQuery;
 }
+
+
 std::vector< std::string > PrologInterface::createPipelineFromPrologResult(std::string queryResult)
 {
   std::vector<std::string> new_pipeline;

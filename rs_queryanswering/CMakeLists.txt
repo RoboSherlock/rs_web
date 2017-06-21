@@ -42,7 +42,8 @@ find_include_dirs(RS_INCLUDE_DIRS_LIST)
 
 catkin_package(
     INCLUDE_DIRS ${RS_INCLUDE_DIRS_LIST} ${SWIPL_INCLUDE_DIRS}
-    CATKIN_DEPENDS designator_integration_msgs iai_robosherlock_msgs robosherlock_demos designator_integration_cpp semrec_client
+    CATKIN_DEPENDS designator_integration_msgs iai_robosherlock_msgs
+                   robosherlock_demos designator_integration_cpp semrec_client json_prolog
     LIBRARIES rs_designator_wrapper rs_kbAEmanagement ${SWIPL_LIBRARY_DIRS}
     CFG_EXTRAS ${PROJECT_NAME}_config.cmake
 )

@@ -17,6 +17,9 @@
 //SWI Prolog
 #include <SWI-cpp.h>
 
+//json_prolog interface
+#include <json_prolog/prolog.h>
+
 //STD
 #include <memory>
 
@@ -44,8 +47,8 @@ public:
    * in: vector of keys extracted from query
    * out: vector of annotator names forming the pipeline
    */
-  void planPipelineQuery(const std::vector<std::string> &keys,
-                                std::vector<std::string> &pipeline)
+  bool planPipelineQuery(const std::vector<std::string> &keys,
+                         std::vector<std::string> &pipeline)
   {
     if(!useJsonProlog)
     {
@@ -70,10 +73,23 @@ public:
           pipeline.push_back(element);
         }
       }
+      return true;
     }
     else
     {
       outInfo("Calling Json Prolog");
+      json_prolog::Prolog pl;
+      json_prolog::PrologQueryProxy bdgs = pl.query(buildPrologQueryFromKeys(keys));
+      if(bdgs.begin() == bdgs.end())
+      {
+        outInfo("Can't find solution for pipeline planning");
+        return false; // Indicate failure
+      }
+      for(auto bdg : bdgs)
+      {
+        pipeline = createPipelineFromPrologResult(bdg["A"].toString());
+      }
+      return true;
     }
   }
 
@@ -109,7 +125,18 @@ public:
     }
     else
     {
-      outInfo("Calling Json Prolog");
+      std::stringstream prologQuery;
+      prologQuery << "owl_subclass_of(" << rs_queryanswering::krNameMapping[child] << "," << rs_queryanswering::krNameMapping[parent] << ").";
+      outInfo("Asking Query: " << prologQuery.str());
+      json_prolog::Prolog pl;
+      json_prolog::PrologQueryProxy bdgs = pl.query(prologQuery.str());
+
+      if(bdgs.begin() != bdgs.end())
+      {
+        outInfo(rs_queryanswering::krNameMapping[child] << " IS " << rs_queryanswering::krNameMapping[parent]);
+        return true;
+      }
+      return false;
     }
   }
 
@@ -149,6 +176,9 @@ public:
       outInfo("Calling Json Prolog");
     }
   }
+
+
+  std::string buildPrologQueryFromKeys(const std::vector<std::string> &keys);
 
   /*brief
    *extract the keys that serve as input for pipeline planning

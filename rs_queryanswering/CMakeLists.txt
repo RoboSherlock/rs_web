@@ -5,7 +5,7 @@ find_package(catkin REQUIRED rosjava_build_tools rosprolog designator_integratio
              designator_integration_msgs knowrob_common knowrob_actions knowrob_srdl
              tf tf_conversions knowrob_vis robosherlock robosherlock_demos
              rs_addons rs_simulation roslib rospack iai_robosherlock_msgs image_transport
-             semrec_client rs_thorin json_prolog)
+             semrec_client json_prolog)
 
 find_package(PkgConfig)
 pkg_check_modules(SWIPL REQUIRED swipl)

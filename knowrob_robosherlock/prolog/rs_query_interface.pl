@@ -1,6 +1,6 @@
 :- module(rs_query_interface,
   [
-  keyword/1,
+  rs_query_keyword/1,
   rs_interface/2,
   rs_pause/1,
   rs_stop/1,
@@ -80,7 +80,7 @@ rs_interface(Cl):-
    rs_interf(Cl).
 
 
-execute_pipeline(P):-
+execute_pipeline(_):-
    rs_interface(Cl),
    process_once(Cl).
 
@@ -103,16 +103,16 @@ designator(location).
 designator(object).
 
 %keywords available
-keyword(shape).
-keyword(detection).
-keyword(size).
-keyword(type).
-keyword(color).
-keyword(cad-model).
-keyword(volume).
-keyword(contains).
-keyword(timestamp).
-keyword(handle).
+rs_query_keyword(shape).
+rs_query_keyword(detection).
+rs_query_keyword(size).
+rs_query_keyword(type).
+rs_query_keyword(color).
+rs_query_keyword(cad-model).
+rs_query_keyword(volume).
+rs_query_keyword(contains).
+rs_query_keyword(timestamp).
+rs_query_keyword(handle).
 
 % for simplifying query writing spatial relation can also be keyword
 
@@ -129,7 +129,7 @@ spatial_relation(in-front-of).
 
 % check if key can exist and add it to designator
 add_kvp(Key,Value,D):-
-    keyword(Key),
+    rs_query_keyword(Key),
     cpp_add_kvp(Key,Value,D).
 
 % handle case when key hints at a nested designator
@@ -137,7 +137,7 @@ add_kvp(Key,Value,D):-
     designator(Key),
     parse_nested_description(Value,D).
 
-% yet another crap needed to manage on as a spacial realtion
+% needed to manage 'on' as a spatial relation
 add_kvp(Key,Value,D):-
     spatial_relation(Key),
     is_list(Value),

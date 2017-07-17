@@ -21,28 +21,13 @@
 
 #include <iai_robosherlock_msgs/PerceivedObjects.h>
 
-//work in progress:)
 namespace rs
 {
-// Abstract class:
-//  All inheriting classes shall be informed if a Designator has been added.
-//  To register an instance of a class, do the following:
-//  DesignatorWrapper dw;
-//  SomeObservingClass observer1;
-//  dw.addObserver(
-//  boost::bind(
-//    &SomeObservingClass::addDesignator,
-//    &observer1,
-//    _1));
-//    /
-class DesignatorWrapperObserver
-{
-  virtual void addDesignator(designator_integration::Designator d) = 0;
-};
 
 class DesignatorWrapper
 {
 public:
+
   enum DesignatorProcessMode
   {
     CLUSTER = 0,
@@ -107,7 +92,6 @@ public:
       std::vector<rs::Detection> detections;
       std::vector<rs::SemanticColor> semanticColors;
       std::vector<rs::Shape> shapes;
-      std::vector<rs::Segment> segments;
       std::vector<rs::TFLocation> locations;
       std::vector<rs::MLNAtoms> atoms;
       std::vector<rs::Goggles> goggles;
@@ -122,7 +106,6 @@ public:
       element.annotations.filter(detections);
       element.annotations.filter(semanticColors);
       element.annotations.filter(shapes);
-      element.annotations.filter(segments);
       element.annotations.filter(locations);
       element.annotations.filter(atoms);
       element.annotations.filter(goggles);
@@ -140,7 +123,6 @@ public:
       convertAll(poses, &objectDesignator);
       convertAll(semanticColors, &objectDesignator);
       convertAll(shapes, &objectDesignator);
-      convertAll(segments, &objectDesignator);
       convertAll(locations, &objectDesignator);
       convertAll(atoms, &objectDesignator);
       convertAll(goggles, &objectDesignator);

@@ -28,7 +28,6 @@ static std::map<std::string, std::string> krNameMapping =
   {"Cup", "rs_objects:'Cup'"},
   {"Bottle", "knowrob:'Bottle'"},
   {"Plate", "rs_objects:'Plate'"},
-
   {"plate", "rs_objects:'Plate'"},
 
 
@@ -105,8 +104,17 @@ static std::map<std::string, std::string> krNameMapping =
   {"flask_250ml", "rs_objects:'Flask'"},
   {"flask_400ml", "rs_objects:'Flask'"},
   {"pipette", "rs_objects:'Pipette'"},
-  {"mixer_ikamag", "rs_objects:'MixerIkaMag'"}
+  {"mixer_ikamag", "rs_objects:'MixerIkaMag'"},
+
+
+  //assembly
+  {"ChassisHolder","'http://knowrob.org/kb/thorin_simulation.owl#ChassisHolder'"},
+  {"AxleHolder","'http://knowrob.org/kb/thorin_simulation.owl#AxleHolder'"},
+  {"AccessoryHolder","'http://knowrob.org/kb/thorin_simulation.owl#AccessoryHolder'"},
+  {"CamaroBody","'http://knowrob.org/kb/thorin_simulation.owl#CamaroBody'"}
 };
+
+
 
 static std::vector<std::string> rsQueryTerms =
 {

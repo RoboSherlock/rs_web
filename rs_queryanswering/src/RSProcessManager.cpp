@@ -5,8 +5,8 @@ using namespace designator_integration;
 
 RSProcessManager::RSProcessManager(const bool useVisualizer, const std::string &savePath,
                                    const bool &waitForServiceCall, const bool useCWAssumption, ros::NodeHandle n):
-  engine(n), nh_(n), waitForServiceCall_(waitForServiceCall),
-  useVisualizer_(useVisualizer), useCWAssumption_(useCWAssumption), useIdentityResolution_(false), withJsonProlog_(false),
+  engine_(n), inspectionEngine_(n), nh_(n), waitForServiceCall_(waitForServiceCall),
+  useVisualizer_(useVisualizer), useCWAssumption_(useCWAssumption), withJsonProlog_(false), useIdentityResolution_(false),
   pause_(true), visualizer_(savePath)
 {
 
@@ -28,9 +28,6 @@ RSProcessManager::RSProcessManager(const bool useVisualizer, const std::string &
   }
 
   desig_pub_ = nh_.advertise<designator_integration_msgs::DesignatorResponse>(std::string("result_advertiser"), 5);
-
-  service = nh_.advertiseService("designator_request/all_solutions",
-                                 &RSProcessManager::designatorAllSolutionsCallback, this);
 
   // Call this service, if RoboSherlock should try out only
   // the pipeline with all Annotators, that provide the requested types (for example shape)
@@ -58,29 +55,43 @@ void RSProcessManager::init(std::string &xmlFile, std::string configFile)
 {
   outInfo("initializing");
   prologInterface = new PrologInterface(withJsonProlog_);
-  this->configFile = configFile;
-  cv::FileStorage fs(configFile, cv::FileStorage::READ);
-  fs["cw_assumption"] >> closedWorldAssumption;
-  if(lowLvlPipeline_.empty()) //if not set programatically, load from a config file
+  this->configFile_ = configFile;
+  try
   {
-    fs["annotators"] >> lowLvlPipeline_;
+    cv::FileStorage fs(configFile, cv::FileStorage::READ);
+    fs["cw_assumption"] >> closedWorldAssumption_;
+    if(lowLvlPipeline_.empty()) //if not set programatically, load from a config file
+    {
+      fs["annotators"] >> lowLvlPipeline_;
+    }
   }
-  engine.init(xmlFile, lowLvlPipeline_);
-
-  outInfo("Number of objects in closed world assumption: " << closedWorldAssumption.size());
-  if(!closedWorldAssumption.empty() && useCWAssumption_)
+  catch(cv::Exception &e)
   {
-    for(auto cwa : closedWorldAssumption)
+    outWarn("No low-level pipeline defined. Setting empty!");
+  }
+
+  engine_.init(xmlFile, lowLvlPipeline_);
+
+  outInfo("Number of objects in closed world assumption: " << closedWorldAssumption_.size());
+  if(!closedWorldAssumption_.empty() && useCWAssumption_)
+  {
+    for(auto cwa : closedWorldAssumption_)
     {
       outInfo(cwa);
     }
-    engine.setCWAssumption(closedWorldAssumption);
+    engine_.setCWAssumption(closedWorldAssumption_);
   }
   if(useVisualizer_)
   {
     visualizer_.start();
   }
   outInfo("done intializing");
+}
+
+void RSProcessManager::setInspectionAE(std::string inspectionAEPath)
+{
+  outInfo("initializing inspection AE");
+  inspectionEngine_.init(inspectionAEPath, lowLvlPipeline_);
 }
 
 
@@ -95,7 +106,7 @@ void RSProcessManager::run()
     }
     else
     {
-      engine.process(true);
+      engine_.process(true);
     }
     processing_mutex_.unlock();
     usleep(100000);
@@ -109,8 +120,8 @@ void RSProcessManager::stop()
   {
     visualizer_.stop();
   }
-  engine.resetCas();
-  engine.stop();
+  engine_.resetCas();
+  engine_.stop();
 }
 
 bool RSProcessManager::resetAECallback(iai_robosherlock_msgs::SetRSContext::Request &req,
@@ -137,12 +148,12 @@ bool RSProcessManager::resetAE(std::string newContextName)
   if(rs::common::getAEPaths(newContextName, contextAEPath))
   {
     outInfo("Setting new context: " << newContextName);
-    cv::FileStorage fs(configFile, cv::FileStorage::READ);
+    cv::FileStorage fs(configFile_, cv::FileStorage::READ);
     std::vector<std::string> lowLvlPipeline;
     fs["annotators"] >> lowLvlPipeline;
 
     processing_mutex_.lock();
-    this->init(contextAEPath, configFile);
+    this->init(contextAEPath, configFile_);
     processing_mutex_.unlock();
 
     return true;
@@ -153,6 +164,50 @@ bool RSProcessManager::resetAE(std::string newContextName)
   }
 }
 
+bool RSProcessManager::handleSemrec(const rapidjson::Document &doc)
+{
+  std::string value = doc["semrec"].GetString();
+  if(value == "start")
+  {
+    if(!semrecClient)
+    {
+      outInfo("Starting Semantic Logging");
+      semrecClient = new semrec_client::BeliefstateClient("robosherlock");
+      semrecClient->setMetaDataField("experiment", "ex1");
+      semrecClient->startNewExperiment();
+      semrecClient->registerOWLNamespace("rs_queryanswering", "http://robosherlock.org/#");
+      return true;
+    }
+    else
+    {
+      outError("Logging allready started");
+      return false;
+    }
+  }
+  else if(value == "stop")
+  {
+    if(semrecClient)
+    {
+      outInfo("Stopping Semantic Logging");
+      semrecClient->exportFiles("robosherlock");
+      delete semrecClient;
+      semrecClient = NULL;
+      return true;
+    }
+    else
+    {
+      outError("There is no logging started");
+      return false;
+    }
+  }
+  else
+  {
+    outError("Undefined command!");
+    return false;
+  }
+  return true;
+}
+
 bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::Request &req,
     iai_robosherlock_msgs::RSQueryService::Response &res)
 {
@@ -161,42 +216,40 @@ bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::
   doc.Parse(req.query.c_str());
   if(doc.HasMember("semrec"))
   {
-    std::string value = doc["semrec"].GetString();
-    if(value == "start")
+    return handleSemrec(doc);
+  }
+  else if(doc.HasMember("detect"))
+  {
+    const rapidjson::Value &val = doc["detect"];
+    rapidjson::StringBuffer strBuff;
+    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(strBuff);
+    val.Accept(writer);
+
+
+    Designator reqDesig;
+    reqDesig.fillFromJSON(std::string(strBuff.GetString()));
+    designator_integration_msgs::DesignatorCommunication::Request reqMsg;
+    designator_integration_msgs::DesignatorCommunication::Response respMsg;
+
+    reqMsg.request.designator = reqDesig.serializeToMessage();
+    designatorCallbackLogic(reqMsg, respMsg, false);
+
+    for(auto resp : respMsg.response.designators)
     {
-      if(!semrecClient)
-      {
-        outInfo("Starting Semantic Logging");
-        semrecClient = new semrec_client::BeliefstateClient("robosherlock");
-        semrecClient->setMetaDataField("experiment", "ex1");
-        semrecClient->startNewExperiment();
-        semrecClient->registerOWLNamespace("rs_queryanswering", "http://robosherlock.org/#");
-      }
-      else
-      {
-        outError("Logging allready started");
-      }
-    }
-    else if(value == "stop")
-    {
-      if(semrecClient)
-      {
-        outInfo("Stopping Semantic Logging");
-        semrecClient->exportFiles("robosherlock");
-        delete semrecClient;
-        semrecClient = NULL;
-      }
-      else
-      {
-        outError("There is no logging started");
-      }
-    }
-    else
-    {
-      outError("Undefined command!");
+      Designator d(resp);
+      d.setType(Designator::OBJECT);
+      res.answer.push_back(d.serializeToJSON());
     }
     return true;
   }
+  else if(doc.HasMember("inspect"))
+  {
+    //TODO: handle the inspection of an object...run the inspect pipeline
+    //verify if object being inspected makes sense
+    outInfo("inspection of objects not handled yet");
+    return false;
+  }
+  //old query stuff
   else if(req.query != "")
   {
     Designator reqDesig;
@@ -217,15 +270,10 @@ bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::
   }
   else
   {
+    outInfo("False");
     return false;
   }
 
-}
-
-bool RSProcessManager::designatorAllSolutionsCallback(designator_integration_msgs::DesignatorCommunication::Request &req,
-    designator_integration_msgs::DesignatorCommunication::Response &res)
-{
-  return designatorCallbackLogic(req, res, true);
 }
 
 bool RSProcessManager::designatorSingleSolutionCallback(designator_integration_msgs::DesignatorCommunication::Request &req,
@@ -256,7 +304,7 @@ bool RSProcessManager::designatorCallbackLogic(designator_integration_msgs::Desi
   std::vector<Designator> filteredResponse;
   handleQuery(rs::DesignatorWrapper::req_designator, filteredResponse);
 
-  std::vector<std::string> executedPipeline = engine.getNextPipeline();
+  std::vector<std::string> executedPipeline = engine_.getNextPipeline();
   for(auto & designator : filteredResponse)
   {
     designator.setValue("PIPELINEID", 0);
@@ -359,7 +407,7 @@ bool RSProcessManager::handleQuery(Designator *req, std::vector<Designator> &res
         query->ingredient = kvp->stringValue();
         outInfo("received request for detection ingredient: " << query->ingredient);
       }
-      if(key == "TYPE")
+      if(key == "TYPE" || key == "type")
       {
         KeyValuePair *kvp =  req->childForKey("TYPE");
         superClass = kvp->stringValue();
@@ -373,6 +421,7 @@ bool RSProcessManager::handleQuery(Designator *req, std::vector<Designator> &res
   if(new_pipeline_order.empty())
   {
     outInfo("Can't find solution for pipeline planning");
+    processing_mutex_.unlock();
     return false; // Indicate failure
   }
   std::for_each(new_pipeline_order.begin(), new_pipeline_order.end(), [](std::string & p)
@@ -405,12 +454,12 @@ bool RSProcessManager::handleQuery(Designator *req, std::vector<Designator> &res
   if(subsetOfLowLvl(new_pipeline_order))
   {
     outInfo("Query answerable by lowlvl pipeline. Executing it");
-    engine.process(resultDesignators, query);
+    engine_.process(resultDesignators, query);
   }
   else
   {
     outInfo(FG_BLUE << "Executing Pipeline # generated by query");
-    engine.process(new_pipeline_order, true, resultDesignators, query);
+    engine_.process(new_pipeline_order, true, resultDesignators, query);
     outInfo("Executing pipeline generated by query: done");
   }
 
@@ -427,6 +476,8 @@ bool RSProcessManager::handleQuery(Designator *req, std::vector<Designator> &res
   }
   desig_pub_.publish(topicResponse);
   delete query;
+  return true;
+
 }
 
 void RSProcessManager::filterResults(Designator &requestDesignator,
@@ -435,7 +486,7 @@ void RSProcessManager::filterResults(Designator &requestDesignator,
                                      std::string superclass)
 {
   outInfo("filtering the results based on the designator request");
-
+  outInfo("Superclass: " << superclass);
   std::vector<bool> keep_designator;
   keep_designator.resize(resultDesignators.size(), true);
 
@@ -663,7 +714,16 @@ void RSProcessManager::filterResults(Designator &requestDesignator,
                 {
                   if(superclass != "" && rs_queryanswering::krNameMapping.count(superclass) == 1)
                   {
-                    ok = prologInterface->q_subClassOf(childrenPair.stringValue(), superclass);
+                    try
+                    {
+                      ok = prologInterface->q_subClassOf(childrenPair.stringValue(), superclass);
+                    }
+                    catch(std::exception &e)
+                    {
+                      outError("Prolog Exception: Malformed owl_subclass of. Child or superclass undefined:");
+                      outError("     Child: " << childrenPair.stringValue());
+                      outError("     Parent: " << superclass);
+                    }
                   }
                   else if(strcasecmp(childrenPair.stringValue().c_str(), req_kvp.stringValue().c_str()) == 0 || req_kvp.stringValue() == "")
                   {
@@ -699,18 +759,17 @@ void RSProcessManager::filterResults(Designator &requestDesignator,
   {
     if(keep_designator[i])
     {
-      outInfo("Designator: " << i << " is a match");
       filteredResponse.push_back(resultDesignators[i]);
     }
   }
 
   if(useIdentityResolution_)
   {
-    engine.drawResulstOnImage<rs::Object>(keep_designator, resultDesignators, requestDesignator);
+    engine_.drawResulstOnImage<rs::Object>(keep_designator, resultDesignators, requestDesignator);
   }
   else
   {
-    engine.drawResulstOnImage<rs::Cluster>(keep_designator, resultDesignators, requestDesignator);
+    engine_.drawResulstOnImage<rs::Cluster>(keep_designator, resultDesignators, requestDesignator);
   }
 }
 

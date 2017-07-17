@@ -18,6 +18,8 @@
 
 #include <rapidjson/rapidjson.h>
 #include <rapidjson/document.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/prettywriter.h>
 
 
 //TODO: Make this the ROS communication interface class
@@ -26,7 +28,9 @@ class RSProcessManager
 
 private:
 
-  RSControledAnalysisEngine engine;
+  RSControledAnalysisEngine engine_;
+  RSControledAnalysisEngine inspectionEngine_;
+
   PrologInterface *prologInterface;
 
   ros::NodeHandle nh_;
@@ -48,8 +52,8 @@ private:
   semrec_client::BeliefstateClient *semrecClient;
   semrec_client::Context *ctxMain;
 
-  std::string configFile;
-  std::vector<std::string> closedWorldAssumption;
+  std::string configFile_;
+  std::vector<std::string> closedWorldAssumption_;
   std::vector<std::string> lowLvlPipeline_;
 
 public:
@@ -59,7 +63,7 @@ public:
 
   ~RSProcessManager();
 
-  void init(std::string &xmlFile, std::string configFile);
+  void init(std::string &xmlFile, std::string configFile_);
 
   void run();
 
@@ -70,9 +74,6 @@ public:
   bool resetAECallback(iai_robosherlock_msgs::SetRSContext::Request &req,
                        iai_robosherlock_msgs::SetRSContext::Response &res);
 
-  bool designatorAllSolutionsCallback(designator_integration_msgs::DesignatorCommunication::Request &req,
-                                      designator_integration_msgs::DesignatorCommunication::Response &res);
-
   bool designatorSingleSolutionCallback(designator_integration_msgs::DesignatorCommunication::Request &req,
                                         designator_integration_msgs::DesignatorCommunication::Response &res);
 
@@ -81,6 +82,8 @@ public:
 
   bool jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::Request &req,
                          iai_robosherlock_msgs::RSQueryService::Response &res);
+
+  bool handleSemrec(const rapidjson::Document &doc);
 
   bool handleQuery(designator_integration::Designator *req,
                    std::vector<designator_integration::Designator> &resp);
@@ -94,10 +97,14 @@ public:
   //reset the pipeline in the AE;
   bool resetAE(std::string);
 
+  //set the AE for inspection tasks (allows for a different parametrization of components)
+  void setInspectionAE(std::string);
+
+
   inline void setUseIdentityResolution(bool useIdentityResoltuion)
   {
     useIdentityResolution_ = useIdentityResoltuion;
-    engine.useIdentityResolution(useIdentityResoltuion);
+    engine_.useIdentityResolution(useIdentityResoltuion);
   }
 
   inline void setUseJsonPrologInterface(bool useJson)
@@ -107,8 +114,9 @@ public:
 
   inline std::string getEngineName()
   {
-    return engine.getCurrentAEName();
+    return engine_.getCurrentAEName();
   }
+
   inline void pause()
   {
     processing_mutex_.lock();
@@ -120,6 +128,8 @@ public:
   {
     lowLvlPipeline_.assign(llp.begin(), llp.end());
   }
+
+
 
 private:
   /* *

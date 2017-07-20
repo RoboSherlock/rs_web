@@ -228,6 +228,7 @@ bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::
 
     Designator reqDesig;
     reqDesig.fillFromJSON(std::string(strBuff.GetString()));
+    reqDesig.printDesignator();
     designator_integration_msgs::DesignatorCommunication::Request reqMsg;
     designator_integration_msgs::DesignatorCommunication::Response respMsg;
 
@@ -305,10 +306,6 @@ bool RSProcessManager::designatorCallbackLogic(designator_integration_msgs::Desi
   handleQuery(rs::DesignatorWrapper::req_designator, filteredResponse);
 
   std::vector<std::string> executedPipeline = engine_.getNextPipeline();
-  for(auto & designator : filteredResponse)
-  {
-    designator.setValue("PIPELINEID", 0);
-  }
 
   // Define an ACTION designator with the planned pipeline
   Designator *pipeline_action = new Designator();
@@ -320,8 +317,8 @@ bool RSProcessManager::designatorCallbackLogic(designator_integration_msgs::Desi
     oneAnno->setValue(annotatorName);
     lstDescription.push_back(oneAnno);
   }
-  pipeline_action->setValue("PIPELINEID", 0);
-  pipeline_action->setValue("ANNOTATORS", KeyValuePair::LIST, lstDescription);
+  pipeline_action->setValue("pipeline-id", 0);
+  pipeline_action->setValue("annotators", KeyValuePair::LIST, lstDescription);
   //  filteredResponse.push_back(pipeline_action);
 
   if(ctxRSEvent != NULL)
@@ -372,17 +369,17 @@ bool RSProcessManager::handleQuery(Designator *req, std::vector<Designator> &res
     std::list<std::string> keys =  req->keys();
     for(auto key : keys)
     {
-      if(key == "TIMESTAMP")
+      if(key == "timestamp")
       {
-        KeyValuePair *kvp = req->childForKey("TIMESTAMP");
+        KeyValuePair *kvp = req->childForKey("timestamp");
         std::string ts = kvp->stringValue();
         query->timestamp = std::stoll(ts);
         outInfo("received timestamp:" << query->timestamp);
       }
-      if(key == "LOCATION")
+      if(key == "location")
       {
-        KeyValuePair *kvp1 = req->childForKey("LOCATION")->childForKey("ON");
-        KeyValuePair *kvp2 = req->childForKey("LOCATION")->childForKey("IN");
+        KeyValuePair *kvp1 = req->childForKey("location")->childForKey("on");
+        KeyValuePair *kvp2 = req->childForKey("location")->childForKey("in");
         if(kvp1)
         {
           query->location = kvp1->stringValue();
@@ -395,21 +392,21 @@ bool RSProcessManager::handleQuery(Designator *req, std::vector<Designator> &res
           outInfo("received location:" << query->location);
         }
       }
-      if(key == "OBJ-PART" || key == "INSPECT")
+      if(key == "obj-part" || key == "inspect")
       {
-        KeyValuePair *kvp =  req->childForKey("OBJ-PART");
+        KeyValuePair *kvp =  req->childForKey("obj-part");
         query->objToInspect = kvp->stringValue();
         outInfo("received obj-part request for object: " << query->objToInspect);
       }
-      if(key == "INGREDIENT")
+      if(key == "ingredient")
       {
-        KeyValuePair *kvp =  req->childForKey("INGREDIENT");
+        KeyValuePair *kvp =  req->childForKey("ingredient");
         query->ingredient = kvp->stringValue();
         outInfo("received request for detection ingredient: " << query->ingredient);
       }
       if(key == "TYPE" || key == "type")
       {
-        KeyValuePair *kvp =  req->childForKey("TYPE");
+        KeyValuePair *kvp =  req->childForKey("type");
         superClass = kvp->stringValue();
       }
     }
@@ -417,7 +414,17 @@ bool RSProcessManager::handleQuery(Designator *req, std::vector<Designator> &res
   std::vector<std::string> keys;
   std::vector<std::string> new_pipeline_order;
   prologInterface->extractQueryKeysFromDesignator(req, keys);
-  prologInterface->planPipelineQuery(keys, new_pipeline_order);
+  try
+  {
+    prologInterface->planPipelineQuery(keys, new_pipeline_order);
+  }
+  catch(std::exception e)
+  {
+    outError("calling json_prolog was not successfull. Is the node running?");
+    processing_mutex_.unlock();
+    return false;
+  }
+
   if(new_pipeline_order.empty())
   {
     outInfo("Can't find solution for pipeline planning");
@@ -440,7 +447,7 @@ bool RSProcessManager::handleQuery(Designator *req, std::vector<Designator> &res
   }
 
   //for debugging advertise TF
-  new_pipeline_order.push_back("TFBroadcaster");
+//  new_pipeline_order.push_back("TFBroadcaster");
 
   //whatever happens do ID res and spawn to gazebo...this is also pretty weird
   if(std::find(new_pipeline_order.begin(), new_pipeline_order.end(), "ObjectIdentityResolution") == new_pipeline_order.end())
@@ -496,7 +503,7 @@ void RSProcessManager::filterResults(Designator &requestDesignator,
   for(std::list<KeyValuePair *>::iterator it = requested_kvps.begin(); it != requested_kvps.end(); ++it)
   {
     KeyValuePair req_kvp = **it;
-    if(req_kvp.key() == "TIMESTAMP" || req_kvp.key() == "LOCATION")
+    if(req_kvp.key() == "timestamp" || req_kvp.key() == "location")
     {
       continue;
     }
@@ -507,21 +514,21 @@ void RSProcessManager::filterResults(Designator &requestDesignator,
       Designator resDesig = resultDesignators[i];
       std::vector<KeyValuePair *> resultsForRequestedKey;
       KeyValuePair *childForRequestedKey = NULL;
-      if(resDesig.childForKey("ID") != NULL)
+      if(resDesig.childForKey("id") != NULL)
       {
-        if(req_kvp.key() == "SIZE") //size is nested get it from the bounding box..bad design
+        if(req_kvp.key() == "size") //size is nested get it from the bounding box..bad design
         {
-          childForRequestedKey = resDesig.childForKey("BOUNDINGBOX")->childForKey("SIZE");
+          childForRequestedKey = resDesig.childForKey("boundingbox")->childForKey("size");
           resultsForRequestedKey.push_back(childForRequestedKey);
         }
-        else if(req_kvp.key() == "CAD-MODEL")
+        else if(req_kvp.key() == "cad-model")
         {
-          childForRequestedKey = resDesig.childForKey("POSE");
+          childForRequestedKey = resDesig.childForKey("pose");
           resultsForRequestedKey.push_back(childForRequestedKey);
         }
-        else if(req_kvp.key() == "VOLUME")
+        else if(req_kvp.key() == "volume")
         {
-          childForRequestedKey = resDesig.childForKey("VOLUME");
+          childForRequestedKey = resDesig.childForKey("volume");
           if(childForRequestedKey != NULL)
           {
             resultsForRequestedKey.push_back(childForRequestedKey);
@@ -531,9 +538,9 @@ void RSProcessManager::filterResults(Designator &requestDesignator,
             keep_designator[i] = false;
           }
         }
-        else if(req_kvp.key() == "CONTAINS")
+        else if(req_kvp.key() == "contains")
         {
-          childForRequestedKey = resDesig.childForKey("CONTAINS");
+          childForRequestedKey = resDesig.childForKey("contains");
           if(childForRequestedKey != NULL)
           {
             resultsForRequestedKey.push_back(childForRequestedKey);
@@ -543,25 +550,25 @@ void RSProcessManager::filterResults(Designator &requestDesignator,
             keep_designator[i] = false;
           }
         }
-        else if(req_kvp.key() == "SHAPE") //there can be multiple shapes and these are not nested
+        else if(req_kvp.key() == "shape") //there can be multiple shapes and these are not nested
         {
           std::list<KeyValuePair *> resKvPs = resDesig.description();
           for(std::list<KeyValuePair *>::iterator it2 = resKvPs.begin(); it2 != resKvPs.end(); ++it2)
           {
             KeyValuePair res_kvp = **it2;
-            if(res_kvp.key() == "SHAPE")
+            if(res_kvp.key() == "shape")
             {
               resultsForRequestedKey.push_back(*it2);
             }
           }
         }
-        else if(req_kvp.key() == "TYPE")//this shit needed so we don't loose al of our stuff just because all was sent instead of detection
+        else if(req_kvp.key() == "type")//this shit needed so we don't loose al of our stuff just because all was sent instead of detection
         {
-          resultsForRequestedKey.push_back(resDesig.childForKey("DETECTION"));
+          resultsForRequestedKey.push_back(resDesig.childForKey("class"));
         }
-        else if(req_kvp.key() == "INGREDIENT")
+        else if(req_kvp.key() == "ingredient")
         {
-          resultsForRequestedKey.push_back(resDesig.childForKey("PIZZA"));
+          resultsForRequestedKey.push_back(resDesig.childForKey("pizza"));
         }
         else
         {
@@ -581,16 +588,16 @@ void RSProcessManager::filterResults(Designator &requestDesignator,
         {
           if(resultsForRequestedKey[j] != NULL)
           {
-            if(resultsForRequestedKey[j]->key() == "POSE")
+            if(resultsForRequestedKey[j]->key() == "pose")
             {
               std::list<KeyValuePair * > kvps_ = resultDesignators[i].description();
               std::list<KeyValuePair * >::iterator it = kvps_.begin();
               bool hasCadPose = false;
               while(it != kvps_.end())
               {
-                if((*it)->key() == "POSE")
+                if((*it)->key() == "pose")
                 {
-                  if((*it)->childForKey("SOURCE")->stringValue() == "TemplateAlignment")
+                  if((*it)->childForKey("source")->stringValue() == "TemplateAlignment")
                   {
                     hasCadPose = true;
                     ++it;
@@ -608,7 +615,7 @@ void RSProcessManager::filterResults(Designator &requestDesignator,
               ok = hasCadPose;
               resultDesignators[i].setDescription(kvps_);
             }
-            if(resultsForRequestedKey[j]->key() == "OBJ-PART")
+            if(resultsForRequestedKey[j]->key() == "obj-part")
             {
               ok = true;
               //              std::list<KeyValuePair * >::iterator it = kvps_.begin();
@@ -631,14 +638,14 @@ void RSProcessManager::filterResults(Designator &requestDesignator,
               //              }
               //              resultDesignators[i].setDescription(kvps_);
             }
-            if(resultsForRequestedKey[j]->key() == "PIZZA")
+            if(resultsForRequestedKey[j]->key() == "pizza")
             {
               ok = true;
               std::list<KeyValuePair * > kvps_ = resultDesignators[i].description();
               std::list<KeyValuePair * >::iterator it = kvps_.begin();
               while(it != kvps_.end())
               {
-                if((*it)->key() != "PIZZA" && (*it)->key() != "ID" && (*it)->key() != "TIMESTAMP")
+                if((*it)->key() != "pizza" && (*it)->key() != "id" && (*it)->key() != "timestamp")
                 {
                   kvps_.erase(it++);
                 }
@@ -652,7 +659,7 @@ void RSProcessManager::filterResults(Designator &requestDesignator,
               resultDesignators[i].printDesignator();
             }
             //treat color differently because it is nested and has every color with ration in there
-            else if(resultsForRequestedKey[j]->key() == "COLOR")
+            else if(resultsForRequestedKey[j]->key() == "color")
             {
               std::list<KeyValuePair *> colorRatioPairs = resultsForRequestedKey[j]->children();
               for(auto iter = colorRatioPairs.begin(); iter != colorRatioPairs.end(); ++iter)
@@ -667,7 +674,7 @@ void RSProcessManager::filterResults(Designator &requestDesignator,
                 }
               }
             }
-            else if(resultsForRequestedKey[j]->key() == "VOLUME")
+            else if(resultsForRequestedKey[j]->key() == "volume")
             {
               float volumeofCurrentObj = resultsForRequestedKey[j]->floatValue();
               outWarn("Volume as a float: " << volumeofCurrentObj);
@@ -685,7 +692,7 @@ void RSProcessManager::filterResults(Designator &requestDesignator,
                 }
               }
             }
-            else if(resultsForRequestedKey[j]->key() == "CONTAINS")
+            else if(resultsForRequestedKey[j]->key() == "contains")
             {
               if(req_kvp.stringValue() == "")
               {
@@ -693,7 +700,7 @@ void RSProcessManager::filterResults(Designator &requestDesignator,
               }
               else
               {
-                std::string substanceName = resultsForRequestedKey[j]->childForKey("SUBSTANCE")->stringValue();
+                std::string substanceName = resultsForRequestedKey[j]->childForKey("substance")->stringValue();
                 std::string substanceAsked = req_kvp.stringValue();
                 outWarn("Substance asked : " << substanceAsked);
                 if(strcasecmp(substanceName.c_str(), substanceAsked.c_str()) == 0)
@@ -704,13 +711,13 @@ void RSProcessManager::filterResults(Designator &requestDesignator,
             }
 
             //another nested kv-p...we need a new interface...this one sux
-            if(resultsForRequestedKey[j]->key() == "DETECTION")
+            if(resultsForRequestedKey[j]->key() == "class")
             {
               std::list<KeyValuePair *> childrenPairs = resultsForRequestedKey[j]->children();
               for(auto iter = childrenPairs.begin(); iter != childrenPairs.end(); ++iter)
               {
                 KeyValuePair childrenPair = **iter;
-                if(childrenPair.key() == "CLASS")
+                if(childrenPair.key() == "name")
                 {
                   if(superclass != "" && rs_queryanswering::krNameMapping.count(superclass) == 1)
                   {

@@ -124,7 +124,7 @@ bool DesignatorWrapper::getObjectDesignators(std::vector<designator_integration:
 
 void DesignatorWrapper::convert(rs::Cluster &input, const size_t id, designator_integration::KeyValuePair *object)
 {
-  object->setValue("ID", id);
+  object->setValue("id", id);
 }
 
 void DesignatorWrapper::convert(rs::Object &input, const size_t id, designator_integration::KeyValuePair *object)
@@ -133,33 +133,33 @@ void DesignatorWrapper::convert(rs::Object &input, const size_t id, designator_i
   //  valuePair->setValue("ID", id);
   //  valuePair->setValue("LASTSEEN", now - input.lastSeen());
   //  object->addChild(valuePair);
-  object->setValue("ID", id);
+  object->setValue("id", id);
 }
 
 void DesignatorWrapper::convert(rs::Detection &input, designator_integration::KeyValuePair *object)
 {
-  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("DETECTION");
-  valuePair->setValue("CONFIDENCE", input.confidence());
-  valuePair->setValue("SOURCE", input.source());
-  valuePair->setValue("CLASS", input.name());
+  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("class");
+  valuePair->setValue("confidence", input.confidence());
+  valuePair->setValue("source", input.source());
+  valuePair->setValue("name", input.name());
   object->addChild(valuePair);
 }
 
 void DesignatorWrapper::convert(rs::TFLocation &input, designator_integration::KeyValuePair *object)
 {
-  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("LOCATION");
-  valuePair->setValue("RELATION", input.reference_desc());
-  valuePair->setValue("FRAME", input.frame_id());
+  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("location");
+  valuePair->setValue("relation", input.reference_desc());
+  valuePair->setValue("frame", input.frame_id());
   object->addChild(valuePair);
 }
 
 void DesignatorWrapper::convert(rs::Segment &input, designator_integration::KeyValuePair *object)
 {
-  designator_integration::KeyValuePair *dimensions = new designator_integration::KeyValuePair("DIMENSIONS-2D");
-  dimensions->setValue("WIDTH", input.lengthX());
-  dimensions->setValue("HEIGHT", input.lengthY());
+  designator_integration::KeyValuePair *dimensions = new designator_integration::KeyValuePair("dimensions-2D");
+  dimensions->setValue("width", input.lengthX());
+  dimensions->setValue("height", input.lengthY());
 
-  designator_integration::KeyValuePair *seg = new designator_integration::KeyValuePair("SEGMENT");
+  designator_integration::KeyValuePair *seg = new designator_integration::KeyValuePair("segment");
   //seg->setValue("POSE", pose_stamped_msgs);
   seg->addChild(dimensions);
 
@@ -175,15 +175,15 @@ void DesignatorWrapper::convert(rs::Geometry &input, designator_integration::Key
   rs::conversion::from(input.camera(), tf_stamped_pose);
   tf::poseStampedTFToMsg(tf_stamped_pose, pose_stamped_msgs);
 
-  designator_integration::KeyValuePair *dimensions = new designator_integration::KeyValuePair("DIMENSIONS-3D");
-  dimensions->setValue("WIDTH", bb.width());
-  dimensions->setValue("HEIGHT", bb.height());
-  dimensions->setValue("DEPTH", bb.depth());
+  designator_integration::KeyValuePair *dimensions = new designator_integration::KeyValuePair("dimensions-3D");
+  dimensions->setValue("width", bb.width());
+  dimensions->setValue("height", bb.height());
+  dimensions->setValue("depth", bb.depth());
 
-  designator_integration::KeyValuePair *box = new designator_integration::KeyValuePair("BOUNDINGBOX");
-  box->setValue("POSE", pose_stamped_msgs);
-  box->setValue("SIZE", input.size());
-  box->setValue("DIST-TO-PLANE", input.distanceToPlane());
+  designator_integration::KeyValuePair *box = new designator_integration::KeyValuePair("boundingbox");
+  box->setValue("pose", pose_stamped_msgs);
+  box->setValue("size", input.size());
+  box->setValue("dist-to-plane", input.distanceToPlane());
   box->addChild(dimensions);
 
   object->addChild(box);
@@ -191,21 +191,29 @@ void DesignatorWrapper::convert(rs::Geometry &input, designator_integration::Key
 
 void DesignatorWrapper::convert(rs::Shape &input, designator_integration::KeyValuePair *object)
 {
-  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("SHAPE");
+  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("shape");
   valuePair->setValue(input.shape());
   object->addChild(valuePair);
 }
 
 void DesignatorWrapper::convert(rs::PoseAnnotation &input, designator_integration::KeyValuePair *object)
 {
-  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("POSE");
+  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("pose");
 
   tf::Stamped<tf::Pose> tf_stamped_pose;
   geometry_msgs::PoseStamped pose_stamped_msgs;
   rs::conversion::from(input.camera(), tf_stamped_pose);
+
+  tf::StampedTransform transf(tf::Transform(tf_stamped_pose.getRotation(),tf_stamped_pose.getOrigin()),tf_stamped_pose.stamp_,tf_stamped_pose.frame_id_,"");
+  transf.child_frame_id_ = "";
+  geometry_msgs::TransformStamped transf_stamped_msg;
+
+
   tf::poseStampedTFToMsg(tf_stamped_pose, pose_stamped_msgs);
-  valuePair->setValue("POSE", pose_stamped_msgs);
-  valuePair->setValue("SOURCE", input.source());
+  tf::transformStampedTFToMsg(transf,transf_stamped_msg);
+
+  valuePair->setValue("transform", transf_stamped_msg);
+  valuePair->setValue("source", input.source());
   object->addChild(valuePair);
 }
 
@@ -213,7 +221,7 @@ void DesignatorWrapper::convert(rs::SemanticColor &input, designator_integration
 {
   const std::vector<std::string> &colors = input.color();
   const std::vector<float> &ratios = input.ratio();
-  designator_integration::KeyValuePair *valuePairs = new designator_integration::KeyValuePair("COLOR");
+  designator_integration::KeyValuePair *valuePairs = new designator_integration::KeyValuePair("color");
   for(size_t i = 0; i < colors.size(); ++i)
   {
     const std::string &color = colors[i];
@@ -226,11 +234,11 @@ void DesignatorWrapper::convert(rs::SemanticColor &input, designator_integration
 void DesignatorWrapper::convert(rs::MLNAtoms &input, designator_integration::KeyValuePair *object)
 {
   const std::vector<std::string> &atoms = input.atoms();
-  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("MLNATOMS");
+  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("mln-atoms");
 
   for(size_t i = 0; i < atoms.size(); ++i)
   {
-    designator_integration::KeyValuePair *temp = new designator_integration::KeyValuePair("ATOM");
+    designator_integration::KeyValuePair *temp = new designator_integration::KeyValuePair("atom");
     std::stringstream id;
     id << "atom_ " << i;
     temp->setValue(id.str(), atoms[i]);
@@ -241,23 +249,22 @@ void DesignatorWrapper::convert(rs::MLNAtoms &input, designator_integration::Key
 
 void DesignatorWrapper::convert(rs::NamedLink &input, designator_integration::KeyValuePair *object)
 {
-  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("NAMEDLINK");
-  valuePair->setValue("NAME", input.name());
-  valuePair->setValue("URL", input.url());
+  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("namedlink");
+  valuePair->setValue("name", input.name());
+  valuePair->setValue("url", input.url());
   object->addChild(valuePair);
 }
 
 void DesignatorWrapper::convert(rs::Goggles &input, designator_integration::KeyValuePair *object)
 {
-  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("GOGGLES");
-  valuePair->setValue("CATEGORY", input.category());
-  valuePair->setValue("TITLE", input.title());
-  valuePair->setValue("PREVIEW-LINK", input.preview_link());
+  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("goggles");
+  valuePair->setValue("category", input.category());
+  valuePair->setValue("title", input.title());
+  valuePair->setValue("preview-link", input.preview_link());
 
   std::vector<rs::NamedLink> namedlinks = input.links();
-  designator_integration::KeyValuePair *links = new designator_integration::KeyValuePair("NAMEDLINKS");
+  designator_integration::KeyValuePair *links = new designator_integration::KeyValuePair("namedlinks");
   convertAll(namedlinks, links);
-
   valuePair->addChild(links);
 
   object->addChild(valuePair);
@@ -265,7 +272,7 @@ void DesignatorWrapper::convert(rs::Goggles &input, designator_integration::KeyV
 
 void DesignatorWrapper::convert(rs::Features &input, designator_integration::KeyValuePair *object)
 {
-  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("RESPONSE");
+  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("response");
 
   std::vector<rs::Response> resps = input.response();
   if(resps.empty())
@@ -294,22 +301,22 @@ void DesignatorWrapper::convert(rs::ClusterPart &input, designator_integration::
   geometry_msgs::PoseStamped pose_stamped_msgs;
   rs::conversion::from(input.pose(), tf_stamped_pose);
   tf::poseStampedTFToMsg(tf_stamped_pose, pose_stamped_msgs);
-  part->setValue("NAME", input.name());
-  part->setValue("POSE", pose_stamped_msgs);
+  part->setValue("name", input.name());
+  part->setValue("pose", pose_stamped_msgs);
   object->addChild(part);
 }
 
 void DesignatorWrapper::convert(rs_demos::Volume &input, designator_integration::KeyValuePair *object)
 {
-  designator_integration::KeyValuePair *volume = new designator_integration::KeyValuePair("VOLUME");
+  designator_integration::KeyValuePair *volume = new designator_integration::KeyValuePair("volume");
   volume->setValue(input.volume());
   object->addChild(volume);
 }
 
 void DesignatorWrapper::convert(rs_demos::Substance &input, designator_integration::KeyValuePair *object)
 {
-  designator_integration::KeyValuePair *substance = new designator_integration::KeyValuePair("CONTAINS");
-  substance->setValue("SUBSTANCE", input.substanceName());
+  designator_integration::KeyValuePair *substance = new designator_integration::KeyValuePair("contains");
+  substance->setValue("substance", input.substanceName());
   object->addChild(substance);
 }
 
@@ -320,14 +327,14 @@ iai_robosherlock_msgs::PerceivedObjects DesignatorWrapper::getObjectsMsgs()
 
 void DesignatorWrapper::convert(rs::ARMarker &input, designator_integration::Designator &arDesignator)
 {
-  arDesignator.setValue("type", "ARMARKER");
-  arDesignator.setValue("ID", input.name());
+  arDesignator.setValue("type", "armarker");
+  arDesignator.setValue("id", input.name());
 
   tf::Stamped<tf::Pose> tf_stamped_pose;
   geometry_msgs::PoseStamped pose_stamped_msgs;
   rs::conversion::from(input.pose(), tf_stamped_pose);
   tf::poseStampedTFToMsg(tf_stamped_pose, pose_stamped_msgs);
-  arDesignator.setValue("POSE", pose_stamped_msgs);
+  arDesignator.setValue("pose", pose_stamped_msgs);
   //  res.designators.push_back(arDesignator.serializeToMessage());
 
 }
@@ -335,37 +342,37 @@ void DesignatorWrapper::convert(rs::ARMarker &input, designator_integration::Des
 void DesignatorWrapper::convert(rs::HandleAnnotation &input,
                                 designator_integration::Designator &handleDesignator)
 {
-  handleDesignator.setValue("HANDLE", input.name());
+  handleDesignator.setValue("handle", input.name());
   tf::Stamped<tf::Pose> tf_stamped_pose;
   geometry_msgs::PoseStamped pose_stamped_msgs;
   rs::conversion::from(input.pose(), tf_stamped_pose);
   tf::poseStampedTFToMsg(tf_stamped_pose, pose_stamped_msgs);
-  handleDesignator.setValue("POSE", pose_stamped_msgs);
+  handleDesignator.setValue("pose", pose_stamped_msgs);
 }
 
 void DesignatorWrapper::convert(rs_demos::Pizza &input, designator_integration::KeyValuePair *object)
 {
-  designator_integration::KeyValuePair *pizza = new designator_integration::KeyValuePair("PIZZA");
+  designator_integration::KeyValuePair *pizza = new designator_integration::KeyValuePair("pizza");
 
   rs::PoseAnnotation pose = input.pose();
   convert(pose, pizza);
 
-  designator_integration::KeyValuePair *size = new designator_integration::KeyValuePair("SIZE");
-  size->setValue("WIDTH", input.size().width());
-  size->setValue("HEIGHT", input.size().height());
+  designator_integration::KeyValuePair *size = new designator_integration::KeyValuePair("size");
+  size->setValue("width", input.size().width());
+  size->setValue("height", input.size().height());
   pizza->addChild(size);
 
-  designator_integration::KeyValuePair *gridSize = new designator_integration::KeyValuePair("DIMENSIONS");
-  gridSize->setValue("WIDTH", input.dimensions().width());
-  gridSize->setValue("HEIGHT", input.dimensions().height());
+  designator_integration::KeyValuePair *gridSize = new designator_integration::KeyValuePair("dimensions");
+  gridSize->setValue("width", input.dimensions().width());
+  gridSize->setValue("height", input.dimensions().height());
   pizza->addChild(gridSize);
 
-  designator_integration::KeyValuePair *fieldSize = new designator_integration::KeyValuePair("FIELD_SIZE");
-  fieldSize->setValue("WIDTH", input.fieldSize().width());
-  fieldSize->setValue("HEIGHT", input.fieldSize().height());
+  designator_integration::KeyValuePair *fieldSize = new designator_integration::KeyValuePair("field-size");
+  fieldSize->setValue("width", input.fieldSize().width());
+  fieldSize->setValue("height", input.fieldSize().height());
   pizza->addChild(fieldSize);
 
-  designator_integration::KeyValuePair *fields = new designator_integration::KeyValuePair("FIELDS");
+  designator_integration::KeyValuePair *fields = new designator_integration::KeyValuePair("fields");
   std::vector<rs_demos::PizzaField> fieldsVec = input.fields();
   for(size_t i = 0; i < fieldsVec.size(); ++i)
   {
@@ -375,16 +382,16 @@ void DesignatorWrapper::convert(rs_demos::Pizza &input, designator_integration::
     rs::PoseAnnotation pose = inputF.pose();
     convert(pose, field);
 
-    field->setValue("X", inputF.position().x());
-    field->setValue("Y", inputF.position().y());
+    field->setValue("x", inputF.position().x());
+    field->setValue("y", inputF.position().y());
 
-    designator_integration::KeyValuePair *ingredients = new designator_integration::KeyValuePair("INGREDIENT");
+    designator_integration::KeyValuePair *ingredients = new designator_integration::KeyValuePair("ingredient");
     std::vector<std::string> ingredientsVec = inputF.ingredients();
     for(size_t j = 0; j < ingredientsVec.size(); ++j)
     {
       ingredients->setValue(std::to_string(j), ingredientsVec[j]);
     }
-    field->setValue("TOP_INGREDIENT", ingredientsVec[ingredientsVec.size() - 1]);
+    field->setValue("top-ingredient", ingredientsVec[ingredientsVec.size() - 1]);
     field->addChild(ingredients);
     fields->addChild(field);
   }
@@ -397,7 +404,7 @@ void DesignatorWrapper::convertAll(std::vector<rs::ClusterPart> &all, designator
 {
   if(!all.empty())
   {
-    designator_integration::KeyValuePair *objParts = new designator_integration::KeyValuePair("OBJ-PART");
+    designator_integration::KeyValuePair *objParts = new designator_integration::KeyValuePair("obj-part");
     for(rs::ClusterPart input : all)
     {
       convert(input, objParts);

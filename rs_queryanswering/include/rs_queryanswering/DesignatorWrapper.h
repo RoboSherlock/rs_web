@@ -83,7 +83,7 @@ public:
       double time = seconds + nsec;
 
       outDebug("time: " << std::setprecision(20) << time);
-      objectDesignator.setValue("TIMESTAMP", time);
+      objectDesignator.setValue("timestamp", time);
 
       convert(element, i, &objectDesignator);
 

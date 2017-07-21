@@ -400,18 +400,6 @@ bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::
   }
   else if(doc.HasMember("inspect"))
   {
-    std_srvs::Trigger triggerSrv;
-    if(triggerKRPoseUpdate_.call(triggerSrv))
-    {
-      outInfo("Called update KR from QR successfully");
-    }
-    else
-    {
-      outError("Is the node for updating object positions from AR markers still running? Calling qr_to_kr failed!");
-      return false;
-    }
-
-
     const rapidjson::Value &val = doc["inspect"];
     std::vector<std::string> inspKeys;
     assert(val.IsObject());
@@ -463,22 +451,36 @@ bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::
       objToQueryFor = objToInspect;
     }
 
-    if(objToQueryFor != "")
-    {
 
-      json_prolog::Prolog pl;
-      json_prolog::PrologQueryProxy bdgs = pl.query("owl_individual_of(I,'" + thorinObjects_[objToQueryFor] + "')");
-      for(json_prolog::PrologQueryProxy::iterator it = bdgs.begin(); it != bdgs.end(); it++)
+    std_srvs::Trigger triggerSrv;
+    if(inspectFromAR_)
+    {
+      if(triggerKRPoseUpdate_.call(triggerSrv))
       {
-        res.answer.push_back(getObjectByID((*it)["I"].toString(), objToQueryFor).c_str());
+        outInfo("Called update KR from QR successfully");
+      }
+      else
+      {
+        outError("Is the node for updating object positions from AR markers still running? Calling qr_to_kr failed!");
+        return false;
+      }
+
+      if(objToQueryFor != "")
+      {
+
+        json_prolog::Prolog pl;
+        json_prolog::PrologQueryProxy bdgs = pl.query("owl_individual_of(I,'" + thorinObjects_[objToQueryFor] + "')");
+        for(json_prolog::PrologQueryProxy::iterator it = bdgs.begin(); it != bdgs.end(); it++)
+        {
+          res.answer.push_back(getObjectByID((*it)["I"].toString(), objToQueryFor).c_str());
+        }
+      }
+      else
+      {
+        outError("Object to inspect is invalid!");
+        return false;
       }
     }
-    else
-    {
-      outError("Object to inspect is invalid!");
-      return false;
-    }
-
     return true;
   }
   //old query stuff

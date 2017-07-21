@@ -7,7 +7,7 @@ RSProcessManager::RSProcessManager(const bool useVisualizer, const std::string &
                                    const bool &waitForServiceCall, const bool useCWAssumption, ros::NodeHandle n):
   engine_(n), inspectionEngine_(n), nh_(n), waitForServiceCall_(waitForServiceCall),
   useVisualizer_(useVisualizer), useCWAssumption_(useCWAssumption), withJsonProlog_(false), useIdentityResolution_(false),
-  pause_(true), visualizer_(savePath)
+  pause_(true), visualizer_(savePath), inspectFromAR_(false)
 {
 
   outInfo("Creating resource manager"); // TODO: DEBUG
@@ -38,7 +38,7 @@ RSProcessManager::RSProcessManager(const bool useVisualizer, const std::string &
   setContextService = nh_.advertiseService("set_context", &RSProcessManager::resetAECallback, this);
 
   jsonService = nh_.advertiseService("json_query", &RSProcessManager::jsonQueryCallback, this);
-
+  triggerKRPoseUpdate_ = nh_.serviceClient<std_srvs::Trigger>("/qr_to_knowrob/update_object_positions");
   semrecClient = NULL;
   ctxMain = NULL;
 }
@@ -56,6 +56,7 @@ void RSProcessManager::init(std::string &xmlFile, std::string configFile)
   outInfo("initializing");
   prologInterface = new PrologInterface(withJsonProlog_);
   this->configFile_ = configFile;
+
   try
   {
     cv::FileStorage fs(configFile, cv::FileStorage::READ);
@@ -68,6 +69,16 @@ void RSProcessManager::init(std::string &xmlFile, std::string configFile)
   catch(cv::Exception &e)
   {
     outWarn("No low-level pipeline defined. Setting empty!");
+  }
+
+  ros::service::waitForService("/json_prolog/simple_query");
+
+  getDemoObjects();
+
+  if(inspectFromAR_)
+  {
+    outInfo("Inspection task will be performed usin AR markers");
+    ros::service::waitForService("/qr_to_knowrob/update_object_positions");
   }
 
   engine_.init(xmlFile, lowLvlPipeline_);
@@ -87,6 +98,150 @@ void RSProcessManager::init(std::string &xmlFile, std::string configFile)
   }
   outInfo("done intializing");
 }
+
+void RSProcessManager::getDemoObjects()
+{
+  json_prolog::Prolog pl;
+  //movable parts
+  json_prolog::PrologQueryProxy bdgs = pl.query("owl_subclass_of(A,'http://knowrob.org/kb/thorin_parts.owl#PlasticPiece')");
+
+  for(json_prolog::PrologQueryProxy::iterator it = bdgs.begin(); it != bdgs.end(); it++)
+  {
+    json_prolog::PrologBindings bdg = *it;
+    std::string objectURI = bdg["A"].toString();
+
+    uint16_t hpos = objectURI.find_last_of("#");
+    thorinObjects_[std::string(objectURI.substr(hpos + 1, objectURI.npos))] = objectURI;
+
+  }
+  //fixtures
+  bdgs = pl.query("owl_subclass_of(A,'http://knowrob.org/kb/thorin_parts.owl#PlasticFixture')");
+  for(json_prolog::PrologQueryProxy::iterator it = bdgs.begin(); it != bdgs.end(); it++)
+  {
+    json_prolog::PrologBindings bdg = *it;
+    std::string objectURI = bdg["A"].toString();
+
+    uint16_t hpos = objectURI.find_last_of("#");
+    thorinObjects_[std::string(objectURI.substr(hpos + 1, objectURI.npos))] = objectURI;
+  }
+}
+
+
+std::string RSProcessManager::getObjectByID(std::string OID, std::string type)
+{
+  json_prolog::Prolog pl;
+  std::string q = "knowrob_beliefstate:get_object_transform('" + OID + "', T)";
+  outInfo("query: " << q);
+  json_prolog::PrologQueryProxy bdgs = pl.query(q);
+  for(json_prolog::PrologQueryProxy::iterator it = bdgs.begin(); it != bdgs.end(); it++)
+  {
+    json_prolog::PrologBindings bdg = *it;
+    outInfo("T = " << bdg["T"]);
+    std::vector<json_prolog::PrologValue> poseList = bdg["T"].as<std::vector<json_prolog::PrologValue>>();
+    assert(poseList.size() == 4);
+    tf::StampedTransform transform;
+    for(int i = 0; i < poseList.size(); ++i)
+    {
+      switch(i)
+      {
+      case 0:
+        {
+          transform.frame_id_ = poseList[0].as<std::string>();
+          transform.stamp_ = ros::Time::now();
+          break;
+        }
+      case 1:
+        {
+          transform.child_frame_id_ = poseList[1].as<std::string>();
+          break;
+        }
+      case 2:
+        {
+          std::vector<json_prolog::PrologValue> positionValues = poseList[2].as<std::vector<json_prolog::PrologValue>>();
+          assert(positionValues.size() == 3);
+          transform.setOrigin(tf::Vector3(positionValues[0].as<double>(), positionValues[1].as<double>(), positionValues[2].as<double>()));
+          break;
+        }
+      case 3:
+        {
+          std::vector<json_prolog::PrologValue> orientationValues = poseList[3].as<std::vector<json_prolog::PrologValue>>();
+          assert(orientationValues.size() == 4);
+          tf::Quaternion quat;//no clue why the same conversion used for position does not work here
+          quat.setX(std::atof(orientationValues[0].toString().c_str()));
+          quat.setY(std::atof(orientationValues[1].toString().c_str()));
+          quat.setZ(std::atof(orientationValues[2].toString().c_str()));
+          quat.setW(std::atof(orientationValues[3].toString().c_str()));
+          transform.setRotation(quat);
+          break;
+        }
+      default:
+        outError("How the hell did I end up here with an assert before the code ? ");
+        break;
+      }
+    }
+    outInfo("converting to Json");
+    return (toJson(transform, OID, type));
+  }
+  return "";
+}
+
+
+std::string RSProcessManager::toJson(const tf::StampedTransform &pose, std::string OID, std::string type)
+{
+  rapidjson::StringBuffer s;
+  rapidjson::Writer<rapidjson::StringBuffer> jsonWriter(s);
+
+  //OMG writing it like this is reeeeaally shitty
+  jsonWriter.StartObject();
+  jsonWriter.String("id");
+  jsonWriter.String(OID.c_str());
+  jsonWriter.String("pose");
+
+  jsonWriter.StartObject();
+  jsonWriter.String("transform");
+
+  jsonWriter.StartObject();
+  jsonWriter.String("frame_id");
+  jsonWriter.String(pose.frame_id_.c_str());
+  jsonWriter.String("child_frame_id");
+  jsonWriter.String(pose.child_frame_id_.c_str());
+  jsonWriter.String("stamp");
+  jsonWriter.Uint64(pose.stamp_.toNSec());
+  jsonWriter.String("pos_x");
+  jsonWriter.Double(pose.getOrigin().x());
+  jsonWriter.String("pos_y");
+  jsonWriter.Double(pose.getOrigin().y());
+  jsonWriter.String("pos_z");
+  jsonWriter.Double(pose.getOrigin().z());
+  jsonWriter.String("rot_x");
+  jsonWriter.Double(pose.getRotation().x());
+  jsonWriter.String("rot_y");
+  jsonWriter.Double(pose.getRotation().y());
+  jsonWriter.String("rot_z");
+  jsonWriter.Double(pose.getRotation().z());
+  jsonWriter.String("rot_w");
+  jsonWriter.Double(pose.getRotation().w());
+  jsonWriter.EndObject();
+
+  jsonWriter.String("source");
+  jsonWriter.String("Simulation");
+  jsonWriter.EndObject();
+
+  jsonWriter.String("class");
+
+  jsonWriter.StartObject();
+  jsonWriter.String("name");
+  jsonWriter.String(type.c_str());
+  jsonWriter.String("confidence");
+  jsonWriter.Double(1.0);
+  jsonWriter.EndObject();
+
+  jsonWriter.EndObject();
+
+  outInfo(s.GetString());
+  return s.GetString();
+}
+
 
 void RSProcessManager::setInspectionAE(std::string inspectionAEPath)
 {
@@ -245,10 +400,86 @@ bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::
   }
   else if(doc.HasMember("inspect"))
   {
-    //TODO: handle the inspection of an object...run the inspect pipeline
-    //verify if object being inspected makes sense
-    outInfo("inspection of objects not handled yet");
-    return false;
+    std_srvs::Trigger triggerSrv;
+    if(triggerKRPoseUpdate_.call(triggerSrv))
+    {
+      outInfo("Called update KR from QR successfully");
+    }
+    else
+    {
+      outError("Is the node for updating object positions from AR markers still running? Calling qr_to_kr failed!");
+      return false;
+    }
+
+
+    const rapidjson::Value &val = doc["inspect"];
+    std::vector<std::string> inspKeys;
+    assert(val.IsObject());
+
+    if(val.HasMember("type"))
+    {
+      outInfo("getting type: " << val["type"].GetString());
+    }
+    else
+    {
+      outError("Malformed inspection query. You need to specify which object you want to inspect using the type keypword!");
+      return false;
+    }
+
+    if(val.HasMember("for"))
+    {
+      if(!val["for"].IsArray())
+      {
+        return false;
+      }
+      for(rapidjson::SizeType i = 0; i < val["for"].Size(); i++)
+      {
+        outInfo("       inspect for: " << val["for"][i].GetString());
+        inspKeys.push_back(val["for"][i].GetString());
+      }
+    }
+
+    std::string objToInspect = "";
+    for(rapidjson::Value::ConstMemberIterator it = val.MemberBegin(); it != val.MemberEnd(); ++it)
+    {
+      if(std::strcmp(it->name.GetString(), "type") == 0)
+      {
+        objToInspect = it->value.GetString();
+      }
+    }
+
+    std::string objToQueryFor = "";
+    //replace this if-else uglyness with a json_prolog call
+    if(objToInspect == "ChassisHolder")
+    {
+      objToQueryFor = "Chassis";
+    }
+    else if(objToInspect == "AxleHolder")
+    {
+      objToQueryFor = "Axle";
+    }
+    if(std::find(inspKeys.begin(), inspKeys.end(), "pose") != inspKeys.end())
+    {
+      objToQueryFor = objToInspect;
+    }
+
+    if(objToQueryFor != "")
+    {
+
+      json_prolog::Prolog pl;
+      json_prolog::PrologQueryProxy bdgs = pl.query("owl_individual_of(I,'" + thorinObjects_[objToQueryFor] + "')");
+      for(json_prolog::PrologQueryProxy::iterator it = bdgs.begin(); it != bdgs.end(); it++)
+      {
+        res.answer.push_back(getObjectByID((*it)["I"].toString(), objToQueryFor).c_str());
+      }
+    }
+    else
+    {
+      outError("Object to inspect is invalid!");
+      return false;
+    }
+
+    return true;
   }
   //old query stuff
   else if(req.query != "")
@@ -447,7 +678,7 @@ bool RSProcessManager::handleQuery(Designator *req, std::vector<Designator> &res
   }
 
   //for debugging advertise TF
-//  new_pipeline_order.push_back("TFBroadcaster");
+  //  new_pipeline_order.push_back("TFBroadcaster");
 
   //whatever happens do ID res and spawn to gazebo...this is also pretty weird
   if(std::find(new_pipeline_order.begin(), new_pipeline_order.end(), "ObjectIdentityResolution") == new_pipeline_order.end())

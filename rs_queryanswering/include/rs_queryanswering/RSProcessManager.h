@@ -21,6 +21,7 @@
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/prettywriter.h>
 
+#include <std_srvs/Trigger.h>
 
 //TODO: Make this the ROS communication interface class
 class RSProcessManager
@@ -37,12 +38,18 @@ private:
   ros::Publisher desig_pub_;
   ros::ServiceServer service, singleService, setContextService, jsonService;
 
+  //specific to thorin
+  ros::ServiceClient triggerKRPoseUpdate_;
+  std::map<std::string,std::string> thorinObjects_;
+
+
   const bool waitForServiceCall_;
   const bool useVisualizer_;
   const bool useCWAssumption_;
   bool withJsonProlog_;
   bool useIdentityResolution_;
   bool pause_;
+  bool inspectFromAR_;
 
 
   std::mutex processing_mutex_;
@@ -69,6 +76,10 @@ public:
 
   void stop();
 
+  //again...thorin specific
+  void getDemoObjects();
+  std::string toJson(const tf::StampedTransform &pose, std::string OID, std::string type);
+  std::string getObjectByID(std::string OID, std::string type);
 
 
   bool resetAECallback(iai_robosherlock_msgs::SetRSContext::Request &req,
@@ -110,6 +121,11 @@ public:
   inline void setUseJsonPrologInterface(bool useJson)
   {
     withJsonProlog_ = useJson;
+  }
+
+  inline void setInspectFromAR(bool b)
+  {
+    inspectFromAR_ = b;
   }
 
   inline std::string getEngineName()

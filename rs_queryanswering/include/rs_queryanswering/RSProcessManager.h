@@ -41,6 +41,7 @@ private:
   //specific to thorin
   ros::ServiceClient triggerKRPoseUpdate_;
   std::map<std::string,std::string> thorinObjects_;
+  std::vector<std::string> seenObjects_;
 
 
   const bool waitForServiceCall_;

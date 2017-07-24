@@ -124,7 +124,7 @@ bool DesignatorWrapper::getObjectDesignators(std::vector<designator_integration:
 
 void DesignatorWrapper::convert(rs::Cluster &input, const size_t id, designator_integration::KeyValuePair *object)
 {
-  object->setValue("id", id);
+  object->setValue("id", std::to_string(id));
 }
 
 void DesignatorWrapper::convert(rs::Object &input, const size_t id, designator_integration::KeyValuePair *object)
@@ -133,7 +133,7 @@ void DesignatorWrapper::convert(rs::Object &input, const size_t id, designator_i
   //  valuePair->setValue("ID", id);
   //  valuePair->setValue("LASTSEEN", now - input.lastSeen());
   //  object->addChild(valuePair);
-  object->setValue("id", id);
+  object->setValue("id", std::to_string(id));
 }
 
 void DesignatorWrapper::convert(rs::Detection &input, designator_integration::KeyValuePair *object)

@@ -246,7 +246,10 @@ std::string RSProcessManager::toJson(const tf::StampedTransform &pose, std::stri
 void RSProcessManager::setInspectionAE(std::string inspectionAEPath)
 {
   outInfo("initializing inspection AE");
-  inspectionEngine_.init(inspectionAEPath, lowLvlPipeline_);
+  std::vector<std::string> llvlp;
+  llvlp.push_back("CollectionReader");
+  inspectionEngine_.init(inspectionAEPath, llvlp);
+
 }
 
 
@@ -398,7 +401,7 @@ bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::
     }
     for(auto & r : res.answer)
     {
-      outInfo("Before:" <<r);
+      outInfo("Before:" << r);
       rapidjson::Document d;
       d.Parse(r.c_str());
       std::string className;
@@ -408,8 +411,8 @@ bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::
         className = jClass["name"].GetString();
       }
 
-      std::string objectID = "http://knowrob.org/kb/thorin_simulation.owl#"+className+"1";
-      std::string childFrameId = className+"1";
+      std::string objectID = "http://knowrob.org/kb/thorin_simulation.owl#" + className + "1";
+      std::string childFrameId = className + "1";
 
       if(std::find(seenObjects_.begin(), seenObjects_.end(), className) == seenObjects_.end())
       {
@@ -419,11 +422,11 @@ bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::
 
         json_prolog::Prolog pl;
         std::string query = "get_new_object_id('" + thorinObjects_[className] + "',OID)";
-        outInfo("Asking query: "<<query );
+        outInfo("Asking query: " << query);
         json_prolog::PrologQueryProxy bdgs = pl.query(query);
         for(json_prolog::PrologQueryProxy::iterator it = bdgs.begin(); it != bdgs.end(); it++)
         {
-          outInfo("Got Object ID: "<<(*it)["OID"].toString());
+          outInfo("Got Object ID: " << (*it)["OID"].toString());
         }
       }
 
@@ -438,21 +441,21 @@ bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::
           if(std::strcmp(jTransf["child_frame_id"].GetString(), "") == 0)
           {
             outInfo("found emtpy child_frame_id. Overwriting");
-            jTransf["child_frame_id"].SetString(childFrameId.c_str(),childFrameId.length());
+            jTransf["child_frame_id"].SetString(childFrameId.c_str(), childFrameId.length());
           }
         }
       }
       if(d.HasMember("id"))
       {
         outInfo("found id in response. resolving through KR");
-        d["id"].SetString(objectID.c_str(),objectID.length());
+        d["id"].SetString(objectID.c_str(), objectID.length());
       }
 
       rapidjson::StringBuffer buffer;
       rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
       d.Accept(writer);
-      r=buffer.GetString();
-      outInfo("After: "<<buffer.GetString());
+      r = buffer.GetString();
+      outInfo("After: " << buffer.GetString());
     }
     //handle the json
     return true;
@@ -539,6 +542,12 @@ bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::
         outError("Object to inspect is invalid!");
         return false;
       }
+    }
+    else
+    {
+      outWarn("******************************************");
+      inspectionEngine_.process();
+      outWarn("******************************************");
     }
     return true;
   }

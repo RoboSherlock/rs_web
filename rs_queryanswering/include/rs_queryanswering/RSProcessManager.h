@@ -57,9 +57,6 @@ private:
 
   rs::Visualizer visualizer_;
 
-  semrec_client::BeliefstateClient *semrecClient;
-  semrec_client::Context *ctxMain;
-
   std::string configFile_;
   std::vector<std::string> closedWorldAssumption_;
   std::vector<std::string> lowLvlPipeline_;
@@ -90,12 +87,10 @@ public:
                                         designator_integration_msgs::DesignatorCommunication::Response &res);
 
   bool designatorCallbackLogic(designator_integration_msgs::DesignatorCommunication::Request &req,
-                               designator_integration_msgs::DesignatorCommunication::Response &res, bool allSolutions);
+                               designator_integration_msgs::DesignatorCommunication::Response &res);
 
   bool jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::Request &req,
                          iai_robosherlock_msgs::RSQueryService::Response &res);
-
-  bool handleSemrec(const rapidjson::Document &doc);
 
   bool handleQuery(designator_integration::Designator *req,
                    std::vector<designator_integration::Designator> &resp);

@@ -6,10 +6,11 @@ using namespace designator_integration;
 RSProcessManager::RSProcessManager(const bool useVisualizer, const std::string &savePath,
                                    const bool &waitForServiceCall, const bool useCWAssumption, ros::NodeHandle n):
   engine_(n), inspectionEngine_(n), nh_(n), waitForServiceCall_(waitForServiceCall),
-  useVisualizer_(useVisualizer), useCWAssumption_(useCWAssumption), withJsonProlog_(false), useIdentityResolution_(false),
-  pause_(true), visualizer_(savePath), inspectFromAR_(false), seenObjects_()
+  useVisualizer_(useVisualizer), useCWAssumption_(useCWAssumption),withJsonProlog_(false), useIdentityResolution_(false),
+  pause_(true), inspectFromAR_(false),visualizer_(savePath)
 {
 
+  //TODO::is this not a big  memory leak?
   outInfo("Creating resource manager"); // TODO: DEBUG
   uima::ResourceManager &resourceManager = uima::ResourceManager::createInstance("RoboSherlock"); // TODO: change topic?
 
@@ -28,25 +29,15 @@ RSProcessManager::RSProcessManager(const bool useVisualizer, const std::string &
   }
 
   desig_pub_ = nh_.advertise<designator_integration_msgs::DesignatorResponse>(std::string("result_advertiser"), 5);
-
-  // Call this service, if RoboSherlock should try out only
-  // the pipeline with all Annotators, that provide the requested types (for example shape)
   singleService = nh_.advertiseService("designator_request/single_solution",
                                        &RSProcessManager::designatorSingleSolutionCallback, this);
-
-  // Call this service to switch between AEs
   setContextService = nh_.advertiseService("set_context", &RSProcessManager::resetAECallback, this);
-
   jsonService = nh_.advertiseService("json_query", &RSProcessManager::jsonQueryCallback, this);
   triggerKRPoseUpdate_ = nh_.serviceClient<std_srvs::Trigger>("/qr_to_knowrob/update_object_positions");
-  semrecClient = NULL;
-  ctxMain = NULL;
 }
 
 RSProcessManager::~RSProcessManager()
 {
-  delete semrecClient;
-  delete ctxMain;
   uima::ResourceManager::deleteInstance();
   outInfo("RSControledAnalysisEngine Stoped");
 }
@@ -322,61 +313,14 @@ bool RSProcessManager::resetAE(std::string newContextName)
   }
 }
 
-bool RSProcessManager::handleSemrec(const rapidjson::Document &doc)
-{
-  std::string value = doc["semrec"].GetString();
-  if(value == "start")
-  {
-    if(!semrecClient)
-    {
-      outInfo("Starting Semantic Logging");
-      semrecClient = new semrec_client::BeliefstateClient("robosherlock");
-      semrecClient->setMetaDataField("experiment", "ex1");
-      semrecClient->startNewExperiment();
-      semrecClient->registerOWLNamespace("rs_queryanswering", "http://robosherlock.org/#");
-      return true;
-    }
-    else
-    {
-      outError("Logging allready started");
-      return false;
-    }
-  }
-  else if(value == "stop")
-  {
-    if(semrecClient)
-    {
-      outInfo("Stopping Semantic Logging");
-      semrecClient->exportFiles("robosherlock");
-      delete semrecClient;
-      semrecClient = NULL;
-      return true;
-    }
-    else
-    {
-      outError("There is no logging started");
-      return false;
-    }
-  }
-  else
-  {
-    outError("Undefined command!");
-    return false;
-  }
-  return true;
-}
-
 bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::Request &req,
     iai_robosherlock_msgs::RSQueryService::Response &res)
 {
   outInfo("JSON Reuqest: " << req.query);
   rapidjson::Document doc;
   doc.Parse(req.query.c_str());
-  if(doc.HasMember("semrec"))
-  {
-    return handleSemrec(doc);
-  }
-  else if(doc.HasMember("detect"))
+
+  if(doc.HasMember("detect"))
   {
     const rapidjson::Value &val = doc["detect"];
     rapidjson::StringBuffer strBuff;
@@ -391,7 +335,7 @@ bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::
     designator_integration_msgs::DesignatorCommunication::Response respMsg;
 
     reqMsg.request.designator = reqDesig.serializeToMessage();
-    designatorCallbackLogic(reqMsg, respMsg, false);
+    designatorCallbackLogic(reqMsg, respMsg);
 
     for(auto resp : respMsg.response.designators)
     {
@@ -499,15 +443,18 @@ bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::
     }
 
     std::string objToQueryFor = "";
-    //replace this if-else uglyness with a json_prolog call
-    if(objToInspect == "ChassisHolder")
+
+    json_prolog::Prolog pl;
+    std::string plQueryString = "class_properties('" + thorinObjects_[objToInspect] +
+                                +"','http://knowrob.org/kb/knowrob_assembly.owl#canHoldObject', B)";
+    outInfo("asking query: " << plQueryString);
+    json_prolog::PrologQueryProxy bdgs = pl.query(plQueryString);
+    for(json_prolog::PrologQueryProxy::iterator it = bdgs.begin(); it != bdgs.end(); it++)
     {
-      objToQueryFor = "Chassis";
+      objToQueryFor = (*it)["B"].toString();
+      outInfo("got a result: " << objToQueryFor);
     }
-    else if(objToInspect == "AxleHolder")
-    {
-      objToQueryFor = "Axle";
-    }
+
     if(std::find(inspKeys.begin(), inspKeys.end(), "pose") != inspKeys.end())
     {
       objToQueryFor = objToInspect;
@@ -546,8 +493,43 @@ bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::
     else
     {
       outWarn("******************************************");
-      inspectionEngine_.process();
-      outWarn("******************************************");
+      std::string inspectionAnnotator = "";
+      json_prolog::Prolog pl;
+      std::string plQueryString = "class_properties('" + thorinObjects_[objToInspect] +
+                                  +"','http://knowrob.org/kb/thorin_parts.owl#inspectableBy', A)";
+      outInfo("asking query: " << plQueryString);
+      json_prolog::PrologQueryProxy bdgs = pl.query(plQueryString);
+      for(json_prolog::PrologQueryProxy::iterator it = bdgs.begin(); it != bdgs.end(); it++)
+      {
+        inspectionAnnotator = (*it)["A"].toString();
+        outInfo(objToInspect << " inspectable by: " << inspectionAnnotator);
+      }
+
+      std::vector<std::string> inspectionPipeline;
+      if(inspectionAnnotator != "")
+      {
+        outInfo("Planning a pipeline for this annotator");
+        plQueryString = "build_pipeline(['" + inspectionAnnotator + "'], P ).";
+        outInfo("asking query: " << plQueryString);
+        bdgs = pl.query(plQueryString);
+
+        for(json_prolog::PrologQueryProxy::iterator it = bdgs.begin(); it != bdgs.end(); it++)
+        {
+          std::string pipeline = (*it)["P"].toString();
+          inspectionPipeline =  prologInterface->createPipelineFromPrologResult(pipeline);
+        }
+      }
+      if(!inspectionPipeline.empty())
+      {
+        outInfo("planned new pipeline: ");
+        for(auto s : inspectionPipeline)
+        {
+          outInfo(s);
+        }
+        inspectionEngine_.setNextPipeline(inspectionPipeline);
+        inspectionEngine_.applyNextPipeline();
+        inspectionEngine_.process();
+      }
     }
     return true;
   }
@@ -560,7 +542,7 @@ bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::
     designator_integration_msgs::DesignatorCommunication::Response respMsg;
 
     reqMsg.request.designator = reqDesig.serializeToMessage();
-    designatorCallbackLogic(reqMsg, respMsg, false);
+    designatorCallbackLogic(reqMsg, respMsg);
 
     for(auto resp : respMsg.response.designators)
     {
@@ -581,12 +563,12 @@ bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::
 bool RSProcessManager::designatorSingleSolutionCallback(designator_integration_msgs::DesignatorCommunication::Request &req,
     designator_integration_msgs::DesignatorCommunication::Response &res)
 {
-  return designatorCallbackLogic(req, res, false);
+  return designatorCallbackLogic(req, res);
 }
 
 
 bool RSProcessManager::designatorCallbackLogic(designator_integration_msgs::DesignatorCommunication::Request &req,
-    designator_integration_msgs::DesignatorCommunication::Response &res, bool allSolutions)
+    designator_integration_msgs::DesignatorCommunication::Response &res)
 {
   if(rs::DesignatorWrapper::req_designator)
   {
@@ -595,13 +577,6 @@ bool RSProcessManager::designatorCallbackLogic(designator_integration_msgs::Desi
   rs::DesignatorWrapper::req_designator = new Designator(req.request.designator);
   rs::DesignatorWrapper::req_designator->setType(Designator::ACTION);
   rs::DesignatorWrapper::req_designator->printDesignator();
-
-  semrec_client::Context *ctxRSEvent = NULL;
-  if(semrecClient)
-  {
-    ctxRSEvent = new semrec_client::Context(this->semrecClient, "RoboSherlockEvent", "&rs_queryanswering;", "RoboSherlockEvent");
-    ctxRSEvent->addDesignator(rs::DesignatorWrapper::req_designator, "rs_queryanswering:eventRequest", "&rs_queryanswering;", "eventRequest");
-  }
 
   std::vector<Designator> filteredResponse;
   handleQuery(rs::DesignatorWrapper::req_designator, filteredResponse);
@@ -622,29 +597,13 @@ bool RSProcessManager::designatorCallbackLogic(designator_integration_msgs::Desi
   pipeline_action->setValue("annotators", KeyValuePair::LIST, lstDescription);
   //  filteredResponse.push_back(pipeline_action);
 
-  if(ctxRSEvent != NULL)
-  {
-    ctxRSEvent->addDesignator(pipeline_action, "rs_queryanswering:eventHandler", "&rs_queryanswering;", "eventHandler");
-  }
-
   //   Delete the allocated keyvalue pairs for the annotator names
 
   designator_integration_msgs::DesignatorResponse topicResponse;
   for(auto & designator : filteredResponse)
   {
     res.response.designators.push_back(designator.serializeToMessage());
-    if(ctxRSEvent)
-    {
-      //this needs to be an object->create copy constructor in Object class
-      ctxRSEvent->addObject(new semrec_client::Object(&designator, "&rs_queryanswering;", "objectPerceived"), "rs_queryanswering:objectPerceived");
-    }
   }
-  if(ctxRSEvent != NULL)
-  {
-    ctxRSEvent->end();
-  }
-  delete ctxRSEvent;
-
   for(auto & kvpPtr : lstDescription)
   {
     delete kvpPtr;

@@ -731,7 +731,18 @@ bool RSProcessManager::handleQuery(Designator *req, std::vector<Designator> &res
   }
 
   outInfo("Returned " << resultDesignators.size() << " designators on this execution");
-  filterResults(*req, resultDesignators, resp, superClass);
+  std::vector<bool> desigsToKeep;
+
+  filterResults(*req, resultDesignators, resp, desigsToKeep, superClass);
+  if(useIdentityResolution_)
+  {
+    engine_.drawResulstOnImage<rs::Object>(desigsToKeep, resultDesignators, *req);
+  }
+  else
+  {
+    engine_.drawResulstOnImage<rs::Cluster>(desigsToKeep, resultDesignators, *req);
+  }
+
   outInfo("The filteredResponse size:" << resp.size());
   processing_mutex_.unlock();
 
@@ -750,12 +761,12 @@ bool RSProcessManager::handleQuery(Designator *req, std::vector<Designator> &res
 void RSProcessManager::filterResults(Designator &requestDesignator,
                                      std::vector<Designator> &resultDesignators,
                                      std::vector<Designator> &filteredResponse,
-                                     std::string superclass)
+                                     std::vector<bool> &designatorsToKeep,
+                                     const std::string superclass)
 {
   outInfo("filtering the results based on the designator request");
   outInfo("Superclass: " << superclass);
-  std::vector<bool> keep_designator;
-  keep_designator.resize(resultDesignators.size(), true);
+  designatorsToKeep.resize(resultDesignators.size(), true);
 
   //    requestDesignator.printDesignator();
   std::list<KeyValuePair *> requested_kvps = requestDesignator.description();
@@ -795,7 +806,7 @@ void RSProcessManager::filterResults(Designator &requestDesignator,
           }
           else
           {
-            keep_designator[i] = false;
+            designatorsToKeep[i] = false;
           }
         }
         else if(req_kvp.key() == "contains")
@@ -807,7 +818,7 @@ void RSProcessManager::filterResults(Designator &requestDesignator,
           }
           else
           {
-            keep_designator[i] = false;
+            designatorsToKeep[i] = false;
           }
         }
         else if(req_kvp.key() == "shape") //there can be multiple shapes and these are not nested
@@ -878,25 +889,6 @@ void RSProcessManager::filterResults(Designator &requestDesignator,
             if(resultsForRequestedKey[j]->key() == "obj-part")
             {
               ok = true;
-              //              std::list<KeyValuePair * >::iterator it = kvps_.begin();
-              //              while(it != kvps_.end())
-              //              {
-              //                if((*it)->key() != "OBJ-PART" && (*it)->key() != "ID" && (*it)->key() != "TIMESTAMP")
-              //                  kvps_.erase(it++);
-              //                else
-              //                {
-              //                  if((*it)->key() == "OBJ-PART")
-              //                  {
-              //                    if((strcasecmp((*it)->childForKey("NAME")->stringValue().c_str(), req_kvp.stringValue().c_str()) == 0) || (req_kvp.stringValue() == ""))
-              //                      ++it;
-              //                    else
-              //                      kvps_.erase(it++);
-              //                  }
-              //                  else
-              //                    ++it;
-              //                }
-              //              }
-              //              resultDesignators[i].setDescription(kvps_);
             }
             if(resultsForRequestedKey[j]->key() == "pizza")
             {
@@ -1016,27 +1008,18 @@ void RSProcessManager::filterResults(Designator &requestDesignator,
         }
         if(!ok)
         {
-          keep_designator[i] = false;
+          designatorsToKeep[i] = false;
         }
       }
     }
   }
 
-  for(int i = 0; i < keep_designator.size(); ++i)
+  for(int i = 0; i < designatorsToKeep.size(); ++i)
   {
-    if(keep_designator[i])
+    if(designatorsToKeep[i])
     {
       filteredResponse.push_back(resultDesignators[i]);
     }
-  }
-
-  if(useIdentityResolution_)
-  {
-    engine_.drawResulstOnImage<rs::Object>(keep_designator, resultDesignators, requestDesignator);
-  }
-  else
-  {
-    engine_.drawResulstOnImage<rs::Cluster>(keep_designator, resultDesignators, requestDesignator);
   }
 }
 

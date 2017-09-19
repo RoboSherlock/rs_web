@@ -13,8 +13,6 @@
 #include <iai_robosherlock_msgs/SetRSContext.h>
 #include <iai_robosherlock_msgs/RSQueryService.h>
 
-#include <semrec_client/BeliefstateClient.h>
-#include <semrec_client/Context.h>
 
 #include <rapidjson/rapidjson.h>
 #include <rapidjson/document.h>
@@ -99,7 +97,8 @@ public:
   void filterResults(designator_integration::Designator &requestDesignator,
                      std::vector<designator_integration::Designator> &resultDesignators,
                      std::vector<designator_integration::Designator> &filteredResponse,
-                     std::string superclass);
+                     std::vector<bool> &designatorsToKeep,
+                     const std::string superclass);
 
   //reset the pipeline in the AE;
   bool resetAE(std::string);

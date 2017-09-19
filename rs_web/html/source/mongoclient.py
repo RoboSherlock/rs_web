@@ -183,3 +183,67 @@ class MongoWrapper(object):
         base64_img = self.get_base64_img(img)
         # print("converting to base64 took: %s seconds ---" % (time.time() - start_time),file=sys.stderr)
         return base64_img
+
+
+    def countHypothesesWithAnnotations(self):
+        global_count = 0
+        nr_of_objs = self.db.persistent_objects.count()
+        po_cursor = self.db.persistent_objects.find()
+        dict = {}
+        for i in range(0, nr_of_objs):
+            cluster_ids = po_cursor[i]['clusters']
+
+            count = 0
+            obj_dict = {}
+            for c in cluster_ids:
+                document = self.db.scene.find({'identifiables._id': ObjectId(c)},
+                                              {'_id': 0, 'identifiables._id.$': 1, 'timestamp': 1})
+
+                for annot in document[0]['identifiables'][0]['annotations']:
+                    if annot['_type'] == "rs.annotation.Detection":
+                        obj_dict[str(annot['name'])] = obj_dict.get(str(annot['name']),0) + 1
+                        count=count+1
+            global_count = global_count+count
+            dict[i+1]=obj_dict
+            print("Object{0} : '{1}' hypotheses : {2} detections ".format(i+1, len(cluster_ids),count))
+        print(dict)
+        return global_count
+
+    def historyOfAnnotaionValue(self, obj_id):
+        global_count = 0
+        nr_of_objs = self.db.persistent_objects.count()
+        po_cursor = self.db.persistent_objects.find()
+        sc_cursor = self.db.scene.find()
+        first_timestamp= sc_cursor[0]['timestamp']
+        print(first_timestamp)
+        cluster_ids = po_cursor[obj_id]['clusters']
+        count = 0
+        obj_dict = {}
+        index = 1
+        for c in cluster_ids:
+            document = self.db.scene.find({'identifiables._id': ObjectId(c)},
+                                          {'_id': 0, 'identifiables._id.$': 1, 'timestamp': 1})
+
+            ts = document[0]['timestamp']
+            elapsed = (ts - first_timestamp)/1000000000
+            # print(elapsed)
+            for annot in document[0]['identifiables'][0]['annotations']:
+                if annot['_type'] == "rs.annotation.Detection":
+                    obj_dict[str(annot['name'])] = obj_dict.get(str(annot['name']),0) + 1
+
+                    elapsed_seen = (ts - first_timestamp)/1000000000
+                    print("{0} ::: {1}".format(index,elapsed_seen))
+
+                    count=count+1
+            index += 1
+        global_count = global_count+count
+
+        print("Object{0} : '{1}' hypotheses : {2} detections ".format(obj_id+1, len(cluster_ids),count))
+        print(obj_dict)
+        return global_count
+
+if __name__ == "__main__":
+
+    mc = MongoWrapper();
+    c = mc.historyOfAnnotaionValue(11)
+    print (c)

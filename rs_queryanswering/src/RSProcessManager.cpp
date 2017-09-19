@@ -68,7 +68,7 @@ void RSProcessManager::init(std::string &xmlFile, std::string configFile)
 
   if(inspectFromAR_)
   {
-    outInfo("Inspection task will be performed usin AR markers");
+    outWarn("Inspection task will be performed usin AR markers");
     ros::service::waitForService("/qr_to_knowrob/update_object_positions");
   }
 
@@ -137,7 +137,7 @@ std::string RSProcessManager::getObjectByID(std::string OID, std::string type)
       {
       case 0:
         {
-          transform.frame_id_ = poseList[0].as<std::string>();
+	  transform.frame_id_ = poseList[0].as<std::string>();
           transform.stamp_ = ros::Time::now();
           break;
         }
@@ -150,7 +150,11 @@ std::string RSProcessManager::getObjectByID(std::string OID, std::string type)
         {
           std::vector<json_prolog::PrologValue> positionValues = poseList[2].as<std::vector<json_prolog::PrologValue>>();
           assert(positionValues.size() == 3);
-          transform.setOrigin(tf::Vector3(positionValues[0].as<double>(), positionValues[1].as<double>(), positionValues[2].as<double>()));
+          tf::Vector3 vec;
+	  vec.setX(std::atof(positionValues[0].toString().c_str()));//sad: posigionValues[0].as<double>() sometimes segfaults :(
+	  vec.setY(std::atof(positionValues[1].toString().c_str()));
+	  vec.setZ(std::atof(positionValues[2].toString().c_str()));
+          transform.setOrigin(vec);
           break;
         }
       case 3:

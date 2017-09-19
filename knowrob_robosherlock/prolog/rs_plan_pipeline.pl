@@ -43,7 +43,10 @@
 ]).
 
 :- rdf_meta
-   build_pipeline_for_object(+,+).
+   build_pipeline_for_object(+,+),
+   % this so that namespaces get resolved for params 
+   compute_annotator_inputs(r,r),
+   build_pipeline(t,t).
 
 :- use_module(library('jpl')).
 
@@ -57,13 +60,13 @@
 :- owl_parse('package://knowrob_robosherlock/owl/rs_objects.owl'). 
 % Load robots with their capabilities
 :- owl_parse('package://knowrob_robosherlock/owl/PR2.owl'). % Load our own PR2 which has an enhanced ontology (ColorCameras etc.)
-:- owl_parse('package://knowrob_robosherlock/owl/pico.owl'). % Jazz Robot http://www.gostai.com/products/jazz/openjazz/index.html
+%:- owl_parse('package://knowrob_robosherlock/owl/pico.owl'). % Jazz Robot http://www.gostai.com/products/jazz/openjazz/index.html
 
 % Register Namespaces
 :- rdf_db:rdf_register_ns(rs_components, 'http://knowrob.org/kb/rs_components.owl#',     [keep(true)]).
 :- rdf_db:rdf_register_ns(rs_objects, 'http://knowrob.org/kb/rs_objects.owl#',     [keep(true)]).
 :- rdf_db:rdf_register_ns(pr2, 'http://knowrob.org/kb/PR2.owl#',     [keep(true)]).
-:- rdf_db:rdf_register_ns(jazz, 'http://knowrob.org/kb/pico.owl#',     [keep(true)]).
+%:- rdf_db:rdf_register_ns(jazz, 'http://knowrob.org/kb/pico.owl#',     [keep(true)]).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Pipeline Planning

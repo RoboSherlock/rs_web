@@ -1,8 +1,5 @@
 #include <rs_queryanswering/RSProcessManager.h>
 
-using namespace designator_integration;
-
-
 RSProcessManager::RSProcessManager(const bool useVisualizer, const std::string &savePath,
                                    const bool &waitForServiceCall, const bool useCWAssumption, ros::NodeHandle n):
   engine_(n), inspectionEngine_(n), nh_(n), waitForServiceCall_(waitForServiceCall),
@@ -27,7 +24,7 @@ RSProcessManager::RSProcessManager(const bool useVisualizer, const std::string &
     break;
   }
 
-  desig_pub_ = nh_.advertise<designator_integration_msgs::DesignatorResponse>(std::string("result_advertiser"), 5);
+  desig_pub_ = nh_.advertise<std::vector<std::string>>(std::string("result_advertiser"), 5);
 
   // Call this service, if RoboSherlock should try out only
   // the pipeline with all Annotators, that provide the requested types (for example shape)
@@ -54,7 +51,7 @@ RSProcessManager::~RSProcessManager()
 void RSProcessManager::init(std::string &xmlFile, std::string configFile)
 {
   outInfo("initializing");
-  prologInterface = new PrologInterface(withJsonProlog_);
+  prologInterface = new PrologInterface();
   this->configFile_ = configFile;
 
   try
@@ -380,7 +377,7 @@ bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::
   {
     return handleSemrec(doc);
   }
-  else if(doc.HasMember("detect"))
+  if(doc.HasMember("detect"))
   {
     const rapidjson::Value &val = doc["detect"];
     rapidjson::StringBuffer strBuff;
@@ -388,20 +385,16 @@ bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::
     val.Accept(writer);
 
 
-    Designator reqDesig;
-    reqDesig.fillFromJSON(std::string(strBuff.GetString()));
-    reqDesig.printDesignator();
-    designator_integration_msgs::DesignatorCommunication::Request reqMsg;
-    designator_integration_msgs::DesignatorCommunication::Response respMsg;
+    std::cout<<strBuff.GetString();
+    std::string reqMsg;
+    std::vector<std::string> respMsg;
 
-    reqMsg.request.designator = reqDesig.serializeToMessage();
+    reqMsg = strBuff.GetString();
     designatorCallbackLogic(reqMsg, respMsg, false);
 
-    for(auto resp : respMsg.response.designators)
+    for(auto resp : respMsg)
     {
-      Designator d(resp);
-      d.setType(Designator::OBJECT);
-      res.answer.push_back(d.serializeToJSON());
+      res.answer.push_back(resp);
     }
     for(auto & r : res.answer)
     {
@@ -464,7 +457,8 @@ bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::
     //handle the json
     return true;
   }
-  else if(doc.HasMember("inspect"))
+
+  if(doc.HasMember("inspect"))
   {
     const rapidjson::Value &val = doc["inspect"];
     std::vector<std::string> inspKeys;
@@ -558,19 +552,15 @@ bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::
   //old query stuff
   else if(req.query != "")
   {
-    Designator reqDesig;
-    reqDesig.fillFromJSON(std::string(req.query));
-    designator_integration_msgs::DesignatorCommunication::Request reqMsg;
-    designator_integration_msgs::DesignatorCommunication::Response respMsg;
+    std::string reqMsg;
+    std::vector<std::string> respMsg;
 
-    reqMsg.request.designator = reqDesig.serializeToMessage();
+    reqMsg = std::string(req.query);
     designatorCallbackLogic(reqMsg, respMsg, false);
 
-    for(auto resp : respMsg.response.designators)
+    for(auto resp : respMsg)
     {
-      Designator d(resp);
-      d.setType(Designator::OBJECT);
-      res.answer.push_back(d.serializeToJSON());
+      res.answer.push_back(resp);
     }
     return true;
   }
@@ -582,24 +572,24 @@ bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::
 
 }
 
-bool RSProcessManager::designatorSingleSolutionCallback(designator_integration_msgs::DesignatorCommunication::Request &req,
-    designator_integration_msgs::DesignatorCommunication::Response &res)
+bool RSProcessManager::designatorSingleSolutionCallback(std::string &req,
+    std::vector<std::string> &res)
 {
   return designatorCallbackLogic(req, res, false);
 }
 
 
-bool RSProcessManager::designatorCallbackLogic(designator_integration_msgs::DesignatorCommunication::Request &req,
-    designator_integration_msgs::DesignatorCommunication::Response &res, bool allSolutions)
+bool RSProcessManager::designatorCallbackLogic(std::string &req,
+    std::vector<std::string> &res, bool allSolutions)
 {
   if(rs::DesignatorWrapper::req_designator)
   {
     delete rs::DesignatorWrapper::req_designator;
   }
-  rs::DesignatorWrapper::req_designator = new Designator(req.request.designator);
-  rs::DesignatorWrapper::req_designator->setType(Designator::ACTION);
-  rs::DesignatorWrapper::req_designator->printDesignator();
-
+  rs::DesignatorWrapper::req_designator = new rapidjson::Document();
+  rs::DesignatorWrapper::req_designator->Parse(req.c_str());
+  rs::DesignatorWrapper::req_designator->AddMember("type","action",rs::DesignatorWrapper::req_designator->GetAllocator());
+  std::cout<<req.c_str();
   semrec_client::Context *ctxRSEvent = NULL;
   if(semrecClient)
   {
@@ -607,23 +597,23 @@ bool RSProcessManager::designatorCallbackLogic(designator_integration_msgs::Desi
     ctxRSEvent->addDesignator(rs::DesignatorWrapper::req_designator, "rs_queryanswering:eventRequest", "&rs_queryanswering;", "eventRequest");
   }
 
-  std::vector<Designator> filteredResponse;
-  handleQuery(rs::DesignatorWrapper::req_designator, filteredResponse);
+  std::vector<std::string> filteredResponse;
+  std::string *request = new std::string(rs::DesignatorWrapper::jsonToString(rs::DesignatorWrapper::req_designator));
+  handleQuery(request, filteredResponse);
 
   std::vector<std::string> executedPipeline = engine_.getNextPipeline();
 
   // Define an ACTION designator with the planned pipeline
-  Designator *pipeline_action = new Designator();
-  pipeline_action->setType(Designator::ACTION);
-  std::list<KeyValuePair *> lstDescription;
+  rapidjson::Document *pipeline_action = new rapidjson::Document();
+  pipeline_action->AddMember("type","action",pipeline_action->GetAllocator());
+  rapidjson::Value lstDescription;
+  lstDescription.SetArray();
   for(auto & annotatorName : executedPipeline)
   {
-    KeyValuePair *oneAnno = new KeyValuePair();
-    oneAnno->setValue(annotatorName);
-    lstDescription.push_back(oneAnno);
+    lstDescription.PushBack(annotatorName,pipeline_action->GetAllocator());
   }
-  pipeline_action->setValue("pipeline-id", 0);
-  pipeline_action->setValue("annotators", KeyValuePair::LIST, lstDescription);
+  pipeline_action->AddMember("pipeline-id", 0, pipeline_action->GetAllocator());
+  pipeline_action->AddMember("annotators", lstDescription, pipeline_action->GetAllocator());
   //  filteredResponse.push_back(pipeline_action);
 
   if(ctxRSEvent != NULL)
@@ -633,10 +623,9 @@ bool RSProcessManager::designatorCallbackLogic(designator_integration_msgs::Desi
 
   //   Delete the allocated keyvalue pairs for the annotator names
 
-  designator_integration_msgs::DesignatorResponse topicResponse;
   for(auto & designator : filteredResponse)
   {
-    res.response.designators.push_back(designator.serializeToMessage());
+    res.push_back(designator);
     if(ctxRSEvent)
     {
       //this needs to be an object->create copy constructor in Object class
@@ -649,16 +638,13 @@ bool RSProcessManager::designatorCallbackLogic(designator_integration_msgs::Desi
   }
   delete ctxRSEvent;
 
-  for(auto & kvpPtr : lstDescription)
-  {
-    delete kvpPtr;
-  }
+  lstDescription.Clear();
   delete pipeline_action;
   outWarn("RS Query service call ended");
   return true;
 }
 
-bool RSProcessManager::handleQuery(Designator *req, std::vector<Designator> &resp)
+bool RSProcessManager::handleQuery(std::string *req, std::vector<std::string> &resp)
 {
   RSQuery *query = new RSQuery();
   std::string superClass = "";
@@ -667,55 +653,49 @@ bool RSProcessManager::handleQuery(Designator *req, std::vector<Designator> &res
   processing_mutex_.lock();
 
   //these are hacks,, where we need the
-  query->asJson = req->serializeToJSON();
+  query->asJson = *req;
   outInfo("Query as Json: " << query->asJson);
   if(req != NULL)
   {
-    std::list<std::string> keys =  req->keys();
-    for(auto key : keys)
-    {
-      if(key == "timestamp")
-      {
-        KeyValuePair *kvp = req->childForKey("timestamp");
-        std::string ts = kvp->stringValue();
-        query->timestamp = std::stoll(ts);
-        outInfo("received timestamp:" << query->timestamp);
-      }
-      if(key == "location")
-      {
-        KeyValuePair *kvp1 = req->childForKey("location")->childForKey("on");
-        KeyValuePair *kvp2 = req->childForKey("location")->childForKey("in");
-        if(kvp1)
-        {
-          query->location = kvp1->stringValue();
+    rapidjson::Document request;
+    request.Parse(req->c_str());
 
-          outInfo("received location:" << query->location);
-        }
-        else if(kvp2)
-        {
-          query->location = kvp2->stringValue();
-          outInfo("received location:" << query->location);
-        }
-      }
-      if(key == "obj-part" || key == "inspect")
+    if(request.HasMember("timestamp"))
+    {
+      std::string ts = request["timestamp"].GetString();
+      query->timestamp = std::stoll(ts);
+      outInfo("received timestamp:" << query->timestamp);
+    }
+    if(request.HasMember("location"))
+    {
+      if(request["location"].HasMember("on"))
       {
-        KeyValuePair *kvp =  req->childForKey("obj-part");
-        query->objToInspect = kvp->stringValue();
-        outInfo("received obj-part request for object: " << query->objToInspect);
+        query->location = request["location"]["on"].GetString();
+
+        outInfo("received location:" << query->location);
       }
-      if(key == "ingredient")
+      if(request["location"].HasMember("in"))
       {
-        KeyValuePair *kvp =  req->childForKey("ingredient");
-        query->ingredient = kvp->stringValue();
-        outInfo("received request for detection ingredient: " << query->ingredient);
-      }
-      if(key == "TYPE" || key == "type")
-      {
-        KeyValuePair *kvp =  req->childForKey("type");
-        superClass = kvp->stringValue();
+        query->location = request["location"]["in"].GetString();
+        outInfo("received location:" << query->location);
       }
     }
+    if(request.HasMember("obj-part") || request.HasMember("inspect"))
+    {
+      query->objToInspect = request["obj-part"].GetString();
+      outInfo("received obj-part request for object: " << query->objToInspect);
+    }
+    if(request.HasMember("ingredient"))
+    {
+      query->ingredient = request["ingredien"].GetString();
+      outInfo("received request for detection ingredient: " << query->ingredient);
+    }
+    if(request.HasMember("type"))
+    {
+      superClass = request["type"].GetString();
+    }
   }
+
   std::vector<std::string> keys;
   std::vector<std::string> new_pipeline_order;
   prologInterface->extractQueryKeysFromDesignator(req, keys);
@@ -762,7 +742,7 @@ bool RSProcessManager::handleQuery(Designator *req, std::vector<Designator> &res
   }
   new_pipeline_order.push_back("StorageWriter");
 
-  std::vector<Designator> resultDesignators;
+  std::vector<std::string> resultDesignators;
   if(subsetOfLowLvl(new_pipeline_order))
   {
     outInfo("Query answerable by lowlvl pipeline. Executing it");
@@ -771,7 +751,7 @@ bool RSProcessManager::handleQuery(Designator *req, std::vector<Designator> &res
   else
   {
     outInfo(FG_BLUE << "Executing Pipeline # generated by query");
-    engine_.process(new_pipeline_order, true, resultDesignators, query);
+    engine_.process(new_pipeline_order, true, &resultDesignators, query);
     outInfo("Executing pipeline generated by query: done");
   }
 
@@ -780,11 +760,11 @@ bool RSProcessManager::handleQuery(Designator *req, std::vector<Designator> &res
   outInfo("The filteredResponse size:" << resp.size());
   processing_mutex_.unlock();
 
-  designator_integration_msgs::DesignatorResponse topicResponse;
+  std::vector<std::string> topicResponse;
   for(auto & designator : resp)
   {
-    designator.printDesignator();
-    topicResponse.designators.push_back(designator.serializeToMessage(false));
+    std::cout<<designator;
+    topicResponse.push_back(designator);
   }
   desig_pub_.publish(topicResponse);
   delete query;
@@ -792,9 +772,9 @@ bool RSProcessManager::handleQuery(Designator *req, std::vector<Designator> &res
 
 }
 
-void RSProcessManager::filterResults(Designator &requestDesignator,
-                                     std::vector<Designator> &resultDesignators,
-                                     std::vector<Designator> &filteredResponse,
+void RSProcessManager::filterResults(std::string &requestDesignator,
+                                     std::vector<std::string> &resultDesignators,
+                                     std::vector<std::string> &filteredResponse,
                                      std::string superclass)
 {
   outInfo("filtering the results based on the designator request");
@@ -802,13 +782,12 @@ void RSProcessManager::filterResults(Designator &requestDesignator,
   std::vector<bool> keep_designator;
   keep_designator.resize(resultDesignators.size(), true);
 
-  //    requestDesignator.printDesignator();
-  std::list<KeyValuePair *> requested_kvps = requestDesignator.description();
+  rapidjson::Document request;
+  request.Parse(requestDesignator.c_str());
 
-  for(std::list<KeyValuePair *>::iterator it = requested_kvps.begin(); it != requested_kvps.end(); ++it)
+  for(rapidjson::Value::ConstMemberIterator it = request.MemberBegin(); it != request.MemberEnd(); ++it)
   {
-    KeyValuePair req_kvp = **it;
-    if(req_kvp.key() == "timestamp" || req_kvp.key() == "location")
+    if(it->name.GetString() == "timestamp" || it->name.GetString() == "location")
     {
       continue;
     }
@@ -816,248 +795,231 @@ void RSProcessManager::filterResults(Designator &requestDesignator,
     outInfo("No. of resulting Object Designators: " << resultDesignators.size());
     for(size_t i = 0; i < resultDesignators.size(); ++i)
     {
-      Designator resDesig = resultDesignators[i];
-      std::vector<KeyValuePair *> resultsForRequestedKey;
-      KeyValuePair *childForRequestedKey = NULL;
-      if(resDesig.childForKey("id") != NULL)
+      rapidjson::Document resDesig;
+      resDesig.Parse(resultDesignators[i].c_str());
+      rapidjson::Document resultsForRequestedKey;
+      if(resDesig.HasMember("id"))
       {
-        if(req_kvp.key() == "size") //size is nested get it from the bounding box..bad design
+        if(it->name.GetString() == "size") //size is nested get it from the bounding box..bad design
         {
-          childForRequestedKey = resDesig.childForKey("boundingbox")->childForKey("size");
-          resultsForRequestedKey.push_back(childForRequestedKey);
+          resultsForRequestedKey.AddMember("size",resDesig["boundingbox"]["size"],resultsForRequestedKey.GetAllocator());
         }
-        else if(req_kvp.key() == "cad-model")
+        else if(it->name.GetString() == "cad-model")
         {
-          childForRequestedKey = resDesig.childForKey("pose");
-          resultsForRequestedKey.push_back(childForRequestedKey);
+          resultsForRequestedKey.AddMember("cad-model",resDesig["pose"],resultsForRequestedKey.GetAllocator());
         }
-        else if(req_kvp.key() == "volume")
+        else if(it->name.GetString() == "volume")
         {
-          childForRequestedKey = resDesig.childForKey("volume");
-          if(childForRequestedKey != NULL)
+          if(resDesig.HasMember("volume"))
           {
-            resultsForRequestedKey.push_back(childForRequestedKey);
+            resultsForRequestedKey.AddMember("volume",resDesig["volume"],resultsForRequestedKey.GetAllocator());
           }
           else
           {
             keep_designator[i] = false;
           }
         }
-        else if(req_kvp.key() == "contains")
+        else if(it->name.GetString() == "contains")
         {
-          childForRequestedKey = resDesig.childForKey("contains");
-          if(childForRequestedKey != NULL)
+          if(resDesig.HasMember("contains"))
           {
-            resultsForRequestedKey.push_back(childForRequestedKey);
+            resultsForRequestedKey.AddMember("contains",resDesig["contains"],resultsForRequestedKey.GetAllocator());
           }
           else
           {
             keep_designator[i] = false;
           }
         }
-        else if(req_kvp.key() == "shape") //there can be multiple shapes and these are not nested
+        else if(it->name.GetString() == "shape") //there can be multiple shapes and these are not nested
         {
-          std::list<KeyValuePair *> resKvPs = resDesig.description();
-          for(std::list<KeyValuePair *>::iterator it2 = resKvPs.begin(); it2 != resKvPs.end(); ++it2)
-          {
-            KeyValuePair res_kvp = **it2;
-            if(res_kvp.key() == "shape")
-            {
-              resultsForRequestedKey.push_back(*it2);
-            }
-          }
+          resultsForRequestedKey.AddMember("shape",resDesig["shape"],resultsForRequestedKey.GetAllocator());
         }
-        else if(req_kvp.key() == "type")//this shit needed so we don't loose al of our stuff just because all was sent instead of detection
+        else if(it->name.GetString() == "type")//this shit needed so we don't loose al of our stuff just because all was sent instead of detection
         {
-          resultsForRequestedKey.push_back(resDesig.childForKey("class"));
+          resultsForRequestedKey.AddMember("type",resDesig["class"],resultsForRequestedKey.GetAllocator());
         }
-        else if(req_kvp.key() == "ingredient")
+        else if(it->name.GetString() == "ingredient")
         {
-          resultsForRequestedKey.push_back(resDesig.childForKey("pizza"));
+          resultsForRequestedKey.AddMember("ingredient",resDesig["pizza"],resultsForRequestedKey.GetAllocator());
         }
         else
         {
-          resultsForRequestedKey.push_back(resDesig.childForKey(req_kvp.key()));
+          rapidjson::Value v(it->name.GetString(),resultsForRequestedKey.GetAllocator());
+          resultsForRequestedKey.AddMember(v,resDesig[it->name.GetString()],resultsForRequestedKey.GetAllocator());
         }
       }
       else
       {
-        resultsForRequestedKey.push_back(resDesig.childForKey(req_kvp.key()));
+        rapidjson::Value v(it->name.GetString(),resultsForRequestedKey.GetAllocator());
+        resultsForRequestedKey.AddMember(v,resDesig[it->name.GetString()],resultsForRequestedKey.GetAllocator());
         outWarn("No CLUSTER ID");
       }
 
-      if(!resultsForRequestedKey.empty())
+      if(resultsForRequestedKey.MemberCount() == 0)
       {
         bool ok = false;
-        for(int j = 0; j < resultsForRequestedKey.size(); ++j)
+
+        if(resultsForRequestedKey.HasMember("pose"))
         {
-          if(resultsForRequestedKey[j] != NULL)
+          rapidjson::Document kvps_;
+          kvps_.Parse(resultDesignators[i].c_str());
+          rapidjson::Value::ConstMemberIterator it = kvps_.MemberBegin();
+          bool hasCadPose = false;
+          while(it != kvps_.MemberEnd())
           {
-            if(resultsForRequestedKey[j]->key() == "pose")
+            if(it->name.GetString() == "pose")
             {
-              std::list<KeyValuePair * > kvps_ = resultDesignators[i].description();
-              std::list<KeyValuePair * >::iterator it = kvps_.begin();
-              bool hasCadPose = false;
-              while(it != kvps_.end())
+              if(kvps_["source"].GetString() == "TemplateAlignment")
               {
-                if((*it)->key() == "pose")
-                {
-                  if((*it)->childForKey("source")->stringValue() == "TemplateAlignment")
-                  {
-                    hasCadPose = true;
-                    ++it;
-                  }
-                  else
-                  {
-                    kvps_.erase(it++);
-                  }
-                }
-                else
-                {
-                  ++it;
-                }
-              }
-              ok = hasCadPose;
-              resultDesignators[i].setDescription(kvps_);
-            }
-            if(resultsForRequestedKey[j]->key() == "obj-part")
-            {
-              ok = true;
-              //              std::list<KeyValuePair * >::iterator it = kvps_.begin();
-              //              while(it != kvps_.end())
-              //              {
-              //                if((*it)->key() != "OBJ-PART" && (*it)->key() != "ID" && (*it)->key() != "TIMESTAMP")
-              //                  kvps_.erase(it++);
-              //                else
-              //                {
-              //                  if((*it)->key() == "OBJ-PART")
-              //                  {
-              //                    if((strcasecmp((*it)->childForKey("NAME")->stringValue().c_str(), req_kvp.stringValue().c_str()) == 0) || (req_kvp.stringValue() == ""))
-              //                      ++it;
-              //                    else
-              //                      kvps_.erase(it++);
-              //                  }
-              //                  else
-              //                    ++it;
-              //                }
-              //              }
-              //              resultDesignators[i].setDescription(kvps_);
-            }
-            if(resultsForRequestedKey[j]->key() == "pizza")
-            {
-              ok = true;
-              std::list<KeyValuePair * > kvps_ = resultDesignators[i].description();
-              std::list<KeyValuePair * >::iterator it = kvps_.begin();
-              while(it != kvps_.end())
-              {
-                if((*it)->key() != "pizza" && (*it)->key() != "id" && (*it)->key() != "timestamp")
-                {
-                  kvps_.erase(it++);
-                }
-                else
-                {
-                  ++it;
-                }
-
-              }
-              resultDesignators[i].setDescription(kvps_);
-              resultDesignators[i].printDesignator();
-            }
-            //treat color differently because it is nested and has every color with ration in there
-            else if(resultsForRequestedKey[j]->key() == "color")
-            {
-              std::list<KeyValuePair *> colorRatioPairs = resultsForRequestedKey[j]->children();
-              for(auto iter = colorRatioPairs.begin(); iter != colorRatioPairs.end(); ++iter)
-              {
-                KeyValuePair colorRatioKvp = **iter;
-                if(strcasecmp(colorRatioKvp.key().c_str(), req_kvp.stringValue().c_str()) == 0 || req_kvp.stringValue() == "")
-                {
-                  if(colorRatioKvp.floatValue() > 0.20)
-                  {
-                    ok = true;
-                  }
-                }
-              }
-            }
-            else if(resultsForRequestedKey[j]->key() == "volume")
-            {
-              float volumeofCurrentObj = resultsForRequestedKey[j]->floatValue();
-              outWarn("Volume as a float: " << volumeofCurrentObj);
-              if(req_kvp.stringValue() == "")
-              {
-                ok = true;
+                hasCadPose = true;
+                ++it;
               }
               else
               {
-                float volumeAsked = atof(req_kvp.stringValue().c_str());
-                outWarn("Volume asked as float: " << volumeAsked);
-                if(volumeAsked <= volumeofCurrentObj)
-                {
-                  ok = true;
-                }
+                kvps_.EraseMember(it++);
               }
             }
-            else if(resultsForRequestedKey[j]->key() == "contains")
+            else
             {
-              if(req_kvp.stringValue() == "")
+              ++it;
+            }
+          }
+          ok = hasCadPose;
+          resultDesignators[i] = rs::DesignatorWrapper::jsonToString(&kvps_).c_str();
+        }
+        if(resultsForRequestedKey.HasMember("obj-part"))
+        {
+          ok = true;
+          //              std::list<KeyValuePair * >::iterator it = kvps_.begin();
+          //              while(it != kvps_.end())
+          //              {
+          //                if((*it)->key() != "OBJ-PART" && (*it)->key() != "ID" && (*it)->key() != "TIMESTAMP")
+          //                  kvps_.erase(it++);
+          //                else
+          //                {
+          //                  if((*it)->key() == "OBJ-PART")
+          //                  {
+          //                    if((strcasecmp((*it)->childForKey("NAME")->stringValue().c_str(), req_kvp.stringValue().c_str()) == 0) || (req_kvp.stringValue() == ""))
+          //                      ++it;
+          //                    else
+          //                      kvps_.erase(it++);
+          //                  }
+          //                  else
+          //                    ++it;
+          //                }
+          //              }
+          //              resultDesignators[i].setDescription(kvps_);
+        }
+        if(resultsForRequestedKey.HasMember("pizza"))
+        {
+          ok = true;
+          rapidjson::Document kvps_;
+          kvps_.Parse(resultDesignators[i].c_str());
+          rapidjson::Value::ConstMemberIterator it = kvps_.MemberBegin();
+          while(it != kvps_.MemberEnd())
+          {
+            if(it->name.GetString() != "pizza" && it->name.GetString() != "id" && it->name.GetString() != "timestamp")
+            {
+              kvps_.EraseMember(it++);
+            }
+            else
+            {
+              ++it;
+            }
+
+          }
+          resultDesignators[i] = rs::DesignatorWrapper::jsonToString(&kvps_).c_str();
+        }
+        //treat color differently because it is nested and has every color with ration in there
+        if(resultsForRequestedKey.HasMember("color"))
+        {
+          for(auto iter = resultsForRequestedKey["color"].MemberBegin(); iter != resultsForRequestedKey["color"].MemberEnd(); ++iter)
+          {
+            if(strcasecmp(iter->value.GetString(), it->value.GetString()) == 0 || it->value.GetString() == "")
+            {
+              if(iter->value.GetDouble() > 0.20)
               {
                 ok = true;
               }
-              else
-              {
-                std::string substanceName = resultsForRequestedKey[j]->childForKey("substance")->stringValue();
-                std::string substanceAsked = req_kvp.stringValue();
-                outWarn("Substance asked : " << substanceAsked);
-                if(strcasecmp(substanceName.c_str(), substanceAsked.c_str()) == 0)
-                {
-                  ok = true;
-                }
-              }
             }
-
-            //another nested kv-p...we need a new interface...this one sux
-            if(resultsForRequestedKey[j]->key() == "class")
-            {
-              std::list<KeyValuePair *> childrenPairs = resultsForRequestedKey[j]->children();
-              for(auto iter = childrenPairs.begin(); iter != childrenPairs.end(); ++iter)
-              {
-                KeyValuePair childrenPair = **iter;
-                if(childrenPair.key() == "name")
-                {
-                  if(superclass != "" && rs_queryanswering::krNameMapping.count(superclass) == 1)
-                  {
-                    try
-                    {
-                      ok = prologInterface->q_subClassOf(childrenPair.stringValue(), superclass);
-                    }
-                    catch(std::exception &e)
-                    {
-                      outError("Prolog Exception: Malformed owl_subclass of. Child or superclass undefined:");
-                      outError("     Child: " << childrenPair.stringValue());
-                      outError("     Parent: " << superclass);
-                    }
-                  }
-                  else if(strcasecmp(childrenPair.stringValue().c_str(), req_kvp.stringValue().c_str()) == 0 || req_kvp.stringValue() == "")
-                  {
-                    ok = true;
-                  }
-                  else if(childrenPair.stringValue() == "bottle_acid" || childrenPair.stringValue() == "bottle_base")
-                  {
-                    std::string new_name = "bottle";
-                    if(strcasecmp(new_name.c_str(), req_kvp.stringValue().c_str()) == 0)
-                    {
-                      ok = true;
-                    }
-                  }
-                }
-              }
-            }
-            else if(strcasecmp(resultsForRequestedKey[j]->stringValue().c_str(),
-                               req_kvp.stringValue().c_str()) == 0 || req_kvp.stringValue() == "")
+          }
+        }
+        if(resultsForRequestedKey.HasMember("volume"))
+        {
+          float volumeofCurrentObj = resultsForRequestedKey["volume"].GetDouble();
+          outWarn("Volume as a float: " << volumeofCurrentObj);
+          if(it->value.GetString() == "")
+          {
+            ok = true;
+          }
+          else
+          {
+            float volumeAsked = atof(it->value.GetString());
+            outWarn("Volume asked as float: " << volumeAsked);
+            if(volumeAsked <= volumeofCurrentObj)
             {
               ok = true;
             }
           }
+        }
+        if(resultsForRequestedKey.HasMember("contains"))
+        {
+          if(it->value.GetString() == "")
+          {
+            ok = true;
+          }
+          else
+          {
+            std::string substanceName = resultsForRequestedKey["contains"]["substance"].GetString();
+            std::string substanceAsked = it->value.GetString();
+            outWarn("Substance asked : " << substanceAsked);
+            if(strcasecmp(substanceName.c_str(), substanceAsked.c_str()) == 0)
+            {
+              ok = true;
+            }
+          }
+        }
+
+        //another nested kv-p...we need a new interface...this one sux
+        if(resultsForRequestedKey.HasMember("class"))
+        {
+          for(auto iter = resultsForRequestedKey["class"].MemberBegin(); iter != resultsForRequestedKey["class"].MemberEnd(); ++iter)
+          {
+            if(iter->name.GetString() == "name")
+            {
+              if(superclass != "" && rs_queryanswering::krNameMapping.count(superclass) == 1)
+              {
+                try
+                {
+                  ok = prologInterface->q_subClassOf(iter->value.GetString(), superclass);
+                }
+                catch(std::exception &e)
+                {
+                  outError("Prolog Exception: Malformed owl_subclass of. Child or superclass undefined:");
+                  outError("     Child: " << iter->name.GetString());
+                  outError("     Parent: " << superclass);
+                }
+              }
+              else if(strcasecmp(iter->value.GetString(), it->value.GetString()) == 0 || it->value.GetString() == "")
+              {
+                ok = true;
+              }
+              else if(iter->value.GetString() == "bottle_acid" || iter->value.GetString() == "bottle_base")
+              {
+                std::string new_name = "bottle";
+                if(strcasecmp(new_name.c_str(), it->value.GetString()) == 0)
+                {
+                  ok = true;
+                }
+              }
+            }
+          }
+        }
+
+        if(strstr(rs::DesignatorWrapper::jsonToString(&resultsForRequestedKey).c_str(),it->value.GetString()) != NULL
+           || it->value.GetString() == "")
+        {
+          ok = true;
         }
         if(!ok)
         {

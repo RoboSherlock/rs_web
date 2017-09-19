@@ -7,41 +7,17 @@
     <delegateAnalysisEngine key="ARMarkersDetector">
       <import location="../../../../rs_addons/descriptors/annotators/ARMarkersDetector.xml"/>
     </delegateAnalysisEngine>
-    <delegateAnalysisEngine key="AcatCentrifugeDetector">
-      <import location="../../../../robosherlock_demos/descriptors/annotators/acat/AcatCentrifugeDetector.xml"/>
-    </delegateAnalysisEngine>
-    <delegateAnalysisEngine key="AcatEquipmentDetector">
-      <import location="../../../../robosherlock_demos/descriptors/annotators/acat/AcatEquipmentDetector.xml"/>
-    </delegateAnalysisEngine>
-    <delegateAnalysisEngine key="AcatResultAdvertiser">
-      <import location="../../../../robosherlock_demos/descriptors/annotators/acat/AcatResultAdvertiser.xml"/>
-    </delegateAnalysisEngine>
-    <delegateAnalysisEngine key="AcatResultInterface">
-      <import location="../../../../robosherlock_demos/descriptors/annotators/acat/AcatResultInterface.xml"/>
-    </delegateAnalysisEngine>
-    <delegateAnalysisEngine key="AcatSegmentation">
-      <import location="../../../../robosherlock_demos/descriptors/annotators/acat/AcatSegmentation.xml"/>
-    </delegateAnalysisEngine>
-    <delegateAnalysisEngine key="AcatTFBroadcaster">
-      <import location="../../../../robosherlock_demos/descriptors/annotators/acat/AcatTFBroadcaster.xml"/>
-    </delegateAnalysisEngine>
     <delegateAnalysisEngine key="BlurDetectorAnnotator">
       <import location="../../../../robosherlock/descriptors/annotators/utils/BlurDetectorAnnotator.xml"/>
     </delegateAnalysisEngine>
     <delegateAnalysisEngine key="BoardDetector">
       <import location="../../../../robosherlock/descriptors/annotators/detection/BoardDetector.xml"/>
     </delegateAnalysisEngine>
-    <delegateAnalysisEngine key="BottleAnnotator">
-      <import location="../../../../robosherlock_demos/descriptors/annotators/acat/BottleAnnotator.xml"/>
-    </delegateAnalysisEngine>
     <delegateAnalysisEngine key="CaffeAnnotator">
       <import location="../../../../robosherlock/descriptors/annotators/annotation/CaffeAnnotator.xml"/>
     </delegateAnalysisEngine>
     <delegateAnalysisEngine key="CaffeClassificationAnnotator">
       <import location="../../../../rs_addons/descriptors/annotators/CaffeClassificationAnnotator.xml"/>
-    </delegateAnalysisEngine>
-    <delegateAnalysisEngine key="CircleDetector">
-      <import location="../../../../robosherlock_demos/descriptors/annotators/acat/CircleDetector.xml"/>
     </delegateAnalysisEngine>
     <delegateAnalysisEngine key="ClassifierDetection">
       <import location="../../../../robosherlock/descriptors/annotators/recognition/ClassifierDetection.xml"/>
@@ -76,20 +52,11 @@
     <delegateAnalysisEngine key="DemoPoseModifier">
       <import location="../../../../robosherlock_demos/descriptors/annotators/robohow/DemoPoseModifier.xml"/>
     </delegateAnalysisEngine>
-    <delegateAnalysisEngine key="DetectionVerification">
-      <import location="../../../../robosherlock_demos/descriptors/annotators/acat/DetectionVerification.xml"/>
-    </delegateAnalysisEngine>
     <delegateAnalysisEngine key="DoughDetector">
       <import location="../../../../robosherlock_demos/descriptors/annotators/robohow/DoughDetector.xml"/>
     </delegateAnalysisEngine>
     <delegateAnalysisEngine key="FeatureAnnotator">
       <import location="../../../../robosherlock/descriptors/annotators/annotation/FeatureAnnotator.xml"/>
-    </delegateAnalysisEngine>
-    <delegateAnalysisEngine key="FlaskAnnotator">
-      <import location="../../../../robosherlock_demos/descriptors/annotators/acat/FlaskAnnotator.xml"/>
-    </delegateAnalysisEngine>
-    <delegateAnalysisEngine key="GazeboInterface">
-      <import location="../../../../rs_simulation/descriptors/annotators/GazeboInterface.xml"/>
     </delegateAnalysisEngine>
     <delegateAnalysisEngine key="GogglesAnnotator">
       <import location="../../../../robosherlock/descriptors/annotators/annotation/GogglesAnnotator.xml"/>
@@ -103,9 +70,6 @@
     <delegateAnalysisEngine key="ImageSegmentationAnnotator">
       <import location="../../../../robosherlock/descriptors/annotators/segmentation/ImageSegmentationAnnotator.xml"/>
     </delegateAnalysisEngine>
-    <delegateAnalysisEngine key="JIRAnnotator">
-      <import location="../../../../robosherlock_demos/descriptors/annotators/shopping/JIRAnnotator.xml"/>
-    </delegateAnalysisEngine>
     <delegateAnalysisEngine key="KNNClassifier">
       <import location="../../../../robosherlock/descriptors/annotators/recognition/KNNClassifier.xml"/>
     </delegateAnalysisEngine>
@@ -114,9 +78,6 @@
     </delegateAnalysisEngine>
     <delegateAnalysisEngine key="MLNInferencer">
       <import location="../../../../robosherlock/descriptors/annotators/recognition/MLNInferencer.xml"/>
-    </delegateAnalysisEngine>
-    <delegateAnalysisEngine key="MixerAnnotator">
-      <import location="../../../../robosherlock_demos/descriptors/annotators/acat/MixerAnnotator.xml"/>
     </delegateAnalysisEngine>
     <delegateAnalysisEngine key="NormalEstimator">
       <import location="../../../../robosherlock/descriptors/annotators/annotation/NormalEstimator.xml"/>
@@ -154,9 +115,6 @@
     <delegateAnalysisEngine key="PrimitiveShapeAnnotator">
       <import location="../../../../robosherlock/descriptors/annotators/annotation/PrimitiveShapeAnnotator.xml"/>
     </delegateAnalysisEngine>
-    <delegateAnalysisEngine key="ProcessGazeboFrames">
-      <import location="../../../../rs_simulation/descriptors/annotators/ProcessGazeboFrames.xml"/>
-    </delegateAnalysisEngine>
     <delegateAnalysisEngine key="RegionFilter">
       <import location="../../../../robosherlock/descriptors/annotators/filter/RegionFilter.xml"/>
     </delegateAnalysisEngine>
@@ -165,24 +123,6 @@
     </delegateAnalysisEngine>
     <delegateAnalysisEngine key="SacModelAnnotator">
       <import location="../../../../robosherlock/descriptors/annotators/annotation/SacModelAnnotator.xml"/>
-    </delegateAnalysisEngine>
-    <delegateAnalysisEngine key="SaphariEquipmentAdvertiser">
-      <import location="../../../../robosherlock_demos/descriptors/annotators/saphari/SaphariEquipmentAdvertiser.xml"/>
-    </delegateAnalysisEngine>
-    <delegateAnalysisEngine key="SaphariResultAdvertiserAnnotator">
-      <import location="../../../../robosherlock_demos/descriptors/annotators/saphari/SaphariResultAdvertiser.xml"/>
-    </delegateAnalysisEngine>
-    <delegateAnalysisEngine key="SaphariSegmentation">
-      <import location="../../../../robosherlock_demos/descriptors/annotators/saphari/SaphariSegmentation.xml"/>
-    </delegateAnalysisEngine>
-    <delegateAnalysisEngine key="SherpaMap">
-      <import location="../../../../robosherlock_demos/descriptors/annotators/sherpa/SherpaMap.xml"/>
-    </delegateAnalysisEngine>
-    <delegateAnalysisEngine key="SherpaOcclusion">
-      <import location="../../../../robosherlock_demos/descriptors/annotators/sherpa/SherpaOcclusion.xml"/>
-    </delegateAnalysisEngine>
-    <delegateAnalysisEngine key="ShoppingResultAdvertiser">
-      <import location="../../../../robosherlock_demos/descriptors/annotators/shopping/ShoppingResultAdvertiser.xml"/>
     </delegateAnalysisEngine>
     <delegateAnalysisEngine key="SimtrackDetection">
       <import location="../../../../rs_addons/descriptors/annotators/SimatrackDetection.xml"/>

@@ -7,7 +7,7 @@
 #include <rs_queryanswering/RSControledAnalysisEngine.h>
 #include <rs_queryanswering/KRDefinitions.h>
 #include <rs_queryanswering/PrologInterface.h>
-
+#include <json_prolog/prolog.h>
 
 #include <designator_integration_msgs/DesignatorCommunication.h>
 #include <iai_robosherlock_msgs/SetRSContext.h>
@@ -86,24 +86,24 @@ public:
   bool resetAECallback(iai_robosherlock_msgs::SetRSContext::Request &req,
                        iai_robosherlock_msgs::SetRSContext::Response &res);
 
-  bool designatorSingleSolutionCallback(designator_integration_msgs::DesignatorCommunication::Request &req,
-                                        designator_integration_msgs::DesignatorCommunication::Response &res);
+  bool designatorSingleSolutionCallback(std::string &req,
+                                        std::vector<std::string> &res);
 
-  bool designatorCallbackLogic(designator_integration_msgs::DesignatorCommunication::Request &req,
-                               designator_integration_msgs::DesignatorCommunication::Response &res, bool allSolutions);
+  bool designatorCallbackLogic(std::string &req,
+                               std::vector<std::string> &res, bool allSolutions);
 
   bool jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::Request &req,
                          iai_robosherlock_msgs::RSQueryService::Response &res);
 
   bool handleSemrec(const rapidjson::Document &doc);
 
-  bool handleQuery(designator_integration::Designator *req,
-                   std::vector<designator_integration::Designator> &resp);
+  bool handleQuery(std::string *req,
+                   std::vector<std::string> &resp);
 
   //TODO: move to Designator wrapper or somewhere else
-  void filterResults(designator_integration::Designator &requestDesignator,
-                     std::vector<designator_integration::Designator> &resultDesignators,
-                     std::vector<designator_integration::Designator> &filteredResponse,
+  void filterResults(std::string &requestDesignator,
+                     std::vector<std::string> &resultDesignators,
+                     std::vector<std::string> &filteredResponse,
                      std::string superclass);
 
   //reset the pipeline in the AE;

@@ -5,7 +5,8 @@ find_package(catkin REQUIRED rosjava_build_tools rosprolog
     designator_integration_msgs
              knowrob_common knowrob_actions knowrob_srdl
              tf tf_conversions knowrob_vis robosherlock robosherlock_demos
-             rs_addons rs_simulation roslib rospack iai_robosherlock_msgs image_transport
+             rs_addons #rs_simulation
+             roslib rospack iai_robosherlock_msgs image_transport
              json_prolog)
 
 find_package(PkgConfig)

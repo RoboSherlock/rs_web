@@ -1,9 +1,10 @@
-#include <designators/Designator.h>
+#include <rapidjson/document.h>
 #include <designator_integration_msgs/Designator.h>
 #include <designator_integration_msgs/DesignatorCommunication.h>
 
 #include <rs_queryanswering/RSControledAnalysisEngine.h>
 #include <rs_queryanswering/RSProcessManager.h>
+#include <rs_queryanswering/DesignatorWrapper.h>
 
 #include <ros/package.h>
 
@@ -16,9 +17,7 @@
 #include <string>
 #include <memory>
 
-using namespace designator_integration;
-
-Designator *req_desig = NULL;
+std::string *req_desig = NULL;
 
 static RSProcessManager *pm;
 
@@ -68,12 +67,7 @@ std::thread thread;
 PREDICATE(cpp_add_designator, 2)
 {
   std::string desigType((char *)A1);
-  Designator *desig = new Designator();
-  if(desigType == "object")
-  {
-    desig->setType(Designator::ACTION);
-  }
-  std::cerr << "designator type: " << desig->type() << "\n";
+  std::string *desig = (std::string *)"{\"type\":\"action\"}";
   return A2 = static_cast<void *>(desig);
 }
 
@@ -84,9 +78,10 @@ PREDICATE(cpp_init_kvp, 3)
   void *obj = A1;
   std::string type((char *)A2);
   std::transform(type.begin(), type.end(), type.begin(), ::toupper);
-  Designator *desig = (Designator *)obj;
-  KeyValuePair *kvp = desig->addChild(type);
-  return A3 = static_cast<void *>(kvp);
+  std::string *desig = (std::string *)obj;
+  //not sure what should go here
+  //KeyValuePair *kvp = desig->addChild(type);
+  return A3; //= static_cast<void *>(kvp);
 }
 
 PREDICATE(cpp_add_kvp, 3)
@@ -95,13 +90,16 @@ PREDICATE(cpp_add_kvp, 3)
   std::transform(key.begin(), key.end(), key.begin(), ::toupper);
   std::string value = (std::string)A2;
   void *obj = A3;
-  Designator *desig = (Designator *)obj;
-  KeyValuePair *kvp = new KeyValuePair(key, value);
+  std::string *desig = (std::string *)obj;
 
   if(desig)
   {
     //std::cerr<<"Adding Kvp: ("<<key<<" : "<<value<<")\n";
-    desig->addChild(kvp);
+    rapidjson::Document json;
+    json.Parse(desig->c_str());
+    rapidjson::Value v(key,json.GetAllocator());
+    json.AddMember(v,value,json.GetAllocator());
+    *desig = rs::DesignatorWrapper::jsonToString(&json);
     return TRUE;
   }
   else
@@ -113,10 +111,10 @@ PREDICATE(cpp_add_kvp, 3)
 PREDICATE(cpp_print_desig, 1)
 {
   void *obj = A1;
-  Designator *desig = (Designator *)obj;
+  std::string *desig = (std::string *)obj;
   if(desig)
   {
-    desig->printDesignator();
+    std::cout<<desig;
     return TRUE;
   }
   else
@@ -131,11 +129,7 @@ PREDICATE(cpp_init_desig, 1)
   if(!req_desig)
   {
     std::cerr << "Initializing designator: " << std::endl;
-    req_desig = new designator_integration::Designator();
-    designator_integration::KeyValuePair *some_shit =  new designator_integration::KeyValuePair("location", "on table");
-    designator_integration::KeyValuePair *links = new designator_integration::KeyValuePair("location");
-    links->addChild(some_shit);
-    req_desig->addChild(links);
+    req_desig =  (std::string *)"{\"location\":{\"location\":\"on table\"}}";
     return A1 = (void *)req_desig;
   }
   else
@@ -148,7 +142,7 @@ PREDICATE(cpp_init_desig, 1)
 PREDICATE(cpp_delete_desig, 1)
 {
   void *obj = A1;
-  Designator *desig = (Designator *)obj;
+  std::string *desig = (std::string *)obj;
   delete desig;
   return TRUE;
 }
@@ -265,8 +259,8 @@ PREDICATE(cpp_process_once, 1)
   if(pm)
   {
     void *myobj = A1;
-    Designator *desig  = (Designator *)myobj;
-    std::vector<designator_integration::Designator> resp;
+    std::string *desig  = (std::string *)myobj;
+    std::vector<std::string> resp;
     pm->handleQuery(desig, resp);
     return TRUE;
   }

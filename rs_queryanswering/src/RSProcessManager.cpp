@@ -25,16 +25,11 @@ RSProcessManager::RSProcessManager(const bool useVisualizer, const std::string &
     break;
   }
 
-<<<<<<< HEAD
-  desig_pub_ = nh_.advertise<std::vector<std::string>>(std::string("result_advertiser"), 5);
+  //TO DO: Designator response topic (string[])
+  desig_pub_ = nh_.advertise<iai_robosherlock_msgs::PerceivedObjects>(std::string("result_advertiser"), 5);
 
-  // Call this service, if RoboSherlock should try out only
-  // the pipeline with all Annotators, that provide the requested types (for example shape)
-=======
-  desig_pub_ = nh_.advertise<designator_integration_msgs::DesignatorResponse>(std::string("result_advertiser"), 5);
->>>>>>> thorin_devel
-  singleService = nh_.advertiseService("designator_request/single_solution",
-                                       &RSProcessManager::designatorSingleSolutionCallback, this);
+  //singleService = nh_.advertiseService("designator_request/single_solution",
+  //                                     &RSProcessManager::designatorSingleSolutionCallback, this);
   setContextService = nh_.advertiseService("set_context", &RSProcessManager::resetAECallback, this);
   jsonService = nh_.advertiseService("json_query", &RSProcessManager::jsonQueryCallback, this);
   triggerKRPoseUpdate_ = nh_.serviceClient<std_srvs::Trigger>("/qr_to_knowrob/update_object_positions");
@@ -747,7 +742,7 @@ bool RSProcessManager::handleQuery(std::string *req, std::vector<std::string> &r
     std::cout<<designator;
     topicResponse.push_back(designator);
   }
-  desig_pub_.publish(topicResponse);
+  //desig_pub_.publish(topicResponse);
   delete query;
   return true;
 

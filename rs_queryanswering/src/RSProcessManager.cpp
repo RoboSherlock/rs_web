@@ -3,10 +3,11 @@
 RSProcessManager::RSProcessManager(const bool useVisualizer, const std::string &savePath,
                                    const bool &waitForServiceCall, const bool useCWAssumption, ros::NodeHandle n):
   engine_(n), inspectionEngine_(n), nh_(n), waitForServiceCall_(waitForServiceCall),
-  useVisualizer_(useVisualizer), useCWAssumption_(useCWAssumption), withJsonProlog_(false), useIdentityResolution_(false),
-  pause_(true), visualizer_(savePath), inspectFromAR_(false), seenObjects_()
+  useVisualizer_(useVisualizer), useCWAssumption_(useCWAssumption),withJsonProlog_(false), useIdentityResolution_(false),
+  pause_(true), inspectFromAR_(false),visualizer_(savePath)
 {
 
+  //TODO::is this not a big  memory leak?
   outInfo("Creating resource manager"); // TODO: DEBUG
   uima::ResourceManager &resourceManager = uima::ResourceManager::createInstance("RoboSherlock"); // TODO: change topic?
 
@@ -24,26 +25,23 @@ RSProcessManager::RSProcessManager(const bool useVisualizer, const std::string &
     break;
   }
 
+<<<<<<< HEAD
   desig_pub_ = nh_.advertise<std::vector<std::string>>(std::string("result_advertiser"), 5);
 
   // Call this service, if RoboSherlock should try out only
   // the pipeline with all Annotators, that provide the requested types (for example shape)
+=======
+  desig_pub_ = nh_.advertise<designator_integration_msgs::DesignatorResponse>(std::string("result_advertiser"), 5);
+>>>>>>> thorin_devel
   singleService = nh_.advertiseService("designator_request/single_solution",
                                        &RSProcessManager::designatorSingleSolutionCallback, this);
-
-  // Call this service to switch between AEs
   setContextService = nh_.advertiseService("set_context", &RSProcessManager::resetAECallback, this);
-
   jsonService = nh_.advertiseService("json_query", &RSProcessManager::jsonQueryCallback, this);
   triggerKRPoseUpdate_ = nh_.serviceClient<std_srvs::Trigger>("/qr_to_knowrob/update_object_positions");
-  semrecClient = NULL;
-  ctxMain = NULL;
 }
 
 RSProcessManager::~RSProcessManager()
 {
-  delete semrecClient;
-  delete ctxMain;
   uima::ResourceManager::deleteInstance();
   outInfo("RSControledAnalysisEngine Stoped");
 }
@@ -323,60 +321,13 @@ bool RSProcessManager::resetAE(std::string newContextName)
   }
 }
 
-bool RSProcessManager::handleSemrec(const rapidjson::Document &doc)
-{
-  std::string value = doc["semrec"].GetString();
-  if(value == "start")
-  {
-    if(!semrecClient)
-    {
-      outInfo("Starting Semantic Logging");
-      semrecClient = new semrec_client::BeliefstateClient("robosherlock");
-      semrecClient->setMetaDataField("experiment", "ex1");
-      semrecClient->startNewExperiment();
-      semrecClient->registerOWLNamespace("rs_queryanswering", "http://robosherlock.org/#");
-      return true;
-    }
-    else
-    {
-      outError("Logging allready started");
-      return false;
-    }
-  }
-  else if(value == "stop")
-  {
-    if(semrecClient)
-    {
-      outInfo("Stopping Semantic Logging");
-      semrecClient->exportFiles("robosherlock");
-      delete semrecClient;
-      semrecClient = NULL;
-      return true;
-    }
-    else
-    {
-      outError("There is no logging started");
-      return false;
-    }
-  }
-  else
-  {
-    outError("Undefined command!");
-    return false;
-  }
-  return true;
-}
-
 bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::Request &req,
     iai_robosherlock_msgs::RSQueryService::Response &res)
 {
   outInfo("JSON Reuqest: " << req.query);
   rapidjson::Document doc;
   doc.Parse(req.query.c_str());
-  if(doc.HasMember("semrec"))
-  {
-    return handleSemrec(doc);
-  }
+
   if(doc.HasMember("detect"))
   {
     const rapidjson::Value &val = doc["detect"];
@@ -390,7 +341,7 @@ bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::
     std::vector<std::string> respMsg;
 
     reqMsg = strBuff.GetString();
-    designatorCallbackLogic(reqMsg, respMsg, false);
+    designatorCallbackLogic(reqMsg, respMsg);
 
     for(auto resp : respMsg)
     {
@@ -497,15 +448,18 @@ bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::
     }
 
     std::string objToQueryFor = "";
-    //replace this if-else uglyness with a json_prolog call
-    if(objToInspect == "ChassisHolder")
+
+    json_prolog::Prolog pl;
+    std::string plQueryString = "class_properties('" + thorinObjects_[objToInspect] +
+                                +"','http://knowrob.org/kb/knowrob_assembly.owl#canHoldObject', B)";
+    outInfo("asking query: " << plQueryString);
+    json_prolog::PrologQueryProxy bdgs = pl.query(plQueryString);
+    for(json_prolog::PrologQueryProxy::iterator it = bdgs.begin(); it != bdgs.end(); it++)
     {
-      objToQueryFor = "Chassis";
+      objToQueryFor = (*it)["B"].toString();
+      outInfo("got a result: " << objToQueryFor);
     }
-    else if(objToInspect == "AxleHolder")
-    {
-      objToQueryFor = "Axle";
-    }
+
     if(std::find(inspKeys.begin(), inspKeys.end(), "pose") != inspKeys.end())
     {
       objToQueryFor = objToInspect;
@@ -544,8 +498,43 @@ bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::
     else
     {
       outWarn("******************************************");
-      inspectionEngine_.process();
-      outWarn("******************************************");
+      std::string inspectionAnnotator = "";
+      json_prolog::Prolog pl;
+      std::string plQueryString = "class_properties('" + thorinObjects_[objToInspect] +
+                                  +"','http://knowrob.org/kb/thorin_parts.owl#inspectableBy', A)";
+      outInfo("asking query: " << plQueryString);
+      json_prolog::PrologQueryProxy bdgs = pl.query(plQueryString);
+      for(json_prolog::PrologQueryProxy::iterator it = bdgs.begin(); it != bdgs.end(); it++)
+      {
+        inspectionAnnotator = (*it)["A"].toString();
+        outInfo(objToInspect << " inspectable by: " << inspectionAnnotator);
+      }
+
+      std::vector<std::string> inspectionPipeline;
+      if(inspectionAnnotator != "")
+      {
+        outInfo("Planning a pipeline for this annotator");
+        plQueryString = "build_pipeline(['" + inspectionAnnotator + "'], P ).";
+        outInfo("asking query: " << plQueryString);
+        bdgs = pl.query(plQueryString);
+
+        for(json_prolog::PrologQueryProxy::iterator it = bdgs.begin(); it != bdgs.end(); it++)
+        {
+          std::string pipeline = (*it)["P"].toString();
+          inspectionPipeline =  prologInterface->createPipelineFromPrologResult(pipeline);
+        }
+      }
+      if(!inspectionPipeline.empty())
+      {
+        outInfo("planned new pipeline: ");
+        for(auto s : inspectionPipeline)
+        {
+          outInfo(s);
+        }
+        inspectionEngine_.setNextPipeline(inspectionPipeline);
+        inspectionEngine_.applyNextPipeline();
+        inspectionEngine_.process();
+      }
     }
     return true;
   }
@@ -556,7 +545,7 @@ bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::
     std::vector<std::string> respMsg;
 
     reqMsg = std::string(req.query);
-    designatorCallbackLogic(reqMsg, respMsg, false);
+    designatorCallbackLogic(reqMsg, respMsg);
 
     for(auto resp : respMsg)
     {
@@ -575,27 +564,21 @@ bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::
 bool RSProcessManager::designatorSingleSolutionCallback(std::string &req,
     std::vector<std::string> &res)
 {
-  return designatorCallbackLogic(req, res, false);
+  return designatorCallbackLogic(req, res);
 }
 
-
 bool RSProcessManager::designatorCallbackLogic(std::string &req,
-    std::vector<std::string> &res, bool allSolutions)
+    std::vector<std::string> &res)
 {
   if(rs::DesignatorWrapper::req_designator)
   {
     delete rs::DesignatorWrapper::req_designator;
   }
+
   rs::DesignatorWrapper::req_designator = new rapidjson::Document();
   rs::DesignatorWrapper::req_designator->Parse(req.c_str());
   rs::DesignatorWrapper::req_designator->AddMember("type","action",rs::DesignatorWrapper::req_designator->GetAllocator());
   std::cout<<req.c_str();
-  semrec_client::Context *ctxRSEvent = NULL;
-  if(semrecClient)
-  {
-    ctxRSEvent = new semrec_client::Context(this->semrecClient, "RoboSherlockEvent", "&rs_queryanswering;", "RoboSherlockEvent");
-    //ctxRSEvent->addDesignator(rs::DesignatorWrapper::req_designator, "rs_queryanswering:eventRequest", "&rs_queryanswering;", "eventRequest");
-  }
 
   std::vector<std::string> filteredResponse;
   std::string *request = new std::string(rs::DesignatorWrapper::jsonToString(rs::DesignatorWrapper::req_designator));
@@ -617,27 +600,13 @@ bool RSProcessManager::designatorCallbackLogic(std::string &req,
   pipeline_action->AddMember("annotators", lstDescription, pipeline_action->GetAllocator());
   //  filteredResponse.push_back(pipeline_action);
 
-  if(ctxRSEvent != NULL)
-  {
-    //ctxRSEvent->addDesignator(pipeline_action, "rs_queryanswering:eventHandler", "&rs_queryanswering;", "eventHandler");
-  }
-
   //   Delete the allocated keyvalue pairs for the annotator names
 
   for(auto & designator : filteredResponse)
   {
     res.push_back(designator);
-    if(ctxRSEvent)
-    {
-      //this needs to be an object->create copy constructor in Object class
-      //ctxRSEvent->addObject(new semrec_client::Object(&designator, "&rs_queryanswering;", "objectPerceived"), "rs_queryanswering:objectPerceived");
-    }
+
   }
-  if(ctxRSEvent != NULL)
-  {
-    ctxRSEvent->end();
-  }
-  delete ctxRSEvent;
 
   lstDescription.Clear();
   delete pipeline_action;
@@ -757,7 +726,18 @@ bool RSProcessManager::handleQuery(std::string *req, std::vector<std::string> &r
   }
 
   outInfo("Returned " << resultDesignators.size() << " designators on this execution");
-  filterResults(*req, resultDesignators, resp, superClass);
+  std::vector<bool> desigsToKeep;
+
+  filterResults(*req, resultDesignators, resp, desigsToKeep, superClass);
+  if(useIdentityResolution_)
+  {
+    engine_.drawResulstOnImage<rs::Object>(desigsToKeep, resultDesignators, *req);
+  }
+  else
+  {
+    engine_.drawResulstOnImage<rs::Cluster>(desigsToKeep, resultDesignators, *req);
+  }
+
   outInfo("The filteredResponse size:" << resp.size());
   processing_mutex_.unlock();
 
@@ -776,12 +756,12 @@ bool RSProcessManager::handleQuery(std::string *req, std::vector<std::string> &r
 void RSProcessManager::filterResults(std::string &requestDesignator,
                                      std::vector<std::string> &resultDesignators,
                                      std::vector<std::string> &filteredResponse,
-                                     std::string superclass)
+                                     std::vector<bool> &designatorsToKeep,
+                                     const std::string superclass)
 {
   outInfo("filtering the results based on the designator request");
   outInfo("Superclass: " << superclass);
-  std::vector<bool> keep_designator;
-  keep_designator.resize(resultDesignators.size(), true);
+  designatorsToKeep.resize(resultDesignators.size(), true);
 
   rapidjson::Document request;
   request.Parse(requestDesignator.c_str());
@@ -817,7 +797,7 @@ void RSProcessManager::filterResults(std::string &requestDesignator,
           }
           else
           {
-            keep_designator[i] = false;
+            designatorsToKeep[i] = false;
           }
         }
         else if(it->name.GetString() == "contains")
@@ -828,7 +808,7 @@ void RSProcessManager::filterResults(std::string &requestDesignator,
           }
           else
           {
-            keep_designator[i] = false;
+            designatorsToKeep[i] = false;
           }
         }
         else if(it->name.GetString() == "shape") //there can be multiple shapes and these are not nested
@@ -882,7 +862,7 @@ void RSProcessManager::filterResults(std::string &requestDesignator,
             }
             else
             {
-              ++it;
+              ok = true;
             }
           }
           ok = hasCadPose;
@@ -1024,27 +1004,18 @@ void RSProcessManager::filterResults(std::string &requestDesignator,
         }
         if(!ok)
         {
-          keep_designator[i] = false;
+          designatorsToKeep[i] = false;
         }
       }
     }
   }
 
-  for(int i = 0; i < keep_designator.size(); ++i)
+  for(int i = 0; i < designatorsToKeep.size(); ++i)
   {
-    if(keep_designator[i])
+    if(designatorsToKeep[i])
     {
       filteredResponse.push_back(resultDesignators[i]);
     }
-  }
-
-  if(useIdentityResolution_)
-  {
-    engine_.drawResulstOnImage<rs::Object>(keep_designator, resultDesignators, requestDesignator);
-  }
-  else
-  {
-    engine_.drawResulstOnImage<rs::Cluster>(keep_designator, resultDesignators, requestDesignator);
   }
 }
 

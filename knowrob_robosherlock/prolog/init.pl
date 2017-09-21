@@ -9,6 +9,7 @@
 
 :- owl_parser:owl_parse('package://knowrob_robosherlock/owl/rs_components.owl').
 :- owl_parser:owl_parse('package://knowrob_robosherlock/owl/rs_objects.owl').
+
 :- rdf_db:rdf_register_prefix(rs_components, 'http://knowrob.org/kb/rs_components.owl#', [keep(true)]).
 :- rdf_db:rdf_register_prefix(rs_objects, 'http://knowrob.org/kb/rs_objects.owl#', [keep(true)]).
 

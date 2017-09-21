@@ -13,8 +13,6 @@
 #include <iai_robosherlock_msgs/SetRSContext.h>
 #include <iai_robosherlock_msgs/RSQueryService.h>
 
-#include <semrec_client/BeliefstateClient.h>
-#include <semrec_client/Context.h>
 
 #include <rapidjson/rapidjson.h>
 #include <rapidjson/document.h>
@@ -57,9 +55,6 @@ private:
 
   rs::Visualizer visualizer_;
 
-  semrec_client::BeliefstateClient *semrecClient;
-  semrec_client::Context *ctxMain;
-
   std::string configFile_;
   std::vector<std::string> closedWorldAssumption_;
   std::vector<std::string> lowLvlPipeline_;
@@ -90,12 +85,10 @@ public:
                                         std::vector<std::string> &res);
 
   bool designatorCallbackLogic(std::string &req,
-                               std::vector<std::string> &res, bool allSolutions);
+                               std::vector<std::string> &res);
 
   bool jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::Request &req,
                          iai_robosherlock_msgs::RSQueryService::Response &res);
-
-  bool handleSemrec(const rapidjson::Document &doc);
 
   bool handleQuery(std::string *req,
                    std::vector<std::string> &resp);
@@ -104,7 +97,8 @@ public:
   void filterResults(std::string &requestDesignator,
                      std::vector<std::string> &resultDesignators,
                      std::vector<std::string> &filteredResponse,
-                     std::string superclass);
+                     std::vector<bool> &designatorsToKeep,
+                     const std::string superclass);
 
   //reset the pipeline in the AE;
   bool resetAE(std::string);

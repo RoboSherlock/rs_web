@@ -5,9 +5,7 @@ find_package(catkin REQUIRED rosjava_build_tools rosprolog
     designator_integration_msgs
              knowrob_common knowrob_actions knowrob_srdl
              tf tf_conversions knowrob_vis robosherlock robosherlock_demos
-             rs_addons #rs_simulation
-roslib rospack iai_robosherlock_msgs image_transport
-             semrec_client
+             rs_addons rs_simulation roslib rospack iai_robosherlock_msgs image_transport
              json_prolog)
 
 find_package(PkgConfig)
@@ -46,7 +44,7 @@ find_include_dirs(RS_INCLUDE_DIRS_LIST)
 catkin_package(
     INCLUDE_DIRS ${RS_INCLUDE_DIRS_LIST} ${SWIPL_INCLUDE_DIRS}
     CATKIN_DEPENDS designator_integration_msgs iai_robosherlock_msgs
-                   robosherlock_demos designator_integration_cpp semrec_client json_prolog
+                   robosherlock_demos designator_integration_cpp json_prolog
     LIBRARIES rs_designator_wrapper rs_kbAEmanagement ${SWIPL_LIBRARY_DIRS}
     CFG_EXTRAS ${PROJECT_NAME}_config.cmake
 )

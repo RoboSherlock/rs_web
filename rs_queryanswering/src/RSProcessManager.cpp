@@ -594,7 +594,7 @@ bool RSProcessManager::designatorCallbackLogic(std::string &req,
   if(semrecClient)
   {
     ctxRSEvent = new semrec_client::Context(this->semrecClient, "RoboSherlockEvent", "&rs_queryanswering;", "RoboSherlockEvent");
-    ctxRSEvent->addDesignator(rs::DesignatorWrapper::req_designator, "rs_queryanswering:eventRequest", "&rs_queryanswering;", "eventRequest");
+    //ctxRSEvent->addDesignator(rs::DesignatorWrapper::req_designator, "rs_queryanswering:eventRequest", "&rs_queryanswering;", "eventRequest");
   }
 
   std::vector<std::string> filteredResponse;
@@ -610,7 +610,8 @@ bool RSProcessManager::designatorCallbackLogic(std::string &req,
   lstDescription.SetArray();
   for(auto & annotatorName : executedPipeline)
   {
-    lstDescription.PushBack(annotatorName,pipeline_action->GetAllocator());
+    rapidjson::Value annotator(annotatorName.c_str(),pipeline_action->GetAllocator());
+    lstDescription.PushBack(annotator,pipeline_action->GetAllocator());
   }
   pipeline_action->AddMember("pipeline-id", 0, pipeline_action->GetAllocator());
   pipeline_action->AddMember("annotators", lstDescription, pipeline_action->GetAllocator());
@@ -618,7 +619,7 @@ bool RSProcessManager::designatorCallbackLogic(std::string &req,
 
   if(ctxRSEvent != NULL)
   {
-    ctxRSEvent->addDesignator(pipeline_action, "rs_queryanswering:eventHandler", "&rs_queryanswering;", "eventHandler");
+    //ctxRSEvent->addDesignator(pipeline_action, "rs_queryanswering:eventHandler", "&rs_queryanswering;", "eventHandler");
   }
 
   //   Delete the allocated keyvalue pairs for the annotator names
@@ -629,7 +630,7 @@ bool RSProcessManager::designatorCallbackLogic(std::string &req,
     if(ctxRSEvent)
     {
       //this needs to be an object->create copy constructor in Object class
-      ctxRSEvent->addObject(new semrec_client::Object(&designator, "&rs_queryanswering;", "objectPerceived"), "rs_queryanswering:objectPerceived");
+      //ctxRSEvent->addObject(new semrec_client::Object(&designator, "&rs_queryanswering;", "objectPerceived"), "rs_queryanswering:objectPerceived");
     }
   }
   if(ctxRSEvent != NULL)

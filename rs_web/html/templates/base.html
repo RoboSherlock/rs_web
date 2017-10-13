@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
   <head>
     
       
@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style/layout-default-1.4.0.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style/web.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style/user.css') }}">
-    
+   <!-- <link rel="stylesheet" href="{{ url_for('static', filename='style/jquery-ui.css') }}">  -->
     
     <script type="text/javascript" src="{{ url_for('static', filename='jquery-1.11.1.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='jquery.ui.js') }}"></script>
@@ -30,7 +30,8 @@
     <script type="text/javascript" src="{{ url_for('static', filename='RSWelcomeAnimation.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='robosherlock.js') }}"></script>
       
-    
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
+ 
       
     <script type="text/javascript"> 
       $(document).ready(function () {
@@ -70,9 +71,13 @@
         };
       });
 
-        
-        
     </script>
+
+
+
+
+
+
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -111,7 +116,89 @@
                 <li><b>hypotheses</b>(objID) - > shows all hypotheses given a description</li>
             </ul>
             <p>Documentation of the description language is available on the project website</p>
-      </div>    
+            <button id="opener" style="color:green">GroundTruth Annotation</button>
+            <div id="dialog"  title="GT Anno Tool">
+              <form method="post" class="forms" action="/newpost">
+                Classname: <br>
+                  <select name="classN">
+                   <option value="albi_himbeer_juice">albi_himbeer_juice</option>
+                   <option value="black_bowl">black_bowl</option>
+                   <option value="blue_camping_cup">blue_camping_cup</option>
+                   <option value="blue_cup">blue_cup</option>
+                   <option value="blue_plastic_bowl">blue_plastic_bowl</option>
+                   <option value="blue_spotted_plate">blue_spotted_plate</option>
+                   <option value="cappuccino">cappuccino</option>
+                   <option value="coffee_el_bryg">coffee_el_bryg</option>
+                   <option value="cup_eco_orange">cup_eco_orange</option>
+                   <option value="fork_blue_plastic">fork_blue_plastic</option>
+                   <option value="fork_red_plastic">fork_red_plastic</option>
+                   <option value="fork_ycb">fork_ycb</option>
+                   <option value="frying_pan">frying_pan</option>
+                   <option value="frying_spatula">frying_spatula</option>
+                   <option value="hela_curry_ketchup">hela_curry_ketchup</option>
+                   <option value="jod_salz">jod_salz</option>
+                   <option value="kelloggs_corn_flakes">kelloggs_corn_flakes</option>
+                   <option value="kelloggs_toppas_mini">kelloggs_toppas_mini</option>
+                   <option value="knife_blue_plastic">knife_blue_plastic</option>
+                   <option value="knife_red_plastic">knife_red_plastic</option>
+                   <option value="knife_ycb">knife_ycb</option>
+                   <option value="knusper_schoko_keks">knusper_schoko_keks</option>
+                   <option value="large_grey_spoon">large_grey_spoon</option>
+                   <option value="linux_cup">linux_cup</option>
+                   <option value="lion_cereal">lion_cereal</option>
+                   <option value="marken_salz">marken_salz</option>
+                   <option value="meer_salz">meer_salz</option>
+                   <option value="mondamin">mondamin</option>
+                   <option value="nesquik_cereal">nesquik_cereal</option>
+                   <option value="pancake_maker">pancake_maker</option>
+                   <option value="pfanner_grune_icetea">pfanner_grune_icetea</option>
+                   <option value="pfanner_pfirsch_icetea">pfanner_pfirsch_icetea</option>
+                   <option value="pitcher_blue">pitcher_blue</option>
+                   <option value="pitcher_white">pitcher_white</option>
+                   <option value="pitcher_yellow">pitcher_yellow</option>
+                   <option value="pot">pot</option>
+                   <option value="pringles_paprika">pringles_paprika</option>
+                   <option value="pringles_salt">pringles_salt</option>
+                   <option value="pringles_vinegar">pringles_vinegar</option>
+                   <option value="red_spotted_bowl">red_spotted_bowl</option>
+                   <option value="red_spotted_cup">red_spotted_cup</option>
+                   <option value="red_spotted_plate">red_spotted_plate</option>
+                   <option value="reine_butter_milch">reine_butter_milch</option>
+                   <option value="sigg_bottle">sigg_bottle</option>
+                   <option value="slotted_spatula">slotted_spatula</option>
+                   <option value="soja_milch">soja_milch</option>
+                   <option value="spitzen_reis">spitzen_reis</option>
+                   <option value="toaster">toaster</option>
+                   <option value="tomato_al_gusto_basilikum">tomato_al_gusto_basilikum</option>
+                   <option value="tomato_sauce_oro_di_parma">tomato_sauce_oro_di_parma</option>
+                   <option value="voll_milch">voll_milch</option>
+                   <option value="white_bowl">white_bowl</option>
+                   <option value="yellow_plate">yellow_plate</option>
+                   <option value="box">box</option>
+                   <option value="cylindrical">cylindrical</option>
+                   <option value="disk">disk</option>
+                   <option value="flat">flat</option>
+                   <option value="sphere">sphere</option>
+                   <option value="other">other</option>
+                  </select> <br> </br>
+                <!--Classname: <input type="text" name="classN" /> <br> </br> -->
+                Timestamp: <input type="text" name="timeS" /> <br> </br>
+                Image No.: <input type="text" name="imgN" /> <br> </br>
+                <input type="submit" value="Submit" />
+              </form>
+                <script>
+                $( "#dialog" ).dialog({ autoOpen: false });
+                $( "#opener" ).click(function() {
+                    $( "#dialog" ).dialog( "open" );
+                  });
+                </script>
+            </div>
+      </div>
+
+
+
+
+
 <!--
         <form  action = "/scenes" method="post">            
             <input type="textarea" name ="console" style ="rows=4 cols=50"/>
@@ -125,6 +212,7 @@
     {% block body %}
 <!--      <div class="ui-layout-center" id="bodyDiv">-->
       <h1 id = "title-header">RoboSherlock Perceptual Memories</h1>
+
 <!--      </div>-->
     {% endblock %}
       <!--

@@ -138,6 +138,48 @@
 </table>
 {% endmacro %}
 
+{% macro groundtruth(annot) %}  
+<table id = annotInfoTable >
+<thead>
+   <tr>
+       <th>ClassName</th>
+       <th>FeatureName</th>
+       <th>Classifier</th>
+       <th>Model</th>
+   </tr>
+</thead>
+<tbody>
+    <tr>
+        <td>{{annot['classificationGT']['classname']}}</td>
+        <td>{{annot['classificationGT']['featurename']}}</td>
+        <td>{{annot['classificationGT']['classifier']}}</td>
+        <td>{{annot['classificationGT']['model']}}</td>
+    </tr>
+</tbody>
+</table>
+{% endmacro %}
+
+{% macro classifi(annot) %}  
+<table id = annotInfoTable >
+<thead>
+   <tr>
+       <th>ClassName</th>
+       <th>FeatureName</th>
+       <th>Classifier</th>
+       <th>Model</th>
+   </tr>
+</thead>
+<tbody>
+    <tr>
+        <td>{{annot['classname']}}</td>
+        <td>{{annot['featurename']}}</td>
+        <td>{{annot['classifier']}}</td>
+        <td>{{annot['model']}}</td>
+    </tr>
+</tbody>
+</table>
+{% endmacro %}
+
 {% macro drawHistogram(name, id, nrOfBins, values) %}
 <script>
    // bar chart data
@@ -177,6 +219,8 @@
             }
         }}
 );;
+
+
 </script>
 {% endmacro %}
 
@@ -191,8 +235,12 @@
 {% endmacro %}
 
 {% macro showObject(obj,idx0,idx) %}
-<td><div class = "imgContainer"><img style="display:block;margin-left:auto;margin-right:auto;" src="{{ obj['image']}}"/></div></td>
-      <td>    
+<td><div class = "imgContainer"><img style="display:block;margin-left:auto;margin-right:auto;" src="{{ obj['image']}}"/>
+</div>
+
+</td>
+
+       <td>
             <div id = content>   
             {%for a in obj['annotations']%}
                 <div class="page_collapsible" id="body-section1">{{a['_type']}}<span></span></div>
@@ -210,6 +258,10 @@
                         {{ location(a) }}
                     {% elif a['_type']|string() =='rs.annotation.Geometry' %}
                         {{ geometry(a) }}
+                    {% elif a['_type']|string() =='rs.annotation.GroundTruth' %}
+                        {{ groundtruth(a) }}
+                    {% elif a['_type']|string() =='rs.annotation.Classification' %}
+                        {{ classifi(a) }}
                     {% elif a['_type']|string() =='rs.annotation.SemanticSize' %}
                         {{ size(a) }}
                     {% elif a['_type']|string() =='rs.annotation.ColorHistogram' %}
@@ -217,7 +269,7 @@
                     {% elif a['_type']|string() =='rs.pcl.PclFeature' %}
                         {{ pclfeat(a,idx0,idx,loop.index) }}
                     {% endif %}
-                </div>            
+                </div>
                 </div>
             {%endfor%}
             </div>

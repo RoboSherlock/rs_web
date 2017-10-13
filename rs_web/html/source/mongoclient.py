@@ -20,7 +20,7 @@ import time
 class MongoWrapper(object):
     def __init__(self):
         self.client = MongoClient()
-        self.db = self.client["Scenes_annotated"]
+        self.db = self.client["Kit20CnnRfGt"]
         self.active_collection = None
 
     def set_main_collection(self, _type):
@@ -183,6 +183,17 @@ class MongoWrapper(object):
         base64_img = self.get_base64_img(img)
         # print("converting to base64 took: %s seconds ---" % (time.time() - start_time),file=sys.stderr)
         return base64_img
+
+
+    #add for set correcting groundTruth in database.....
+    def setGTinDB(self, inputTS, imgNumber, objName):
+        print("database Name", self.db)
+        identiIndex=imgNumber-1
+        getIdentifiable= self.db.scene.find({'timestamp':inputTS})[0]['identifiables'][identiIndex]
+        getgt = getIdentifiable['annotations']
+        annoIndex=len(getgt)-1
+        print("size of annotation Array", annoIndex)
+        self.db.scene.update({"timestamp": inputTS}, {"$set":{"identifiables"+"."+str(identiIndex)+"."+"annotations"+"."+str(annoIndex)+"."+"classificationGT"+"."+"classname": objName }})
 
 
     def countHypothesesWithAnnotations(self):

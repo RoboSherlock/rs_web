@@ -52,15 +52,18 @@
 /**
  * Error output if program is called with wrong parameter.
  */
+
 void help()
 {
-  std::cout << "Usage: runAECpp [options] analysisEngine.xml [...]" << std::endl
-            << "Options:" << std::endl
-            << "  -wait If using piepline set this to wait for a service call" << std::endl
-            << "  -cwa use the list of objects from [pkg_path]/config/config.yaml to set a closed world assumption"
-            << "  -visualizer  Enable visualization" << std::endl
-            << "  -save PATH   Path for storing images" << std::endl;
+  std::cout << "Usage : rosrun rs_queryanswering run [options] [analysis_engine]" << std::endl
+            << "Options : " << std::endl
+            << "              _ae : = engine1   analysis_engine to run" << std::endl
+            << "              _vis : = true | false     use robosherlock visualization" << std::endl
+            << "              _wait : = true | false    enable or disable pervasiveness" << std::endl
+            << "              _cwa : = true | false    enable or disable pervasiveness" << std::endl
+            << std::endl;
 }
+
 
 /* ----------------------------------------------------------------------- */
 /*       Main                                                              */
@@ -75,87 +78,37 @@ int main(int argc, char *argv[])
   }
 
   ros::init(argc, argv, std::string("RoboSherlock_") + getenv("USER"));
+  ros::NodeHandle nh("~");
 
-  std::vector<std::string> args;
-  args.resize(argc - 1);
-  for(int argI = 1; argI < argc; ++argI)
+  std::string analysisEnginesName, analysisEngineFile;
+  bool useVisualizer, waitForServiceCall, useCWAssumption, useObjIDRes=true;
+
+  nh.param("ae", analysisEnginesName, std::string(""));
+  nh.param("wait",waitForServiceCall, false);
+  nh.param("vis", useVisualizer, false);
+  nh.param("cwa", useCWAssumption, false);
+
+  rs::common::getAEPaths(analysisEnginesName, analysisEngineFile);
+
+  if(analysisEngineFile.empty())
   {
-    args[argI - 1] = argv[argI];
-  }
-  bool useVisualizer = false;
-  bool waitForServiceCall = false;
-  bool useCWAssumption = false;
-  bool useObjIDRes = false;
-  std::string savePath = getenv("HOME");
-
-  size_t argO = 0;
-  for(size_t argI = 0; argI < args.size(); ++argI)
-  {
-    const std::string &arg = args[argI];
-
-    if(arg == "-visualizer")
-    {
-      useVisualizer = true;
-    }
-    else if(arg == "-wait")
-    {
-      waitForServiceCall = true;
-    }
-    else if(arg == "-cwa")
-    {
-      useCWAssumption = true;
-    }
-    else if(arg == "-idres")
-    {
-      useObjIDRes = true;
-    }
-    else if(arg == "-save")
-    {
-      if(++argI < args.size())
-      {
-        savePath = args[argI];
-      }
-      else
-      {
-        outError("No save path defined!");
-        return -1;
-      }
-    }
-    else
-    {
-      args[argO] = args[argI];
-      ++argO;
-    }
-  }
-  args.resize(argO);
-
-  struct stat fileStat;
-  if(stat(savePath.c_str(), &fileStat) || !S_ISDIR(fileStat.st_mode))
-  {
-    outError("Save path \"" << savePath << "\" does not exist.");
+    outError("analysis   engine \"" << analysisEngineFile << "\" not found.");
     return -1;
   }
-
-  std::string analysisEngineFile;
-  for(int argI = 0; argI < args.size(); ++argI)
+  else
   {
-    const std::string &arg = args[0];
-
-    if(!rs::common::getAEPaths(arg, analysisEngineFile))
-    {
-      outError("analysis engine \"" << arg << "\" not found.");
-      return -1;
-    }
+    outInfo(analysisEngineFile);
   }
-  outInfo(analysisEngineFile);
-  std::string configFile = ros::package::getPath("rs_queryanswering") +"/config/config.yaml";
-  ros::NodeHandle n("~");
+
+  std::string configFile = ros::package::getPath("rs_queryanswering") + "/config/config.yaml";
+
   try
   {
-    RSProcessManager manager(useVisualizer, savePath, waitForServiceCall,useCWAssumption, n);
+    RSProcessManager manager(useVisualizer, waitForServiceCall, useCWAssumption, nh);
     manager.setUseIdentityResolution(useObjIDRes);
+    manager.setUseJsonPrologInterface(false);
     manager.pause();
-    manager.init(analysisEngineFile,configFile);
+    manager.init(analysisEngineFile, configFile);
     manager.run();
     manager.stop();
   }

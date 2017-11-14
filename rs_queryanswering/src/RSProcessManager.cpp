@@ -3,16 +3,15 @@
 using namespace designator_integration;
 
 
-RSProcessManager::RSProcessManager(const bool useVisualizer, const std::string &savePath,
-                                   const bool &waitForServiceCall, const bool useCWAssumption, ros::NodeHandle n):
+RSProcessManager::RSProcessManager(const bool useVisualizer, const bool &waitForServiceCall,
+                                   const bool useCWAssumption, ros::NodeHandle n):
   engine_(n), inspectionEngine_(n), nh_(n), waitForServiceCall_(waitForServiceCall),
-  useVisualizer_(useVisualizer), useCWAssumption_(useCWAssumption),withJsonProlog_(false), useIdentityResolution_(false),
-  pause_(true), inspectFromAR_(false),visualizer_(savePath)
+  useVisualizer_(useVisualizer), useCWAssumption_(useCWAssumption), withJsonProlog_(false), useIdentityResolution_(false),
+  pause_(true), inspectFromAR_(false), visualizer_(".")
 {
 
-  //TODO::is this not a big  memory leak?
-  outInfo("Creating resource manager"); // TODO: DEBUG
-  uima::ResourceManager &resourceManager = uima::ResourceManager::createInstance("RoboSherlock"); // TODO: change topic?
+  outInfo("Creating resource manager");
+  uima::ResourceManager &resourceManager = uima::ResourceManager::createInstance("RoboSherlock");
 
   switch(OUT_LEVEL)
   {
@@ -62,9 +61,9 @@ void RSProcessManager::init(std::string &xmlFile, std::string configFile)
     outWarn("No low-level pipeline defined. Setting empty!");
   }
 
-  ros::service::waitForService("/json_prolog/simple_query");
+  if(withJsonProlog_) {ros::service::waitForService("/json_prolog/simple_query");}
 
-  getDemoObjects();
+//  getDemoObjects();
 
   if(inspectFromAR_)
   {
@@ -137,7 +136,7 @@ std::string RSProcessManager::getObjectByID(std::string OID, std::string type)
       {
       case 0:
         {
-	  transform.frame_id_ = poseList[0].as<std::string>();
+          transform.frame_id_ = poseList[0].as<std::string>();
           transform.stamp_ = ros::Time::now();
           break;
         }
@@ -151,9 +150,9 @@ std::string RSProcessManager::getObjectByID(std::string OID, std::string type)
           std::vector<json_prolog::PrologValue> positionValues = poseList[2].as<std::vector<json_prolog::PrologValue>>();
           assert(positionValues.size() == 3);
           tf::Vector3 vec;
-	  vec.setX(std::atof(positionValues[0].toString().c_str()));//sad: posigionValues[0].as<double>() sometimes segfaults :(
-	  vec.setY(std::atof(positionValues[1].toString().c_str()));
-	  vec.setZ(std::atof(positionValues[2].toString().c_str()));
+          vec.setX(std::atof(positionValues[0].toString().c_str()));//sad: posigionValues[0].as<double>() sometimes segfaults :(
+          vec.setY(std::atof(positionValues[1].toString().c_str()));
+          vec.setZ(std::atof(positionValues[2].toString().c_str()));
           transform.setOrigin(vec);
           break;
         }

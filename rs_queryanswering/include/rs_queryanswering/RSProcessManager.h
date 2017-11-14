@@ -61,8 +61,8 @@ private:
 
 public:
 
-  RSProcessManager(const bool useVisualizer, const std::string &savePath,
-                   const bool &waitForServiceCall, const bool useCWAssumption, ros::NodeHandle n);
+  RSProcessManager(const bool useVisualizer, const bool &waitForServiceCall,
+                   const bool useCWAssumption, ros::NodeHandle n);
 
   ~RSProcessManager();
 
@@ -113,9 +113,9 @@ public:
     engine_.useIdentityResolution(useIdentityResoltuion);
   }
 
-  inline void setUseJsonPrologInterface(bool useJson)
+  inline void setUseJsonPrologInterface(bool useJsonProlog)
   {
-    withJsonProlog_ = useJson;
+    withJsonProlog_ = useJsonProlog;
   }
 
   inline void setInspectFromAR(bool b)

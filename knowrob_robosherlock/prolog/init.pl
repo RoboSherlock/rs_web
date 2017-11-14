@@ -1,11 +1,13 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % dependencies
 :- register_ros_package(knowrob_common).
+:- register_ros_package(knowrob_srdl).
+:- register_ros_package(knowrob_actions).
 :- register_ros_package(knowrob_robosherlock).
 
 :- use_module(library(rs_plan_pipeline)).
-:- use_module(library(rs_query_interface)).
-:- load_foreign_library('rs_prologrulescpp.so').
+%:- use_module(library(rs_query_interface)).
+%:- load_foreign_library('rs_prologrulescpp.so').
 
 :- owl_parser:owl_parse('package://knowrob_robosherlock/owl/rs_components.owl').
 :- owl_parser:owl_parse('package://knowrob_robosherlock/owl/rs_objects.owl').

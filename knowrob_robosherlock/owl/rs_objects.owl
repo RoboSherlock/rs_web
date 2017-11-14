@@ -509,6 +509,14 @@
     
 
 
+    <!-- http://knowrob.org/kb/rs_objects.owl#IkeaRedBowl -->
+
+    <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#IkeaRedBowl">
+        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#KitchenObjects"/>
+    </owl:Class>
+    
+
+
     <!-- http://knowrob.org/kb/rs_objects.owl#JaMilch -->
 
     <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#JaMilch">
@@ -626,6 +634,14 @@
     <!-- http://knowrob.org/kb/rs_objects.owl#KnusperSchokoKeks -->
 
     <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#KnusperSchokoKeks">
+        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#KitchenObjects"/>
+    </owl:Class>
+    
+
+
+    <!-- http://knowrob.org/kb/rs_objects.owl#KoellnMuesliKnusperHonigNuss -->
+
+    <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#KoellnMuesliKnusperHonigNuss">
         <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#KitchenObjects"/>
     </owl:Class>
     
@@ -1080,6 +1096,22 @@
     
 
 
+    <!-- http://knowrob.org/kb/rs_objects.owl#Spoon -->
+
+    <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#Spoon">
+        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#Cutlery"/>
+    </owl:Class>
+    
+
+
+    <!-- http://knowrob.org/kb/rs_objects.owl#SpoonBluePlastic -->
+
+    <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#SpoonBluePlastic">
+        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#Spoon"/>
+    </owl:Class>
+    
+
+
     <!-- http://knowrob.org/kb/rs_objects.owl#SptizenReis -->
 
     <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#SptizenReis">
@@ -1155,6 +1187,14 @@
     <!-- http://knowrob.org/kb/rs_objects.owl#VollMilch -->
 
     <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#VollMilch">
+        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#MilkProduct"/>
+    </owl:Class>
+    
+
+
+    <!-- http://knowrob.org/kb/rs_objects.owl#WeideMilchSmall -->
+
+    <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#WeideMilchSmall">
         <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#MilkProduct"/>
     </owl:Class>
     

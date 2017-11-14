@@ -50,10 +50,6 @@
 
 :- use_module(library('jpl')).
 
-:- register_ros_package(knowrob_common).
-:- register_ros_package(knowrob_actions).
-:- register_ros_package(knowrob_srdl).
-
 % Load RoboSherlock components
 :- owl_parse('package://knowrob_robosherlock/owl/rs_components.owl').
 % Load Defined Objects
@@ -205,7 +201,7 @@ can_inputs_be_provided_for_annotator_list(AnnotatorList):-
   % check for all members of AnnotatorList
   forall(member(R,AnnotatorList),
     % The Annotator doesn't need any inputs
-    (\+ annotator_inputs(R,T) ;
+    (\+ annotator_inputs(R,_) ;
       % or: EVERY input will be provided by some annotator.
       forall(annotator_inputs(R,T), annotator_outputs(_,T))
     )
@@ -389,7 +385,7 @@ owl_subclass_of(Sub, Superclass), \+ owl_direct_subclass_of(_,Sub).
 % Return all subsequences of a given set.
 % Starts with the full sequence
 subsequence([H|T],[H|T2]) :- subsequence(T,T2).
-subsequence([H|T],[H2|T2]) :- subsequence(T,[H2|T2]).
+subsequence([_|T],[H2|T2]) :- subsequence(T,[H2|T2]).
 subsequence(_,[]).
 
 subseq(Sequence, Subsequence):- subsequence(Sequence, Subsequence), not(Subsequence = []).

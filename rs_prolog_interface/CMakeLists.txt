@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(knowrob_robosherlock)
+project(rs_prolog_interface)
 
 
 find_package(catkin REQUIRED rosjava_build_tools rosprolog

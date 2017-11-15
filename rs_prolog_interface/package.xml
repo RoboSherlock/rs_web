@@ -1,9 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>knowrob_robosherlock</name>
+  <name>rs_prolog_interface</name>
   <version>0.1.0</version>
-  <description>package holding prolog rules relating to robosherlocke
- 		- planning a pipeline based on keywords
+  <description>package holding prolog rules relating to robosherlock
 		- parsing queries and calling rules implemented in C++
   </description>
 
@@ -14,7 +13,6 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   
-  <depend>rosjava_build_tools</depend>
   <depend>designator_integration_msgs</depend>
   <depend>iai_robosherlock_msgs</depend> 
   <depend>knowrob_common</depend>

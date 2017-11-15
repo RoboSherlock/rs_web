@@ -16,8 +16,6 @@
         <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Objects for RoboSherlock
         </rdfs:comment>
     </owl:Ontology>
-    
-
 
     <!-- 
     ///////////////////////////////////////////////////////////////////////////////////////
@@ -26,8 +24,6 @@
     //
     ///////////////////////////////////////////////////////////////////////////////////////
      -->
-
-    
 
 
     <!-- http://knowrob.org/kb/rs_components.owl#hasDetectionClue -->

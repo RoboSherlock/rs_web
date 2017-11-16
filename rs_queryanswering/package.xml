@@ -23,7 +23,6 @@
   <depend>robosherlock_demos</depend>
   <depend>designator_integration_cpp</depend>
   <depend>image_transport</depend>
-  <depend>rs_simulation</depend>
   
 
 </package>

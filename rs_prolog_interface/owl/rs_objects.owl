@@ -16,6 +16,8 @@
         <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Objects for RoboSherlock
         </rdfs:comment>
     </owl:Ontology>
+    
+
 
     <!-- 
     ///////////////////////////////////////////////////////////////////////////////////////
@@ -24,6 +26,8 @@
     //
     ///////////////////////////////////////////////////////////////////////////////////////
      -->
+
+    
 
 
     <!-- http://knowrob.org/kb/rs_components.owl#hasDetectionClue -->
@@ -293,6 +297,7 @@
     <!-- http://knowrob.org/kb/rs_objects.owl#BlackBowl -->
 
     <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#BlackBowl">
+        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#Bowl"/>
         <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#KitchenObjects"/>
     </owl:Class>
     
@@ -317,6 +322,7 @@
     <!-- http://knowrob.org/kb/rs_objects.owl#BluePlasticBowl -->
 
     <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#BluePlasticBowl">
+        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#Bowl"/>
         <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#KitchenObjects"/>
     </owl:Class>
     
@@ -327,6 +333,12 @@
     <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#BlueSpottedPlate">
         <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#Plate"/>
     </owl:Class>
+    
+
+
+    <!-- http://knowrob.org/kb/rs_objects.owl#Bowl -->
+
+    <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#Bowl"/>
     
 
 
@@ -508,6 +520,7 @@
     <!-- http://knowrob.org/kb/rs_objects.owl#IkeaRedBowl -->
 
     <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#IkeaRedBowl">
+        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#Bowl"/>
         <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#KitchenObjects"/>
     </owl:Class>
     
@@ -1208,6 +1221,7 @@
     <!-- http://knowrob.org/kb/rs_objects.owl#WhiteBowl -->
 
     <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#WhiteBowl">
+        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#Bowl"/>
         <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#KitchenObjects"/>
     </owl:Class>
     

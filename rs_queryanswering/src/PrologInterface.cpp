@@ -28,7 +28,7 @@ PrologInterface::PrologInterface(bool json_prolog)
 void PrologInterface::init()
 {
   outInfo("Initializing Prolog Engine");
-  PlTerm av("knowrob_robosherlock");
+  PlTerm av("rs_prolog_interface");
   try
   {
     PlCall("register_ros_package", av);

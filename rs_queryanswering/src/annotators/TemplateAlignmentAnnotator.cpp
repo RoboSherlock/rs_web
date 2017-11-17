@@ -124,9 +124,9 @@ public:
     rapidjson::Document doc;
     doc.Parse(jsonQuery.c_str());
     std::string templateToFit;
-    if(doc.HasMember("CAD-MODEL"))
+    if(doc.HasMember("cad-model"))
     {
-      templateToFit = doc["CAD-MODEL"].GetString();
+      templateToFit = doc["cad-model"].GetString();
       if(templateToFit == "")
       {
         outError("No model name defined");
@@ -186,7 +186,8 @@ public:
       }
       if(!foundObjectForTemplate)
       {
-        continue;
+        outInfo("No detection with "<<templateToFit<< "name");
+	continue;
       }
       //Fit result of drill using local features/template matching
       FeatureCloud object_template;

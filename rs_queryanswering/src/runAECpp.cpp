@@ -81,11 +81,13 @@ int main(int argc, char *argv[])
   ros::NodeHandle nh("~");
 
   std::string analysisEnginesName, analysisEngineFile;
-  bool useVisualizer, waitForServiceCall, useCWAssumption, useObjIDRes=true;
+  bool useVisualizer, waitForServiceCall, useCWAssumption, useObjIDRes=true,
+	withJsonProlog=true;
 
   nh.param("ae", analysisEnginesName, std::string(""));
   nh.param("wait",waitForServiceCall, false);
   nh.param("vis", useVisualizer, false);
+  nh.param("withJsonProlog", withJsonProlog, true);
   nh.param("cwa", useCWAssumption, false);
 
   rs::common::getAEPaths(analysisEnginesName, analysisEngineFile);
@@ -106,7 +108,7 @@ int main(int argc, char *argv[])
   {
     RSProcessManager manager(useVisualizer, waitForServiceCall, useCWAssumption, nh);
     manager.setUseIdentityResolution(useObjIDRes);
-    manager.setUseJsonPrologInterface(false);
+    manager.setUseJsonPrologInterface(withJsonProlog);
     manager.pause();
     manager.init(analysisEngineFile, configFile);
     manager.run();

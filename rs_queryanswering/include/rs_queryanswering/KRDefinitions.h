@@ -25,10 +25,12 @@ static std::map<std::string, std::string> krNameMapping =
   {"Cutlery", "rs_objects:'Cutlery'"},
   {"Fork", "rs_objects:'Fork'"},
   {"Knife", "rs_objects:'Knife'"},
+  {"Spoon", "rs_objects:'Spoon'"},
   {"Cup", "rs_objects:'Cup'"},
   {"Bottle", "knowrob:'Bottle'"},
   {"Plate", "rs_objects:'Plate'"},
-  {"plate", "rs_objects:'Plate'"},
+  {"Bowl", "rs_objects:'Bowl'"},
+  {"KoellnMuesliKnusperHonigNuss", "rs_objects:'KoellnMuesliKnusperHonigNuss'"},
 
 
   //OBJECTS:
@@ -96,6 +98,11 @@ static std::map<std::string, std::string> krNameMapping =
   {"blue_camping_cup", "rs_objects:'BlueCampingCup'"},
   {"sigg_bottle", "rs_objects:'SiggBottle'"},
   {"white_bottle", "rs_objects:'WhiteBottle'"},
+  {"spoon_blue_plastic", "rs_objects:'SpoonBluePlastic'"},
+  {"ikea_red_bowl", "rs_objects:'IkeaRedBowl'"},
+  {"weide_milch_small", "rs_objects:'WeideMilchSmall'"},
+  {"koelln_muesli_knusper_honig_nuss", "rs_objects:'KoellnMuesliKnusperHonigNuss'"},
+  
 
   //Chemlab
   {"bottle_kimax", "rs_objects:'KimaxBottle'"},
@@ -118,7 +125,7 @@ static std::map<std::string, std::string> krNameMapping =
 
 static std::vector<std::string> rsQueryTerms =
 {
-  "shape", "volume", "contains", "color", "size",
+  "shape", "volume", "contains", "color", "size","class",
   "location", "logo", "text", "product", "obj-part",
   "detection", "type", "handle", "ingredient", "cad-model", "inspect"
 };

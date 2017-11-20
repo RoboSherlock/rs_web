@@ -2,6 +2,7 @@
 % dependencies
 :- register_ros_package(knowrob_common).
 :- register_ros_package(knowrob_robosherlock).
+:- register_ros_package(knowrob_map_date).
 :- register_ros_package(rs_prolog_interface).
 
 :- use_module(library(rs_query_interface)).

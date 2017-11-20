@@ -99,7 +99,7 @@ static std::map<std::string, std::string> krNameMapping =
   {"sigg_bottle", "rs_objects:'SiggBottle'"},
   {"white_bottle", "rs_objects:'WhiteBottle'"},
   {"spoon_blue_plastic", "rs_objects:'SpoonBluePlastic'"},
-  {"ikea_red_bowl", "rs_objects:'IkeaRedBowl'"},
+  {"edeka_red_bowl", "rs_objects:'EdekaRedBowl'"},
   {"weide_milch_small", "rs_objects:'WeideMilchSmall'"},
   {"koelln_muesli_knusper_honig_nuss", "rs_objects:'KoellnMuesliKnusperHonigNuss'"},
   

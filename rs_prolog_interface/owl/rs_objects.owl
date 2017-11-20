@@ -517,9 +517,9 @@
     
 
 
-    <!-- http://knowrob.org/kb/rs_objects.owl#IkeaRedBowl -->
+    <!-- http://knowrob.org/kb/rs_objects.owl#EdekaRedBowl -->
 
-    <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#IkeaRedBowl">
+    <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#EdekaRedBowl">
         <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#Bowl"/>
         <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#KitchenObjects"/>
     </owl:Class>

@@ -31,6 +31,7 @@ static std::map<std::string, std::string> krNameMapping =
   {"Plate", "rs_objects:'Plate'"},
   {"Bowl", "rs_objects:'Bowl'"},
   {"KoellnMuesliKnusperHonigNuss", "rs_objects:'KoellnMuesliKnusperHonigNuss'"},
+  {"BreakfastCereal","knowrob:'BreakfastCereal'"},
 
 
   //OBJECTS:

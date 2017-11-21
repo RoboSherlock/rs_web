@@ -33,16 +33,16 @@ public:
   std::string buildPerceivecAtQuery(const  tf::Stamped<tf::Pose> &p, const std::string &name)
   {
     std::stringstream ss;
-    ss<<"belief_perceived_at("<<rs_queryanswering::krNameMapping[name]<<",";
-    ss<<"['"<<p.frame_id_<<"',_,"
-     <<"["<<p.getOrigin().x()<<","<<p.getOrigin().y()<<","<<p.getOrigin().z()<<"],"
-     <<"["<<p.getRotation().w()<<","<<p.getRotation().x()<<","<<p.getRotation().y()<<","<<p.getRotation().z()<<"]],"
-     <<"[0.02,3.14], ID).";
+    ss << "belief_perceived_at(" << rs_queryanswering::krNameMapping[name] << ",";
+    ss << "['" << p.frame_id_ << "',_,"
+       << "[" << p.getOrigin().x() << "," << p.getOrigin().y() << "," << p.getOrigin().z() << "],"
+       << "[" << p.getRotation().w() << "," << p.getRotation().x() << "," << p.getRotation().y() << "," << p.getRotation().z() << "]],"
+       << "[0.02,3.14], ID)";
     return ss.str();
   }
 
-//  belief_perceived_at(knowrob:'Cup', [ReferenceFrame, _, Translation, Rotation],
-//                      [ThresholdTranslation, ThresholdRotation], ExistingOrNewCupObjectId)
+  //  belief_perceived_at(knowrob:'Cup', [ReferenceFrame, _, Translation, Rotation],
+  //                      [ThresholdTranslation, ThresholdRotation], ExistingOrNewCupObjectId)
   TyErrorId process(CAS &tcas, ResultSpecification const &res_spec)
   {
     outInfo("process start");
@@ -60,7 +60,7 @@ public:
 
     json_prolog::Prolog pl;
 
-    for(rs::Object &obj : objects)
+    for(rs::Object & obj : objects)
     {
       outInfo("");
       std::vector<rs::Detection> detections;
@@ -80,22 +80,19 @@ public:
       rs::Geometry &g = geom[0];
       tf::Stamped<tf::Pose> pose;
       rs::conversion::from(g.world(), pose);
-      std::string plQuery = buildPerceivecAtQuery(pose,name);
+      std::string plQuery = buildPerceivecAtQuery(pose, name);
       outInfo(plQuery);
       json_prolog::PrologQueryProxy bdgs = pl.query(plQuery);
-//      if(bdgs.begin() != bdgs.end())
-//      {
-        for(auto bdg : bdgs)
-        {
-         outInfo(bdg["A"].toString());
-        }
-//      }
-
-
+      for(auto bdg : bdgs)
+      {
+        outInfo(bdg["ID"].toString());
+        obj.uid.set(bdg["ID"].toString());
+        break;
+      }
       idx ++;
     }
     outInfo("Process ends");
-  return UIMA_ERR_NONE;
+    return UIMA_ERR_NONE;
   }
 };
 

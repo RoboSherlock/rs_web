@@ -83,7 +83,7 @@ PREDICATE(cpp_init_kvp, 3)
 {
   void *obj = A1;
   std::string type((char *)A2);
-  std::transform(type.begin(), type.end(), type.begin(), ::toupper);
+//  std::transform(type.begin(), type.end(), type.begin(), ::toupper);
   Designator *desig = (Designator *)obj;
   KeyValuePair *kvp = desig->addChild(type);
   return A3 = static_cast<void *>(kvp);
@@ -92,7 +92,7 @@ PREDICATE(cpp_init_kvp, 3)
 PREDICATE(cpp_add_kvp, 3)
 {
   std::string key = (std::string)A1;
-  std::transform(key.begin(), key.end(), key.begin(), ::toupper);
+//  std::transform(key.begin(), key.end(), key.begin(), ::toupper);
   std::string value = (std::string)A2;
   void *obj = A3;
   Designator *desig = (Designator *)obj;

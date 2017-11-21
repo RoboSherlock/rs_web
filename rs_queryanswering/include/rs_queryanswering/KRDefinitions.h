@@ -25,12 +25,13 @@ static std::map<std::string, std::string> krNameMapping =
   {"Cutlery", "rs_objects:'Cutlery'"},
   {"Fork", "rs_objects:'Fork'"},
   {"Knife", "rs_objects:'Knife'"},
-  {"Spoon", "rs_objects:'Spoon'"},
-  {"Cup", "rs_objects:'Cup'"},
+  {"Spoon", "knowrob:'Spoon'"},
+  {"Cup", "knowrob:'Cup'"},
   {"Bottle", "knowrob:'Bottle'"},
   {"Plate", "rs_objects:'Plate'"},
-  {"Bowl", "rs_objects:'Bowl'"},
-  {"KoellnMuesliKnusperHonigNuss", "rs_objects:'KoellnMuesliKnusperHonigNuss'"},
+  {"Bowl", "knowrob:'Bowl'"},
+  {"Milk", "knowrob:'Milk'"},
+  {"KoellnMuesliKnusperHonigNuss", "kitchen:'KoellnMuesliKnusperHonigNuss'"},
   {"BreakfastCereal","knowrob:'BreakfastCereal'"},
 
 
@@ -95,14 +96,15 @@ static std::map<std::string, std::string> krNameMapping =
   {"voll_milch", "rs_objects:'VollMilch'"},
   {"white_bowl", "rs_objects:'WhiteBowl'"},
   {"yellow_plate", "rs_objects:'YellowPlate'"},
-  {"cup_eco_orange", "rs_objects:'CupEcoOrange'"},
+  {"cup_eco_orange", "kitchen:'CupEcoOrange'"},
   {"blue_camping_cup", "rs_objects:'BlueCampingCup'"},
   {"sigg_bottle", "rs_objects:'SiggBottle'"},
   {"white_bottle", "rs_objects:'WhiteBottle'"},
-  {"spoon_blue_plastic", "rs_objects:'SpoonBluePlastic'"},
-  {"edeka_red_bowl", "rs_objects:'EdekaRedBowl'"},
-  {"weide_milch_small", "rs_objects:'WeideMilchSmall'"},
-  {"koelln_muesli_knusper_honig_nuss", "rs_objects:'KoellnMuesliKnusperHonigNuss'"},
+
+  {"spoon_blue_plastic", "kitchen:'SpoonBluePlastic'"},
+  {"edeka_red_bowl", "kitchen:'EdekaRedBowl'"},
+  {"weide_milch_small", "kitchen:'WeideMilchSmall'"},
+  {"koelln_muesli_knusper_honig_nuss", "kitchen:'KoellnMuesliKnusperHonigNuss'"},
   
 
   //Chemlab

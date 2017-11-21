@@ -61,9 +61,9 @@ bool PrologInterface::extractQueryKeysFromDesignator(designator_integration::Des
       outWarn(key << " is not a valid query-language term");
     }
   }
-  if(desig->childForKey("DETECTION"))
+  if(desig->childForKey("class"))
   {
-    designator_integration::KeyValuePair *kvp = desig->childForKey("DETECTION");
+    designator_integration::KeyValuePair *kvp = desig->childForKey("class");
     if(kvp->stringValue() == "PANCAKE" || kvp->stringValue() == "pancake")
     {
       keys.push_back("pancakedetector");

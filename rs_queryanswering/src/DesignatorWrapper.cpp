@@ -134,6 +134,7 @@ void DesignatorWrapper::convert(rs::Object &input, const size_t id, designator_i
   //  valuePair->setValue("LASTSEEN", now - input.lastSeen());
   //  object->addChild(valuePair);
   object->setValue("id", std::to_string(id));
+  object->setValue("uid",input.uid());
 }
 
 void DesignatorWrapper::convert(rs::Detection &input, designator_integration::KeyValuePair *object)

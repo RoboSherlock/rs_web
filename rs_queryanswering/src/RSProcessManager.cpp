@@ -346,64 +346,64 @@ bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::
       d.setType(Designator::OBJECT);
       res.answer.push_back(d.serializeToJSON());
     }
-    for(auto & r : res.answer)
-    {
-      outInfo("Before:" << r);
-      rapidjson::Document d;
-      d.Parse(r.c_str());
-      std::string className;
-      if(d.HasMember("class"))
-      {
-        rapidjson::Value &jClass = d["class"];
-        className = jClass["name"].GetString();
-      }
+//    for(auto & r : res.answer)
+//    {
+//      outInfo("Before:" << r);
+//      rapidjson::Document d;
+//      d.Parse(r.c_str());
+//      std::string className;
+//      if(d.HasMember("class"))
+//      {
+//        rapidjson::Value &jClass = d["class"];
+//        className = jClass["name"].GetString();
+//      }
 
-      std::string objectID = "http://knowrob.org/kb/thorin_simulation.owl#" + className + "1";
-      std::string childFrameId = className + "1";
+//      std::string objectID = "http://knowrob.org/kb/thorin_simulation.owl#" + className + "1";
+//      std::string childFrameId = className + "1";
 
-      if(std::find(seenObjects_.begin(), seenObjects_.end(), className) == seenObjects_.end())
-      {
-        outInfo("this is the first time I see this object. Get new ID");
-        seenObjects_.push_back(className);
-        outInfo(thorinObjects_[className]);
+//      if(std::find(seenObjects_.begin(), seenObjects_.end(), className) == seenObjects_.end())
+//      {
+//        outInfo("this is the first time I see this object. Get new ID");
+//        seenObjects_.push_back(className);
+//        outInfo(thorinObjects_[className]);
 
-        json_prolog::Prolog pl;
-        std::string query = "get_new_object_id('" + thorinObjects_[className] + "',OID)";
-        outInfo("Asking query: " << query);
-        json_prolog::PrologQueryProxy bdgs = pl.query(query);
-        for(json_prolog::PrologQueryProxy::iterator it = bdgs.begin(); it != bdgs.end(); it++)
-        {
-          outInfo("Got Object ID: " << (*it)["OID"].toString());
-        }
-      }
+//        json_prolog::Prolog pl;
+//        std::string query = "get_new_object_id('" + thorinObjects_[className] + "',OID)";
+//        outInfo("Asking query: " << query);
+//        json_prolog::PrologQueryProxy bdgs = pl.query(query);
+//        for(json_prolog::PrologQueryProxy::iterator it = bdgs.begin(); it != bdgs.end(); it++)
+//        {
+//          outInfo("Got Object ID: " << (*it)["OID"].toString());
+//        }
+//      }
 
-      if(d.HasMember("pose"))
-      {
-        outInfo("Foind pose in result string...looking for transform");
-        rapidjson::Value &jPose = d["pose"];
-        if(jPose.HasMember("transform"))
-        {
-          outInfo("Found the transform");
-          rapidjson::Value &jTransf = jPose["transform"];
-          if(std::strcmp(jTransf["child_frame_id"].GetString(), "") == 0)
-          {
-            outInfo("found emtpy child_frame_id. Overwriting");
-            jTransf["child_frame_id"].SetString(childFrameId.c_str(), childFrameId.length());
-          }
-        }
-      }
-      if(d.HasMember("id"))
-      {
-        outInfo("found id in response. resolving through KR");
-        d["id"].SetString(objectID.c_str(), objectID.length());
-      }
+//      if(d.HasMember("pose"))
+//      {
+//        outInfo("Foind pose in result string...looking for transform");
+//        rapidjson::Value &jPose = d["pose"];
+//        if(jPose.HasMember("transform"))
+//        {
+//          outInfo("Found the transform");
+//          rapidjson::Value &jTransf = jPose["transform"];
+//          if(std::strcmp(jTransf["child_frame_id"].GetString(), "") == 0)
+//          {
+//            outInfo("found emtpy child_frame_id. Overwriting");
+//            jTransf["child_frame_id"].SetString(childFrameId.c_str(), childFrameId.length());
+//          }
+//        }
+//      }
+//      if(d.HasMember("id"))
+//      {
+//        outInfo("found id in response. resolving through KR");
+//        d["id"].SetString(objectID.c_str(), objectID.length());
+//      }
 
-      rapidjson::StringBuffer buffer;
-      rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-      d.Accept(writer);
-      r = buffer.GetString();
-      outInfo("After: " << buffer.GetString());
-    }
+//      rapidjson::StringBuffer buffer;
+//      rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+//      d.Accept(writer);
+//      r = buffer.GetString();
+//      outInfo("After: " << buffer.GetString());
+//    }
     //handle the json
     return true;
   }

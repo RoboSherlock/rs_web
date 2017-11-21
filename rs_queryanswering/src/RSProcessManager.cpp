@@ -716,7 +716,7 @@ bool RSProcessManager::handleQuery(Designator *req, std::vector<Designator> &res
   if(std::find(new_pipeline_order.begin(), new_pipeline_order.end(), "ObjectIdentityResolution") == new_pipeline_order.end())
   {
     new_pipeline_order.push_back("ObjectIdentityResolution");
-    //    new_pipeline_order.push_back("GazeboInterface");
+    new_pipeline_order.push_back("BeliefToKnowRob");
   }
   new_pipeline_order.push_back("StorageWriter");
 

@@ -15,6 +15,7 @@ annotators:
     - PCLFeatureExtractor
     - TFBroadcaster
     - ObjectIdentityResolution
+    - BeliefToKnowRob
     - StorageWriter
 
 cw_assumption:

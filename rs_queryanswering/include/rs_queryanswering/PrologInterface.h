@@ -175,6 +175,7 @@ public:
     {
       outInfo("Calling Json Prolog");
     }
+    return false;
   }
 
 

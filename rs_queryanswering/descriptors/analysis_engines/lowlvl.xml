@@ -25,6 +25,9 @@
     <delegateAnalysisEngine key="AcatTFBroadcaster">
       <import location="../../../../robosherlock_demos/descriptors/annotators/acat/AcatTFBroadcaster.xml"/>
     </delegateAnalysisEngine>
+    <delegateAnalysisEngine key="BeliefToKnowRob">
+      <import location="../annotators/BeliefToKnowRob.xml"/>
+    </delegateAnalysisEngine>
     <delegateAnalysisEngine key="BlurDetectorAnnotator">
       <import location="../../../../robosherlock/descriptors/annotators/utils/BlurDetectorAnnotator.xml"/>
     </delegateAnalysisEngine>

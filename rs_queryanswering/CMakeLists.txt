@@ -109,25 +109,4 @@ target_link_libraries(rs_prologrulescpp
 	${SWIPL_LIBRARIES}
 	${catkin_LIBRARIES})
 
-rs_add_library(rs_handleAnnotator 
-	src/annotators/HandleAnnotator.cpp 
-	src/annotators/HandleExtractor.cpp)
-target_link_libraries(rs_handleAnnotator 
-	${catkin_LIBRARIES})
-
-add_library(rs_templateMatcher 
-	src/annotators/TemplateAlignment.cpp)
-target_link_libraries(rs_templateMatcher 
-	${catkin_LIBRARIES})
-
-rs_add_library(rs_templateAlignmentAnnotator 
-	src/annotators/TemplateAlignmentAnnotator.cpp)
-target_link_libraries(rs_templateAlignmentAnnotator 
-	rs_templateMatcher 
-	${catkin_LIBRARIES})
-
-rs_add_library(rs_clusterToPartsSegmenter 
-	src/annotators/ClusterToPartsSegmenter.cpp)
-target_link_libraries(rs_clusterToPartsSegmenter 
-	${catkin_LIBRARIES}
-	${SWIPL_LIBRARIES})
+add_subdirectory(src/annotators)

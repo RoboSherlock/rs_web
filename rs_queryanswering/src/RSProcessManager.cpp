@@ -49,12 +49,37 @@ void RSProcessManager::init(std::string &xmlFile, std::string configFile)
 
   try
   {
-    cv::FileStorage fs(configFile, cv::FileStorage::READ);
-    fs["cw_assumption"] >> closedWorldAssumption_;
+    cv::FileStorage fs(cv::String(configFile), cv::FileStorage::READ);
+
+    cv::FileNode m = fs["cw_assumption"];
+    if (m.type() != cv::FileNode::SEQ)
+    {
+        outError("Somethings wrong with pipeline definition");
+    }
+
+    cv::FileNodeIterator it = m.begin(), it_end = m.end(); // Go through the node
+    for (; it != it_end; ++it)
+    {
+        closedWorldAssumption_.push_back(*it);
+    }
+
     if(lowLvlPipeline_.empty()) //if not set programatically, load from a config file
     {
-      fs["annotators"] >> lowLvlPipeline_;
+      cv::FileNode n = fs["annotators"];
+      if (n.type() != cv::FileNode::SEQ)
+      {
+          outError("Somethings wrong with pipeline definition");
+      }
+
+      cv::FileNodeIterator it = n.begin(), it_end = n.end(); // Go through the node
+      for (; it != it_end; ++it)
+      {
+          lowLvlPipeline_.push_back(*it);
+      }
     }
+
+    fs.release();
+
   }
   catch(cv::Exception &e)
   {
@@ -300,13 +325,29 @@ bool RSProcessManager::resetAE(std::string newContextName)
   if(rs::common::getAEPaths(newContextName, contextAEPath))
   {
     outInfo("Setting new context: " << newContextName);
-    cv::FileStorage fs(configFile_, cv::FileStorage::READ);
+    cv::FileStorage fs(cv::String(configFile_), cv::FileStorage::READ);
+
+    cv::FileNode n = fs["annotators"];
+    if (n.type() != cv::FileNode::SEQ)
+    {
+        outError("Somethings wrong with pipeline definition");
+        return 1;
+    }
+
     std::vector<std::string> lowLvlPipeline;
-    fs["annotators"] >> lowLvlPipeline;
+    cv::FileNodeIterator it = n.begin(), it_end = n.end(); // Go through the node
+    for (; it != it_end; ++it)
+    {
+        lowLvlPipeline.push_back(*it);
+    }
+
+    fs.release();
 
     processing_mutex_.lock();
     this->init(contextAEPath, configFile_);
     processing_mutex_.unlock();
+
+    //shouldn't there be an fs.release() here?
 
     return true;
   }

@@ -37,7 +37,7 @@ public:
     ss << "['" << p.frame_id_ << "',_,"
        << "[" << p.getOrigin().x() << "," << p.getOrigin().y() << "," << p.getOrigin().z() << "],"
        << "[" << p.getRotation().w() << "," << p.getRotation().x() << "," << p.getRotation().y() << "," << p.getRotation().z() << "]],"
-       << "[0.02,3.14], ID)";
+       << "[0.1,6.28], ID)";
     return ss.str();
   }
 
@@ -86,7 +86,8 @@ public:
       for(auto bdg : bdgs)
       {
         outInfo(bdg["ID"].toString());
-        obj.uid.set(bdg["ID"].toString());
+	std::string uid = bdg["ID"].toString();
+        obj.uid.set(uid.substr(1,uid.size()-2));
         break;
       }
       idx ++;

@@ -65,6 +65,12 @@ std::thread thread;
  *                                  ADD DESIGNATOR
  * *************************************************************************/
 
+
+PREDICATE(install_rs_prologrulescpp,0)
+{
+  return true;
+}
+
 PREDICATE(cpp_add_designator, 2)
 {
   std::string desigType((char *)A1);
@@ -183,6 +189,7 @@ PREDICATE(cpp_init_rs, 2)
       pm = new RSProcessManager(false, waitForService, false, nh);
 //      pm->setLowLvlPipeline(lowLvlPipeline);
       pm->setUseIdentityResolution(false);
+      pm->setUseJsonPrologInterface(true);
       pm->init(pipelinePath, configPath);
       thread = std::thread(&RSProcessManager::run, &(*pm));
       return A2 = (void *)pm;

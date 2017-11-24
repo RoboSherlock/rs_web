@@ -236,7 +236,7 @@
         <multiValued>false</multiValued>
         <mandatory>true</mandatory>
         <overrides>
-          <parameter>MLNAtomsGenerator/wordnetGrounded</parameter>
+          <parameter>MLNInferencer/wordnetGrounded</parameter>
         </overrides>
       </configurationParameter>
 
@@ -247,7 +247,7 @@
         <multiValued>false</multiValued>
         <mandatory>true</mandatory>
         <overrides>
-          <parameter>MLNAtomsGenerator/query_mln</parameter>
+          <parameter>MLNInferencer/query_mln</parameter>
         </overrides>
       </configurationParameter>
 
@@ -468,21 +468,21 @@
    <nameValuePair>
       <name>DeCafH5File</name>
       <value>
-        <string>/caffe/extracted_feats/rh_kitchen_bvlc_fc7/CNN_robohow_2016_all.hdf5</string>
+        <string>/caffe/extracted_feats/kbreasoning_exp/CNN_kbreasoning_exp.hdf5</string>
       </value>
     </nameValuePair>
 
     <nameValuePair>
       <name>DeCafListFile</name>
       <value>
-        <string>/caffe/extracted_feats/rh_kitchen_bvlc_fc7/CNN_robohow_2016_all.list</string>
+        <string>/caffe/extracted_feats/kbreasoning_exp/CNN_kbreasoning_exp.list</string>
       </value>
     </nameValuePair>
 
     <nameValuePair>
       <name>DeCafKDTreeIndices</name>
       <value>
-        <string>/caffe/extracted_feats/rh_kitchen_bvlc_fc7/CNN_kdtree_robohow_2016_all.idx</string>
+        <string>/caffe/extracted_feats/kbreasoning_exp/CNN_kbreasoning_exp.idx</string>
       </value>
     </nameValuePair>
 
@@ -530,7 +530,7 @@
       <nameValuePair>
         <name>storagedb</name>
         <value>
-          <string>Scenes_annotated</string>
+          <string>TempResults</string>
         </value>
       </nameValuePair>
 
@@ -597,11 +597,11 @@
       <node>ClusterColorHistogramCalculator</node>
       <node>PrimitiveShapeAnnotator</node>
       <node>TemplateAlignmentAnnotator</node>
+<!--      <node>MLNInferencer</node>-->
 <!--      <node>ClusterToPartsSegmenter</node>-->
       <node>DeCafClassifier</node>
       <node>TFBroadcaster</node>
       <node>ObjectIdentityResolution</node>
-<!--      <node>GazeboInterface</node>-->
       <node>StorageWriter</node>
     </fixedFlow>
     </flowConstraints>

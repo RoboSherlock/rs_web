@@ -501,7 +501,7 @@ function Knowrob(options){
         history.navigateFileEnd();
         set_active(document.getElementById(nextButtonDiv));
         
-        prolog.jsonQuery(q+", marker_publish", function(result) {
+        prolog.jsonQuery(q, function(result) {
             that.hideConsoleOverlay();
             history.setValue(history.getValue() + prolog.format(result), -1);
             history.navigateFileEnd();

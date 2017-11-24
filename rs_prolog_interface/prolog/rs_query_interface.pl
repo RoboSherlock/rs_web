@@ -105,6 +105,7 @@ designator(object).
 %keywords available
 rs_query_keyword(shape).
 rs_query_keyword(detection).
+rs_query_keyword(class).
 rs_query_keyword(size).
 rs_query_keyword(type).
 rs_query_keyword(color).

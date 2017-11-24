@@ -84,6 +84,8 @@ int main(int argc, char *argv[])
   bool useVisualizer, waitForServiceCall, useCWAssumption, useObjIDRes=true,
 	withJsonProlog=true;
 
+  if(withJsonProlog) {ros::service::waitForService("/json_prolog/simple_query");}
+
   nh.param("ae", analysisEnginesName, std::string(""));
   nh.param("wait",waitForServiceCall, false);
   nh.param("vis", useVisualizer, false);

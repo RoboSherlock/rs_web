@@ -6,7 +6,7 @@ using namespace designator_integration;
 RSProcessManager::RSProcessManager(const bool useVisualizer, const bool &waitForServiceCall,
                                    const bool useCWAssumption, ros::NodeHandle n):
   engine_(n), inspectionEngine_(n), nh_(n), waitForServiceCall_(waitForServiceCall),
-  useVisualizer_(useVisualizer), useCWAssumption_(useCWAssumption), withJsonProlog_(false), useIdentityResolution_(false),
+  useVisualizer_(useVisualizer), useCWAssumption_(useCWAssumption), withJsonProlog_(true), useIdentityResolution_(false),
   pause_(true), inspectFromAR_(false), visualizer_(".")
 {
 
@@ -85,8 +85,6 @@ void RSProcessManager::init(std::string &xmlFile, std::string configFile)
   {
     outWarn("No low-level pipeline defined. Setting empty!");
   }
-
-  if(withJsonProlog_) {ros::service::waitForService("/json_prolog/simple_query");}
 
 //  getDemoObjects();
 

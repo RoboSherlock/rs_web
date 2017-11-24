@@ -20,7 +20,7 @@ import time
 class MongoWrapper(object):
     def __init__(self):
         self.client = MongoClient()
-        self.db = self.client["Kit20CnnRfGt"]
+        self.db = self.client["KBRExperiments"]
         self.active_collection = None
 
     def set_main_collection(self, _type):

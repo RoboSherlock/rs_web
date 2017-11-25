@@ -91,6 +91,9 @@
     <delegateAnalysisEngine key="FlaskAnnotator">
       <import location="../../../../robosherlock_demos/descriptors/annotators/acat/FlaskAnnotator.xml"/>
     </delegateAnalysisEngine>
+    <delegateAnalysisEngine key="GetRenderedViews">
+      <import location="../annotators/GetRenderedViews.xml"/>
+    </delegateAnalysisEngine>
     <delegateAnalysisEngine key="GogglesAnnotator">
       <import location="../../../../robosherlock/descriptors/annotators/annotation/GogglesAnnotator.xml"/>
     </delegateAnalysisEngine>
@@ -597,6 +600,7 @@
       <node>ClusterColorHistogramCalculator</node>
       <node>PrimitiveShapeAnnotator</node>
       <node>TemplateAlignmentAnnotator</node>
+      <node>PancakeAnnotator</node>
 <!--      <node>MLNInferencer</node>-->
 <!--      <node>ClusterToPartsSegmenter</node>-->
       <node>DeCafClassifier</node>

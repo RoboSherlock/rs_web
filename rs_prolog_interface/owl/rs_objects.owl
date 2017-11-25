@@ -678,6 +678,7 @@
 
     <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#LionCereal">
         <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/knowrob.owl#BreakfastCereal"/>
+        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/knowrob.owl#Container"/>
         <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#KitchenObjects"/>
     </owl:Class>
     

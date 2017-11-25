@@ -69,7 +69,7 @@ static std::map<std::string, std::string> krNameMapping =
   {"knusper_schoko_keks", "rs_objects:'KnusperSchokoKeks'"},
   {"large_grey_spoon", "rs_objects:'LargeGreySpoon'"},
   {"linux_cup", "rs_objects:'LinuxCup'"},
-  {"lion_cereal", "rs_objects:'LionCereal'"},
+  {"lion_cereal_box", "rs_objects:'LionCereal'"},
   {"marken_salz", "rs_objects:'MarkenSalz'"},
   {"meer_salz", "rs_objects:'MeerSalz'"},
   {"mondamin", "rs_objects:'Mondamin'"},

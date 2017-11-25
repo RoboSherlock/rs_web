@@ -625,6 +625,7 @@ function Knowrob(options){
                 // FIXME: bad synchron request
                 var request = new XMLHttpRequest
                 request.open("GET", episodeURL, false);
+		request.overrideMimeType("application/json");
                 request.send(null);
                 that.episodeData = JSON.parse(request.responseText);
             }

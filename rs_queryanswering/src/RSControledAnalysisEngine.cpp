@@ -385,6 +385,9 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
   strMsg.data = "data:image/jpg;base64," + encoded;
   base64ImgPub.publish(strMsg);
   image_pub_.publish(outImgMsgs.toImageMsg());
+  image_pub_.publish(outImgMsgs.toImageMsg());
+  image_pub_.publish(outImgMsgs.toImageMsg());
+
 
   tf::StampedTransform camToWorld;
   camToWorld.setIdentity();

@@ -925,9 +925,9 @@
     
 
 
-    <!-- http://knowrob.org/kb/rs_objects.owl#PfannerPfirschIcetea -->
+    <!-- http://knowrob.org/kb/rs_objects.owl#PfannerPfirsichIcetea -->
 
-    <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#PfannerPfirschIcetea">
+    <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#PfannerPfirsichIcetea">
         <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/knowrob.owl#Drink"/>
         <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#KitchenObjects"/>
     </owl:Class>
@@ -1068,7 +1068,7 @@
 
     <!-- http://knowrob.org/kb/rs_objects.owl#RedSpottedPlate -->
 
-    <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#RedSpottedPlate">
+    <owl:Class rdf:about="http://knowrob.org/kb/rs_objects.owl#RedMetalPlateWhiteSpeckles">
         <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/rs_objects.owl#Plate"/>
     </owl:Class>
     

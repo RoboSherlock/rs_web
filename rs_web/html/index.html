@@ -41,7 +41,6 @@
     <div id="vtab">
         <ul>
             <li class="home selected"><a>LIVE QUERY</a></li>
-            <li class="belief state"><a>BELIEF STATE</a></li>
             <li class="login"><a>OBJECT STORE</a></li>
             <li class="support"><a>DOCUMENTATION</a></li>
         </ul>
@@ -51,11 +50,6 @@
           
           <iframe  style="position: relative; height: 100%; width: 100%;" src="rs_live.html"></iframe>
         </div>
-<!--        <div>
-          <button onclick="var ifr=document.getElementsByName('webGZ')[0]; ifr.src=ifr.src;">Refresh</button>
-          <iframe name="webGZ" id="webgz" src="http://localhost:8081" width="100%" height="100%"></iframe>
-
-        </div>-->
         <div id="iframe">
             <button onclick="var ifr=document.getElementsByName('objStore')[0]; ifr.src=ifr.src;">Refresh</button>
            <iframe name="objStore"  style="position: relative; height: 100%; width: 100%;" src="http://localhost:5000/scenes"></iframe>

@@ -29,8 +29,9 @@ function Knowrob(options){
     
     // URL to JSON file that contains episode data
 //    var episodeURL = options.episode_url;
-    var episodeURL = 'queriesForRoboSherlock.json'
-    
+//     var episodeURL = 'queriesForRoboSherlock.json'
+  
+    var episodeURL = [ 'queriesForEASE.json','queriesForRoboSherlock.json'];
     // Parsed episode data file
     var episodeData = undefined;
     
@@ -50,6 +51,7 @@ function Knowrob(options){
     var pictureDiv    = options.picture_div || 'mjpeg'
     var historyDiv    = options.history_div || 'history'
     var libraryDiv    = options.library_div || 'examplequery'
+    var libSelectDiv  = options.lib_sel_div || 'querylistselector'
     var queryDiv      = options.query_div || 'user_query'
     var nextButtonDiv = options.next_button_div || 'btn_query_next'
     
@@ -60,9 +62,6 @@ function Knowrob(options){
     var near = options.near || 0.01;
     var far = options.far || 1000.0;
     
-    // Speech bubbles that are displayed
-    this.speechBubbles = {};
-
     this.connect = function () {
       ros = new ROSLIB.Ros({url : rosURL});
       ros.on('connection', function() {
@@ -99,7 +98,7 @@ function Knowrob(options){
         on_render: that.on_render,
         on_window_dblclick: function() {
           if(that.selectedMarker) {
-              that.populate_query_select(libraryDiv);
+              that.populate_query_select(libraryDiv,libSelectDiv);
               that.unselectMarker();
           }
         }
@@ -114,14 +113,11 @@ function Knowrob(options){
         fixedFrame : 'map'
       });    
 
-      
-      
-        
       this.setup_autocompletion();
       this.setup_history_field();
       this.setup_query_field();
       
-      this.populate_query_select(libraryDiv);
+      this.populate_query_select(libraryDiv,libSelectDiv);
       this.resize_canvas();
       
       set_inactive(document.getElementById(nextButtonDiv));
@@ -196,6 +192,14 @@ function Knowrob(options){
         rootObject : rosViewer.scene,        
         path : meshPath,
       });
+      
+//       var rsMarkerArrayClient = new ROS3D.MarkerArrayClient({
+//         ros : ros,
+//         tfClient : tfClient,
+//         topic : '/RoboSherlock/markers',
+//         rootObject : rosViewer.scene,        
+//         path : meshPath,
+//       });
 
       var desig_listener = new ROSLIB.Topic({
         ros : ros,
@@ -212,54 +216,54 @@ function Knowrob(options){
       this.waitForJsonProlog();
     };
     
-    // TODO(daniel): deprecated
-    this.handleSpeechMessage = function (message) {
-        // TODO(daniel): Make sprite handling more generic
-        //    - Use marker messages?
-        //    - clear_canvas predicate should also remove bubbles
-        var bubble = that.speechBubbles[message.id];
-        var bubbleTexture = that.draw_speech_bubble(message.text);
-        
-        if(message.text.length==0) {
-            if(bubble) {
-                rosViewer.scene.remove(bubble);
-                delete that.speechBubbles[message.id];
-            }
-        }
-        else if(!bubble) {
-            var material = new THREE.SpriteMaterial({
-                useScreenCoordinates: false,
-                alignment: THREE.SpriteAlignment.bottomLeft});
-            material.map = bubbleTexture;
-            
-            bubble = new THREE.Sprite(material);
-            rosViewer.scene.add(bubble);
-            that.speechBubbles[message.id] = bubble;
-        }
-        else {
-            bubble.material.map = bubbleTexture;
-        }
-        if(bubble) {
-            // make sure text has the same dimensions for different texture sizes
-            var scale = bubbleTexture.image.height/100.0;
-            // make sure text is not stretched
-            bubble.scale.set(
-                scale*bubbleTexture.image.width/bubbleTexture.image.height,
-                scale,
-                1.0);
-            bubble.position.set(message.position.x, message.position.y, message.position.z);
-            
-            if(message.duration>0) {
-                // TODO(daniel): Fade-out bubble ?
-                window.setTimeout(function(){
-                    if(that.speechBubbles[message.id]) {
-                        rosViewer.scene.remove(bubble);
-                        delete that.speechBubbles[message.id];
-                    }
-              }, message.duration*1000);
-            }
-        }
-    };
+//     // TODO(daniel): deprecated
+//     this.handleSpeechMessage = function (message) {
+//         // TODO(daniel): Make sprite handling more generic
+//         //    - Use marker messages?
+//         //    - clear_canvas predicate should also remove bubbles
+//         var bubble = that.speechBubbles[message.id];
+//         var bubbleTexture = that.draw_speech_bubble(message.text);
+//         
+//         if(message.text.length==0) {
+//             if(bubble) {
+//                 rosViewer.scene.remove(bubble);
+//                 delete that.speechBubbles[message.id];
+//             }
+//         }
+//         else if(!bubble) {
+//             var material = new THREE.SpriteMaterial({
+//                 useScreenCoordinates: false,
+//                 alignment: THREE.SpriteAlignment.bottomLeft});
+//             material.map = bubbleTexture;
+//             
+//             bubble = new THREE.Sprite(material);
+//             rosViewer.scene.add(bubble);
+//             that.speechBubbles[message.id] = bubble;
+//         }
+//         else {
+//             bubble.material.map = bubbleTexture;
+//         }
+//         if(bubble) {
+//             // make sure text has the same dimensions for different texture sizes
+//             var scale = bubbleTexture.image.height/100.0;
+//             // make sure text is not stretched
+//             bubble.scale.set(
+//                 scale*bubbleTexture.image.width/bubbleTexture.image.height,
+//                 scale,
+//                 1.0);
+//             bubble.position.set(message.position.x, message.position.y, message.position.z);
+//             
+//             if(message.duration>0) {
+//                 // TODO(daniel): Fade-out bubble ?
+//                 window.setTimeout(function(){
+//                     if(that.speechBubbles[message.id]) {
+//                         rosViewer.scene.remove(bubble);
+//                         delete that.speechBubbles[message.id];
+//                     }
+//               }, message.duration*1000);
+//             }
+//         }
+//     };
     
     this.waitForJsonProlog = function () {
         var client = new JsonProlog(ros, {});
@@ -617,14 +621,14 @@ function Knowrob(options){
       rosViewer.camera.updateProjectionMatrix();
     };
     
-    this.get_episode_data = function () {
-        if(!that.episodeData) {
+    this.get_episode_data = function (idx) {
+//         if(!that.episodeData) {
             try {
                 // url must point to a json-file containing an array named "query" with
                 // the query strings to display in the select
                 // FIXME: bad synchron request
                 var request = new XMLHttpRequest
-                request.open("GET", episodeURL, false);
+                request.open("GET", episodeURL[idx], false);
 		request.overrideMimeType("application/json");
                 request.send(null);
                 that.episodeData = JSON.parse(request.responseText);
@@ -632,14 +636,15 @@ function Knowrob(options){
             catch(e) {
                 console.warn("Failed to load episode data.");
             }
-        }
+//         }
         return that.episodeData;
     };
 
     // fill the select with json data from url
-    this.populate_query_select = function (id, queries) {
+    this.populate_query_select = function (id,isSel,queries) {
+	idx = document.getElementById(isSel).selectedIndex;
         if(queries == undefined) {
-            var episodeData = that.get_episode_data();
+            var episodeData = that.get_episode_data(idx);
             if(!episodeData) return;
             queries = episodeData.query;
         }

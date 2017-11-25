@@ -1,0 +1,41 @@
+{
+    "query": [
+	{
+	    "q":"",
+	    "text":""
+	},	
+	{
+            "q":"owl_parse('package://iai_semantic_maps/owl/kitchen.owl'),owl_individual_of(A, knowrob:'SemanticEnvironmentMap'),add_object_with_children(A).",
+            "text":"Load semantic map"
+        },
+	{
+	    "q":"",
+	    "text":"-------------"
+	},
+        {
+            "q":"detect([an, object,[shape,box],[color,yellow]]).",
+            "text":"Detect a yellow box."
+        },
+	
+        {
+            "q":"detect([an, object,[type,'Cup']]).",
+            "text":"Detect Cup."
+        },
+        {
+            "q":"detect([an, object,[type,'Bowl']]).",
+            "text":"Detect the bowl."
+        },
+        {
+            "q":"detect([an, object,[type,'Spoon']]).",
+            "text":"Detect spoon."
+        },
+        {
+            "q":"detect([an, object,[type,'BreakfastCereal']]).",
+            "text":"Detect Cereal."
+        },
+        {
+            "q":"detect([an, object,[type,'Container']]).",
+            "text":"Detect all containers."
+        }
+    ]
+}

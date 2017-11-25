@@ -147,9 +147,13 @@
         </div>
       </div>
       <div id="library">
+      <select id = "querylistselector" name = "querylistselector" style="width:inherit" id="querySelect" onchange="knowrob.populate_query_select('examplequery','querylistselector')">
+	  <option value="LiveEase">Ease Symposium Live</option>
+	  <option value="LogsEASE">Ease Symposium Logs</option>
+	</select>
        <select onclick="knowrob.add_selected_to_queryform('examplequery')" 
           size="20" name="examplequery" id="examplequery"><option value=0></option>
-        </select>
+        </select>	
       </div>
     </div>
   

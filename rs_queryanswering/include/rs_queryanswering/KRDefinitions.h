@@ -100,6 +100,7 @@ static std::map<std::string, std::string> krNameMapping =
   {"blue_camping_cup", "rs_objects:'BlueCampingCup'"},
   {"sigg_bottle", "rs_objects:'SiggBottle'"},
   {"white_bottle", "rs_objects:'WhiteBottle'"},
+  {"pancake","rs_objects:'Pancake'"},
 
   {"spoon_blue_plastic", "kitchen:'SpoonBluePlastic'"},
   {"edeka_red_bowl", "kitchen:'EdekaRedBowl'"},

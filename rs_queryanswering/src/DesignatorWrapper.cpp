@@ -214,9 +214,15 @@ void DesignatorWrapper::convert(rs::PoseAnnotation &input, designator_integratio
   //  tf::transformStampedTFToMsg(transf,transf_stamped_msg);
 
   //  valuePair->setValue("transform", transf_stamped_msg);
+
   valuePair->setValue("pose", pose_stamped_msgs);
   valuePair->setValue("source", input.source());
-  object->addChild(valuePair);
+  uint64_t diff= now - tf_stamped_pose.stamp_.toNSec();
+  outWarn("Time diff in poses: "<<diff);
+  if(diff == 0)
+  {
+    object->addChild(valuePair);
+  }
 }
 
 void DesignatorWrapper::convert(rs::SemanticColor &input, designator_integration::KeyValuePair *object)
@@ -305,10 +311,8 @@ void DesignatorWrapper::convert(rs::ClusterPart &input, designator_integration::
   tf::poseStampedTFToMsg(tf_stamped_pose, pose_stamped_msgs);
   part->setValue("name", input.name());
   part->setValue("pose", pose_stamped_msgs);
-  if(ros::Time::now().toSec() - tf_stamped_pose.stamp_.toSec()  < 5)
-  {
-    object->addChild(part);
-  }
+  object->addChild(part);
+
 }
 
 void DesignatorWrapper::convert(rs_demos::Volume &input, designator_integration::KeyValuePair *object)

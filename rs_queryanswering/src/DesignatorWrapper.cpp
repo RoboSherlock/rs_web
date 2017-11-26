@@ -134,7 +134,7 @@ void DesignatorWrapper::convert(rs::Object &input, const size_t id, designator_i
   //  valuePair->setValue("LASTSEEN", now - input.lastSeen());
   //  object->addChild(valuePair);
   object->setValue("id", std::to_string(id));
-  object->setValue("uid",input.uid());
+  object->setValue("uid", input.uid());
 }
 
 void DesignatorWrapper::convert(rs::Detection &input, designator_integration::KeyValuePair *object)
@@ -205,15 +205,15 @@ void DesignatorWrapper::convert(rs::PoseAnnotation &input, designator_integratio
   geometry_msgs::PoseStamped pose_stamped_msgs;
   rs::conversion::from(input.camera(), tf_stamped_pose);
 
-//  tf::StampedTransform transf(tf::Transform(tf_stamped_pose.getRotation(),tf_stamped_pose.getOrigin()),tf_stamped_pose.stamp_,tf_stamped_pose.frame_id_,"");
-//  transf.child_frame_id_ = "";
-//  geometry_msgs::TransformStamped transf_stamped_msg;
+  //  tf::StampedTransform transf(tf::Transform(tf_stamped_pose.getRotation(),tf_stamped_pose.getOrigin()),tf_stamped_pose.stamp_,tf_stamped_pose.frame_id_,"");
+  //  transf.child_frame_id_ = "";
+  //  geometry_msgs::TransformStamped transf_stamped_msg;
 
 
   tf::poseStampedTFToMsg(tf_stamped_pose, pose_stamped_msgs);
-//  tf::transformStampedTFToMsg(transf,transf_stamped_msg);
+  //  tf::transformStampedTFToMsg(transf,transf_stamped_msg);
 
-//  valuePair->setValue("transform", transf_stamped_msg);
+  //  valuePair->setValue("transform", transf_stamped_msg);
   valuePair->setValue("pose", pose_stamped_msgs);
   valuePair->setValue("source", input.source());
   object->addChild(valuePair);
@@ -305,7 +305,10 @@ void DesignatorWrapper::convert(rs::ClusterPart &input, designator_integration::
   tf::poseStampedTFToMsg(tf_stamped_pose, pose_stamped_msgs);
   part->setValue("name", input.name());
   part->setValue("pose", pose_stamped_msgs);
-  object->addChild(part);
+  if(ros::Time::now().toSec() - tf_stamped_pose.stamp_.toSec()  < 5)
+  {
+    object->addChild(part);
+  }
 }
 
 void DesignatorWrapper::convert(rs_demos::Volume &input, designator_integration::KeyValuePair *object)

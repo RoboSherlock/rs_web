@@ -31,7 +31,7 @@
         },
         {
             "text":"Are there any objects that can be container?",
-            "q":"owl_subclass_of(Obj,rs_objects:'KitchenObject'),owl_subclass_of(Obj,knowrob:'Container')."
+            "q":"owl_subclass_of(Obj,rs_objects:'KitchenObjects'),owl_subclass_of(Obj,knowrob:'Container')."
         },
         {
             "text":"What are the properties defined for the PancakeMaker?",
@@ -39,7 +39,7 @@
         },
         {
             "text":"Show me all objects that can have a lid",
-            "q":"owl_subclass_of(Obj,knowrob:'HumanScaleObject'),class_properties(Obj,rs_components:'hasVisualProperty',rs_objects:'ObjectPartLid')."
+            "q":"class_properties(Obj,rs_components:'hasVisualProperty',rs_objects:'ObjectPartLid')."
         },
         {
             "text":"",
@@ -83,11 +83,11 @@
         },
 	{
             "text":"Find the pancake_maker on the counter top",
-            "q": "detect([an, object, [detection,'pancake_maker'],[a,location,[on, 'kitchen_sink_block_counter_top']],[timestamp,10]])."
+            "q": "detect([an, object, [class,'pancake_maker'],[a,location,[on, 'kitchen_sink_block_counter_top']],[timestamp,10]])."
         },
 	{
             "text":"Find the spatulas in the drawer",
-            "q": "detect([an, object, [detection,'spatula'],[a,location,[in, 'drawer_sinkblock_upper_open']],[timestamp,10]])."
+            "q": "detect([an, object, [class,'frying_spatula'],[a,location,[in, 'drawer_sinkblock_upper_open']],[timestamp,10]])."
         },
         {
             "text":"Find all Containers on the counter top",
@@ -111,7 +111,7 @@
 	    },
 	    {
 	        "text":"Detect the Mondamin pancake mix",
-	        "q":"detect([an, object, [detection,mondamin],[timestamp,9]])."		
+	        "q":"detect([an, object, [class,mondamin],[timestamp,9]])."		
 	    }, 
         
         {
@@ -120,7 +120,7 @@
         },
 	    {
 	        "text":"Detect pancake on Pancake Maker",
-	        "q":"detect([an, object, [detection,pancake],[timestamp,9]])."		
+	        "q":"detect([an, object, [class,pancake],[timestamp,9]])."		
 	    },
         {
             "text":"Find all objects that are drinks",
@@ -133,42 +133,8 @@
         {
             "text":"Find all electrical devices",
              "q":"detect([an, object, [type,'ElectricalDevice'],[timestamp,10]])."
-        },
-        {
-            "text":"",
-            "q":""
-        },
-        {
-            "text":"-------- CHEMLAB CONTEXT --------",
-            "q":"change_context('chemlab')."
-        },
-        {
-            "text":"",
-            "q":""
-        },
-	{
-            "text":"Find all objects",
-            "q": "detect([an, object, [detection,''],[a,location,[on, 'chemlab_table']],[timestamp,1]])."
-        },
-	{
-            "text":"Find the electrical device on the table",
-            "q": "detect([an, object, [type,'ElectricalDevice'],[a,location,[on, 'chemlab_table']],[timestamp,1]])."
-        },
-	{
-	    "text":"Detect container that can hold 100ml of liquid",
-	    "q": "detect([an, object, [type,'Container'],[volume,'0.1'],[a,location,[on, 'chemlab_table']],[timestamp,1]])."	
-	},
-        {
-	    "text":"Detect container that can hold 400ml of liquid",
-	    "q": "detect([an, object, [type,'Container'],[volume,'0.4'],[a,location,[on, 'chemlab_table']],[timestamp,1]])."	
-	},
-	{
-	    "text":"Detect bottle that contains acid",
-	    "q": "detect([an, object, [type,'Container'],[contains,acid],[a,location,[on, 'chemlab_table']],[timestamp,1]])."	
-	},
-	{
-	    "text":"Detect the container that can hold 250ml of substance and has base in it",
-	     "q": "detect([an, object, [type,'Container'],[volume,'0.25'],[contains,base],[a,location,[on, 'chemlab_table']],[timestamp,1]])."	
-	}
+        }
+
+
     ]
 }

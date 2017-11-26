@@ -1,21 +1,32 @@
 {
     "query": [
-	
+
 	{
-            "q":"owl_parse('package://iai_semantic_maps/owl/kitchen.owl'),owl_individual_of(A, knowrob:'SemanticEnvironmentMap'),add_object_with_children(A).",
-            "text":"Load semantic map"
-        },
-		{
             "q":"",
-            "text":"----- Query Robot Capabilities -----"
+            "text":"----- Initialization -----"
+        },	
+	{
+            "q":"owl_parse('package://iai_semantic_maps/owl/kitchen.owl'), owl_individual_of(A, knowrob:'SemanticEnvironmentMap'), add_object_with_children(A).",
+            "text":"Load the semantic map."
+        },
+	{
+            "q":"rs_interface(A,pickandplace).",
+            "text":"Initialize RoboSherlock."
+        },
+        {   "text":"",
+            "q":""
+        },
+	{
+            "q":"",
+            "text":"----- Robot Capabilities -----"
         },
         {
             "text":"Is the PR2 capable of perceiving 3D depth data?",
             "q":"perceptual_capabilities_on_robot('http://knowrob.org/kb/rs_components.owl#Perceive3DDepthCapability','http://knowrob.org/kb/PR2.owl#PR2Robot1'),!."            
         },
         {
-            "text":"Can I run the Cluster3DGeometryAnnotator component of RoboSherlock on the PR2 Robot?",
-            "q":"action_feasible_on_robot(rs_components:'Cluster3DGeometryAnnotator',pr2:'PR2Robot1')."
+            "text":"Can the Cluster3DGeometryAnnotator component of RoboSherlock be run on the PR2 Robot?",
+            "q":"action_feasible_on_robot(rs_components:'Cluster3DGeometryAnnotator', pr2:'PR2Robot1')."
         },
         {   "text":"",
             "q":""
@@ -23,23 +34,23 @@
 
         {
             "q":"",
-            "text":"----- Query for objects and their properties -----"
+            "text":"----- Objects and their properties -----"
         },
         {
-            "text":"What are the objects defined in the ontology?",
-            "q":"owl_subclass_of(Obj,rs_objects:'KitchenObjects')."
+            "text":"Which objects are defined in the ontology?",
+            "q":"owl_subclass_of(Obj, rs_objects:'KitchenObjects')."
         },
         {
-            "text":"Are there any objects that can be container?",
-            "q":"owl_subclass_of(Obj,rs_objects:'KitchenObjects'),owl_subclass_of(Obj,knowrob:'Container')."
+            "text":"Are there any objects that can be used as a container?",
+            "q":"owl_subclass_of(Obj, rs_objects:'KitchenObjects'), owl_subclass_of(Obj, knowrob:'Container')."
         },
         {
-            "text":"What are the properties defined for the PancakeMaker?",
-            "q":"predicates_for_object('http://knowrob.org/kb/rs_objects.owl#PancakeMaker',P)."
+            "text":"What are the properties defined for the Pancake Maker?",
+            "q":"predicates_for_object('http://knowrob.org/kb/rs_objects.owl#PancakeMaker', P)."
         },
         {
-            "text":"Show me all objects that can have a lid",
-            "q":"class_properties(Obj,rs_components:'hasVisualProperty',rs_objects:'ObjectPartLid')."
+            "text":"Which objects can have a lid?",
+            "q":"class_properties(Obj, rs_components:'hasVisualProperty', rs_objects:'ObjectPartLid')."
         },
         {
             "text":"",
@@ -50,25 +61,13 @@
             "text":"----- Build pipelines -----"
         },
 	{
-            "text":"Build a pipeline for the pancake maker.",
-            "q":"build_pipeline_for_object('http://knowrob.org/kb/rs_objects.owl#PancakeMaker',P)."
+            "text":"Build a pipeline for the Pancake Maker.",
+            "q":"build_pipeline_for_object('http://knowrob.org/kb/rs_objects.owl#PancakeMaker', P)."
         },
 	{
-	    "text":"Build pipeline for predicates: shape,color, location.",
-	    "q":"build_pipeline_from_predicates(['color','shape','location'],P)."
+	    "text":"Build a pipeline for properties: shape, color, location.",
+	    "q":"build_pipeline_from_predicates(['color','shape','location'], P)."
 	},
-	{
-	    "text":" ",
-	    "q":" "
-	},
-	{
-            "q":"rs_interface(A,pickandplace).",
-            "text":"Initialize RoboSherlock"
-        },
-        {
-            "text":"-------- Kitchen Context --------",
-            "q":"change_context('kitchen')."
-        },
 	{
 	    "text":" ",
 	    "q":" "
@@ -78,63 +77,69 @@
             "q":" "
         },
 	{
-            "text":"Find a large black object on the counter top",
-            "q": "detect([an, object, [color, black],[size,large],[timestamp,10]])."
+            "text":"Look for large black objects on the counter top.",
+            "q": "detect([an, object, [color, black], [size,large], [a, location, [on, 'kitchen_sink_block_counter_top']], [timestamp,10]])."
         },
 	{
-            "text":"Find the pancake_maker on the counter top",
-            "q": "detect([an, object, [class,'pancake_maker'],[a,location,[on, 'kitchen_sink_block_counter_top']],[timestamp,10]])."
+            "text":"Are there spatulas in the drawer?",
+            "q": "detect([an, object, [class, 'frying_spatula'], [a, location, [in, 'drawer_sinkblock_upper_open']], [timestamp, 10]])."
         },
 	{
-            "text":"Find the spatulas in the drawer",
-            "q": "detect([an, object, [class,'frying_spatula'],[a,location,[in, 'drawer_sinkblock_upper_open']],[timestamp,10]])."
+            "text":"Is there a Pancake Maker on the counter top?",
+            "q": "detect([an, object, [class, 'pancake_maker'], [a, location, [on, 'kitchen_sink_block_counter_top']], [timestamp, 10]])."
         },
         {
-            "text":"Find all Containers on the counter top",
-            "q": "detect([an, object, [type,'Container'],[a,location,[on, 'kitchen_sink_block_counter_top']],[timestamp,28]])."
+            "text":"Find all Containers on the counter top.",
+            "q": "detect([an, object, [type, 'Container'], [a, location, [on, 'kitchen_sink_block_counter_top']], [timestamp, 28]])."
         },
         {
-            "text":"Detect Handles",
-            "q": "detect([an, object, [handle,''],[timestamp,1]])."
+            "text":"Look for Handles.",
+            "q": "detect([an, object, [handle, ''], [timestamp, 1]])."
         },
 	{
-	    "text":"Detect boxes at ts 2",
+	    "text":"Detect boxes at timestamp 2.",
 	    "q":"detect([an, object, [shape,box],[timestamp,2]])."		
 	},
-	    {
-	        "text":"Detect the white box",
-	        "q":"detect([an, object, [shape, box],[color, white],[timestamp,12]])."
-	    },
-	    {
-	        "text":"Detect size  and color of all objects at ts 5",
-	        "q":"detect([an, object, [color,''],[size,''],[timestamp,5]])."		
-	    },
-	    {
-	        "text":"Detect the Mondamin pancake mix",
-	        "q":"detect([an, object, [class,mondamin],[timestamp,9]])."		
-	    }, 
-        
+	{
+	   "text":"Look for a white box at timestamp 12.",
+	   "q":"detect([an, object, [shape, box], [color, white], [timestamp, 12]])."
+	},
+	{
+	    "text":"Detect size and color of all objects at timestamp 5.",
+	    "q":"detect([an, object, [color,''], [size, ''], [timestamp, 5]])."		
+	},
+	{
+	    "text":"Detect the Mondamin Pancake Mix.",
+	    "q":"detect([an, object, [class, mondamin], [timestamp, 9]])."		
+	}, 
+        {
+            "text":"",
+            "q":""
+        },
         {
             "text":"--- Inspection queries using background knowledge about objects ---", 
             "q":" "
         },
-	    {
-	        "text":"Detect pancake on Pancake Maker",
-	        "q":"detect([an, object, [class,pancake],[timestamp,9]])."		
-	    },
+	{
+	    "text":"Is there a pancake on the Pancake Maker?",
+	    "q":"detect([an, object, [class, pancake], [timestamp, 9]])."		
+	},
         {
-            "text":"Find all objects that are drinks",
-            "q":"detect([an, object, [type,'Drink'],[timestamp,5]])."
+            "text":"Look for something to drink.",
+            "q":"detect([an, object, [type, 'Drink'], [timestamp, 5]])."
         },
         {
-            "text":"Find all objects that are Food or drink or ingredient",
-            "q":"detect([an, object, [type,'FoodOrDrinkOrIngredient'],[timestamp,8]])."
+            "text":"Find all objects that are Food or Drink or Ingredient",
+            "q":"detect([an, object, [type, 'FoodOrDrinkOrIngredient'], [timestamp, 8]])."
         },
         {
-            "text":"Find all electrical devices",
-             "q":"detect([an, object, [type,'ElectricalDevice'],[timestamp,10]])."
+            "text":"Look for electrical devices",
+             "q":"detect([an, object, [type, 'ElectricalDevice'], [timestamp, 10]])."
+        },
+        {
+            "text":"",
+            "q":""
         }
-
 
     ]
 }

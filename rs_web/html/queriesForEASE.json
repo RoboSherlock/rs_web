@@ -38,8 +38,12 @@
             "text":"Detect all containers."
         },
 	{
-		"q":"rs_render_view('cup').",
+		"q":"rs_render_view('rgb').",
 		"text":"Offscreen render the belief state."
+	},
+	{
+		"q":"rs_render_view('mask').",
+		"text":"Show the object masks"
 	}
     ]
 }

@@ -661,7 +661,7 @@ bool RSProcessManager::renderOffscreen(std::string object)
   processing_mutex_.lock();
 
   //these are hacks,, where we need the
-  query->asJson = "{\"render\":"+object+"}";
+  query->asJson = "{\"render\":\""+object+"\"}";
 
   std::vector<std::string> newPipelineOrder = {"CollectionReader",
                                                "ImagePreprocessor",

@@ -23,7 +23,6 @@
 #include <rapidjson/rapidjson.h>
 #include <rapidjson/document.h>
 
-
 #include <pcl/common/centroid.h>
 #include <pcl/io/pcd_io.h>
 
@@ -60,23 +59,17 @@ private:
 
   std::thread thread_;
   TFBroadcasterWrapper broadCasterObject_;
-  ros::Publisher marker_pub_,marker_pu2b_;
+  ros::Publisher marker_pub_, marker_pu2b_;
 
 public:
   GetRenderedViews(): nh_("~"), it_(nh_)
   {
     client_ = nh_.serviceClient<iai_robosherlock_msgs::UpdateObjects>("/update_objects");
-    outInfo("");
     std::string configFile = ros::package::getPath("robosherlock") + "/config/config_unreal_vision.ini";
-    outInfo("");
     boost::property_tree::ptree pt;
-    outInfo("");
     boost::property_tree::ini_parser::read_ini(configFile, pt);
-    outInfo("");
     unrealBridge_ = new UnrealVisionBridge(pt);
-    outInfo("");
     image_pub_ = it_.advertise("rendered_image", 5, false);
-    outInfo("");
     marker_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("markers", 1, true);
     marker_pu2b_ = nh_.advertise<visualization_msgs::MarkerArray>("markers_ROS", 1, true);
   }
@@ -84,9 +77,9 @@ public:
   TyErrorId initialize(AnnotatorContext &ctx)
   {
     outInfo("initialize");
-outInfo("");
+    outInfo("");
     thread_ = std::thread(&TFBroadcasterWrapper::run, &broadCasterObject_);
-outInfo("");
+    outInfo("");
     return UIMA_ERR_NONE;
   }
 
@@ -177,11 +170,11 @@ outInfo("");
     tf::Stamped<tf::Pose> poseStamped;
     poseStamped.setOrigin(mapToPoint.getOrigin());
 
-    tf::Quaternion rot(0,0,0,1);
+    tf::Quaternion rot(0, 0, 0, 1);
 
 
-//    rot_hack.setEuler(M_PI, M_PI / 2, 0.0);
-//    rot = rot * rot_hack;
+    //    rot_hack.setEuler(M_PI, M_PI / 2, 0.0);
+    //    rot = rot * rot_hack;
     rot_hack.setEuler(0.0, 0.0, M_PI);
     rot = rot * rot_hack;
     rot_hack.setEuler(M_PI_4, 0.0, 0.0);
@@ -239,67 +232,67 @@ outInfo("");
     }
   }
 
-//  void publishMarkers(const std::vector<rs::Object>  &objects)
-//  {
-//    visualization_msgs::MarkerArray markers,markersROS;
-//    int idx = 0;
-//    for(rs::Object obj : objects)
-//    {
-//      visualization_msgs::Marker marker;
-//      marker.header.frame_id = "map";
-//      marker.header.stamp = ros::Time::now();
-//      marker.ns = "rs";
-//      marker.id = idx++;
-//      marker.action = visualization_msgs::Marker::ADD;
+  //  void publishMarkers(const std::vector<rs::Object>  &objects)
+  //  {
+  //    visualization_msgs::MarkerArray markers,markersROS;
+  //    int idx = 0;
+  //    for(rs::Object obj : objects)
+  //    {
+  //      visualization_msgs::Marker marker;
+  //      marker.header.frame_id = "map";
+  //      marker.header.stamp = ros::Time::now();
+  //      marker.ns = "rs";
+  //      marker.id = idx++;
+  //      marker.action = visualization_msgs::Marker::ADD;
 
-//      std::vector<rs::Shape> shapes;
-//      std::vector<rs::Detection> detections;
-//      obj.annotations.filter(shapes);
-//      obj.annotations.filter(detections);
+  //      std::vector<rs::Shape> shapes;
+  //      std::vector<rs::Detection> detections;
+  //      obj.annotations.filter(shapes);
+  //      obj.annotations.filter(detections);
 
-//      if(detections.empty())
-//      {
-//        continue;
-//      }
-//      outInfo("publishing marker");
-//      marker.type = visualization_msgs::Marker::MESH_RESOURCE;
-//      std::string name = detections[0].name();
-//      if(name != "koelln_muesli_knusper_honig_nuss")
-//      {
-//        continue;
-//      }
-//      tf::Stamped<tf::Pose> pose ;
-//      pose.setOrigin(tf::Vector3(0,0,0));
-//      tf::Quaternion rotation (0,0,0,1);
-//      pose.setRotation(rotation);
+  //      if(detections.empty())
+  //      {
+  //        continue;
+  //      }
+  //      outInfo("publishing marker");
+  //      marker.type = visualization_msgs::Marker::MESH_RESOURCE;
+  //      std::string name = detections[0].name();
+  //      if(name != "koelln_muesli_knusper_honig_nuss")
+  //      {
+  //        continue;
+  //      }
+  //      tf::Stamped<tf::Pose> pose ;
+  //      pose.setOrigin(tf::Vector3(0,0,0));
+  //      tf::Quaternion rotation (0,0,0,1);
+  //      pose.setRotation(rotation);
 
-//      tf::poseTFToMsg(pose,marker.pose);
+  //      tf::poseTFToMsg(pose,marker.pose);
 
-//      resource_retriever::Retriever r;
-//      std::string mesh_resource = "package://rs_resources/objects_dataset/cad_models/" + name + "/" + name + ".dae";
-//      outInfo("publishing"<<mesh_resource);
-//      try
-//      {
-//        r.get(mesh_resource);
-//        marker.mesh_resource = mesh_resource;
-//        marker.mesh_use_embedded_materials = true;
-//        marker.scale.x = 1.0f;
-//        marker.scale.y = 1.0f;
-//        marker.scale.z = 1.0f;
-//        marker.color.a = 1.0;
-//      }
-//      catch(resource_retriever::Exception &e)
-//      {
-//        outWarn(e.what());
-//      }
-//      markers.markers.push_back(marker);
+  //      resource_retriever::Retriever r;
+  //      std::string mesh_resource = "package://rs_resources/objects_dataset/cad_models/" + name + "/" + name + ".dae";
+  //      outInfo("publishing"<<mesh_resource);
+  //      try
+  //      {
+  //        r.get(mesh_resource);
+  //        marker.mesh_resource = mesh_resource;
+  //        marker.mesh_use_embedded_materials = true;
+  //        marker.scale.x = 1.0f;
+  //        marker.scale.y = 1.0f;
+  //        marker.scale.z = 1.0f;
+  //        marker.color.a = 1.0;
+  //      }
+  //      catch(resource_retriever::Exception &e)
+  //      {
+  //        outWarn(e.what());
+  //      }
+  //      markers.markers.push_back(marker);
 
-//    }
-//    outInfo("Publishgin " << markers.markers.size() << " markers");
-//    marker_pub_.publish(markers);
+  //    }
+  //    outInfo("Publishgin " << markers.markers.size() << " markers");
+  //    marker_pub_.publish(markers);
 
-////    marker_pu2b_.publish(markersROS);
-//  }
+  ////    marker_pu2b_.publish(markersROS);
+  //  }
 
   TyErrorId process(CAS &tcas, ResultSpecification const &res_spec)
   {
@@ -310,10 +303,6 @@ outInfo("");
 
     std::vector<rs::Plane> planes;
     scene.annotations.filter(planes);
-
-/*    std::vector<rs::Object> objects;
-    cas.get(VIEW_OBJECTS, objects);
-    publishMarkers(objects);*/
 
     if(planes.empty())
     {
@@ -338,7 +327,7 @@ outInfo("");
     if(cas.getFS("QUERY", qs))
     {
       jsonQuery = qs.asJson();
-      outWarn("json query: " << qs.asJson());
+      outWarn("json query: " <<jsonQuery);
     }
     else
     {
@@ -346,14 +335,14 @@ outInfo("");
       return UIMA_ERR_NONE;
     }
     rapidjson::Document doc;
-
     doc.Parse(jsonQuery.c_str());
-    std::string objToHilghlight;
-    if(doc.HasMember("cad-model"))
-    {
-      objToHilghlight = doc["render"].GetString();
-    }
 
+    std::string howToHighligh;
+    if(doc.HasMember("render"))
+    {
+      howToHighligh = doc["render"].GetString();
+    }
+    outWarn(howToHighligh);
     int count = 0;
     while(!unrealBridge_->newData() && count < 5)
     {
@@ -373,22 +362,32 @@ outInfo("");
 
       std::map<std::string, cv::Vec3b> objectMap;
       cas.get(VIEW_OBJECT_MAP, objectMap);
-      for(auto obj : objectMap)
-      {
-        outInfo(obj.first);
-      }
+//      for(auto obj : objectMap)
+//      {
+//        outInfo(obj.first);
+//      }
       std::vector<cv::Point> points;
-      if(objToHilghlight != "")
-      {
+      //      if(howToHighligh != "")
+      //      {
 
-        countObjInliers(objectMap[uNameMapping[objToHilghlight]], points);
-      }
-      outInfo("Inliers for object: " << points.size());
+      //        countObjInliers(objectMap[uNameMapping[howToHighligh]], points);
+      //      }
+      //      outInfo("Inliers for object: " << points.size());
 
       cv_bridge::CvImage outImgMsgs;
       outImgMsgs.header = cam_info.header;
       outImgMsgs.encoding = sensor_msgs::image_encodings::BGR8;
-      outImgMsgs.image = rgb;
+      outInfo("SHOWING AS RESULT: "<<howToHighligh);
+      if(howToHighligh == "mask")
+      {
+        outImgMsgs.image = object_;
+      }
+      else
+      {
+        outImgMsgs.image = rgb;
+      }
+
+
       image_pub_.publish(outImgMsgs.toImageMsg());
       image_pub_.publish(outImgMsgs.toImageMsg());
       /*image_pub_.publish(outImgMsgs.toImageMsg());

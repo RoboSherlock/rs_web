@@ -78,12 +78,12 @@
                if( knowrob ) knowrob.resize_canvas();
               },
               minSize: 250
+            },
+            south: {
+              paneSelector: "#mjpeg2",
+              initClosed: true,
+              minSize: 150
             }
-            //south: {
-              //paneSelector: "#chart",
-              //initClosed: true,
-              //minSize: 150
-            //}
           }
         },
         east: {
@@ -102,9 +102,9 @@
               paneSelector: "#mjpeg",
               minSize: 150,
               maxSize: 480
-            }
+            },
 //            south: {
-//              paneSelector: "#mjpeg",
+//              paneSelector: "#mjpeg2",
 //              minSize: 150,
 //              maxSize: 480    
 //            }
@@ -128,7 +128,10 @@
       <!--div id="gzweb" style="display:none;">
 	<input type="button" id="myButton" onclick="myFunction(this)" value="gzweb on"></input>
       </div-->
-      <div id="chart"></div>	
+<!--       <div id="chart"></div> -->
+      <div id="mjpeg2">
+	<img align=center src="http://localhost:8080/stream?topic=/RoboSherlock/rendered_image" height ="100%"/>
+      </div>
     </div>
 
     <div class="ui-layout-west">
@@ -162,9 +165,6 @@
       <div id="mjpeg">
         <img align=center src="http://localhost:8080/stream?topic=/RoboSherlock/result_image" height="100%" />
       </div>
-<!--      <div id="mjpeg2">
-	<img align=center src="http://localhost:8080/stream?topic=/RoboSherlock/output_image" height ="100%"></img>
-      </div>-->
     </div>
     
     <div class="pane ui-layout-south">

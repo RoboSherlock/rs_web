@@ -655,6 +655,37 @@ bool RSProcessManager::designatorCallbackLogic(designator_integration_msgs::Desi
   return true;
 }
 
+bool RSProcessManager::renderOffscreen(std::string object)
+{
+  RSQuery *query = new RSQuery();
+  processing_mutex_.lock();
+
+  //these are hacks,, where we need the
+  query->asJson = "{\"render\":"+object+"}";
+
+  std::vector<std::string> newPipelineOrder = {"CollectionReader",
+                                               "ImagePreprocessor",
+                                               "RegionFilter",
+                                               "PlaneAnnotator",
+                                               "ObjectIdentityResolution",
+                                               "GetRenderedViews"};
+
+  std::for_each(newPipelineOrder.begin(), newPipelineOrder.end(), [](std::string & p)
+  {
+    outInfo(p);
+  });
+  std::vector<Designator> resultDesignators;
+  outInfo(FG_BLUE << "Executing offscreen rendering pipeline");
+  engine_.process(newPipelineOrder, true, resultDesignators, query);
+  outInfo("Executingoffscreen rendering pipeline: done");
+
+  processing_mutex_.unlock();
+  delete query;
+  return true;
+}
+
+
+
 bool RSProcessManager::handleQuery(Designator *req, std::vector<Designator> &resp)
 {
   RSQuery *query = new RSQuery();

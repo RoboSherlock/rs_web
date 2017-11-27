@@ -4,7 +4,7 @@ project(rs_queryanswering)
 find_package(catkin REQUIRED rosjava_build_tools rosprolog designator_integration_cpp
              designator_integration_msgs knowrob_common knowrob_actions knowrob_srdl
              tf tf_conversions knowrob_vis robosherlock robosherlock_demos
-             rs_addons roslib rospack iai_robosherlock_msgs image_transport
+             rs_addons roslib rospack iai_robosherlock_msgs image_transport visualization_msgs resource_retriever
              json_prolog)
 
 find_package(PkgConfig)

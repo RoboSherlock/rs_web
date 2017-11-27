@@ -215,7 +215,7 @@ PREDICATE(cpp_stop_rs, 1)
 {
   if(pm)
   {
-      pm->stop();
+    pm->stop();
     delete pm;
     pm = NULL;
     return TRUE;
@@ -231,6 +231,21 @@ PREDICATE(cpp_stop_rs, 1)
  * change AE file that is loaded, enables changing the context
  * e.g. from kitchen to cehmlab, where we need different parameterizations
  * */
+
+PREDICATE(rs_render_view, 1)
+{
+  if(pm)
+  {
+    std::string objectName((char *)A1);
+    pm->renderOffscreen(objectName);
+    return TRUE;
+  }
+  else
+  {
+    return FALSE;
+  }
+}
+
 PREDICATE(change_context, 1)
 {
   if(pm)

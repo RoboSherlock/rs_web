@@ -36,6 +36,10 @@
         {
             "q":"detect([an, object,[type,'Container']]).",
             "text":"Detect all containers."
-        }
+        },
+	{
+		"q":"rs_render_view('cup').",
+		"text":"Offscreen render the belief state."
+	}
     ]
 }

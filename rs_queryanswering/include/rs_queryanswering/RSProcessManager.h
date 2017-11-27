@@ -93,6 +93,9 @@ public:
   bool handleQuery(designator_integration::Designator *req,
                    std::vector<designator_integration::Designator> &resp);
 
+  //special case for offscreen rendering the beliefstate using Unreal Engine
+  bool renderOffscreen(std::string object);
+
   //TODO: move to Designator wrapper or somewhere else
   void filterResults(designator_integration::Designator &requestDesignator,
                      std::vector<designator_integration::Designator> &resultDesignators,

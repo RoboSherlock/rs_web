@@ -21,6 +21,12 @@ target_link_libraries(rs_clusterToPartsSegmenter
         ${catkin_LIBRARIES}
         ${SWIPL_LIBRARIES})
 
-rs_add_library(rs_beliefToKnowRob BeliefToKnowRob.cpp)
+rs_add_library(rs_beliefToKnowRob 
+	BeliefToKnowRob.cpp)
 target_link_libraries(rs_beliefToKnowRob 
         ${catkin_LIBRARIES})
+
+rs_add_library(rs_getRenderedViews 
+	GetRenderedViews.cpp)
+target_link_libraries(rs_getRenderedViews 
+	${catkin_LIBRARIES})

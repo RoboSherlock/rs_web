@@ -15,7 +15,6 @@ class BeliefToKnowRob : public Annotator
 {
 private:
 
-
 public:
 
   TyErrorId initialize(AnnotatorContext &ctx)
@@ -36,7 +35,7 @@ public:
     ss << "belief_perceived_at(" << rs_queryanswering::krNameMapping[name] << ",";
     ss << "['" << p.frame_id_ << "',_,"
        << "[" << p.getOrigin().x() << "," << p.getOrigin().y() << "," << p.getOrigin().z() << "],"
-       << "[" << p.getRotation().w() << "," << p.getRotation().x() << "," << p.getRotation().y() << "," << p.getRotation().z() << "]],"
+       << "[" << p.getRotation().x() << "," << p.getRotation().y() << "," << p.getRotation().z() <<","<<p.getRotation().w()<<"]],"
        << "[0.1,6.28], ID)";
     return ss.str();
   }

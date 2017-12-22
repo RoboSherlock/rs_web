@@ -9,8 +9,6 @@
 #include <rs/utils/output.h>
 
 #include <rs/types/all_types.h>
-#include <rs_demos/types/acat_types.h>
-#include <rs_demos/types/robohow_types.h>
 
 #include <designators/Designator.h>
 #include <designator_integration_msgs/DesignatorCommunication.h>
@@ -97,9 +95,9 @@ public:
       std::vector<rs::Goggles> goggles;
       std::vector<rs::Features> features;
       std::vector<rs::ClusterPart> clusterParts;
-      std::vector<rs_demos::Volume> volume;
-      std::vector<rs_demos::Substance> substance;
-      std::vector<rs_demos::Pizza> pizza;
+      //std::vector<rs_demos::Volume> volume;
+      //std::vector<rs_demos::Substance> substance;
+      //std::vector<rs_demos::Pizza> pizza;
 
       element.annotations.filter(geometry);
       element.annotations.filter(poses);
@@ -111,12 +109,9 @@ public:
       element.annotations.filter(goggles);
       element.annotations.filter(features);
       element.annotations.filter(clusterParts);
-      element.annotations.filter(volume);
-      element.annotations.filter(substance);
-      element.annotations.filter(pizza);
-
-      outDebug("Number of volume annotations: " << volume.size());
-      outDebug("Number of substance annotations: " << substance.size());
+      //element.annotations.filter(volume);
+      //element.annotations.filter(substance);
+      //element.annotations.filter(pizza);
 
       convertAll(geometry, &objectDesignator);
       convertAll(detections, &objectDesignator);
@@ -128,9 +123,9 @@ public:
       convertAll(goggles, &objectDesignator);
       convertAll(features, &objectDesignator);
       convertAll(clusterParts, &objectDesignator);
-      convertAll(volume, &objectDesignator);
-      convertAll(substance, &objectDesignator);
-      convertAll(pizza, &objectDesignator);
+//      convertAll(volume, &objectDesignator);
+//      convertAll(substance, &objectDesignator);
+//      convertAll(pizza, &objectDesignator);
 
 
       iai_robosherlock_msgs::PerceivedObject object;
@@ -183,12 +178,12 @@ public:
   void convert(rs::Goggles &input, designator_integration::KeyValuePair *object);
   void convert(rs::Features &input, designator_integration::KeyValuePair *object);
   void convert(rs::ClusterPart &input, designator_integration::KeyValuePair *object);
-  void convert(rs_demos::Volume &input, designator_integration::KeyValuePair *object);
-  void convert(rs_demos::Substance &input, designator_integration::KeyValuePair *object);
+//  void convert(rs_demos::Volume &input, designator_integration::KeyValuePair *object);
+//  void convert(rs_demos::Substance &input, designator_integration::KeyValuePair *object);
 
   void convert(rs::ARMarker &input, designator_integration::Designator &res);
   void convert(rs::HandleAnnotation &input, designator_integration::Designator &res);
-  void convert(rs_demos::Pizza &input, designator_integration::KeyValuePair *object);
+//  void convert(rs_demos::Pizza &input, designator_integration::KeyValuePair *object);
 
 };
 

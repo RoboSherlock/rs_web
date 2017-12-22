@@ -22,9 +22,10 @@
 #include <rs_queryanswering/PrologInterface.h>
 
 // OpenCV
-#include <opencv2/gpu/gpu.hpp>
-#include <opencv2/ocl/ocl.hpp>
-
+#if OPENCV_MAJOR_VERSION == 2
+  #include <opencv2/gpu/gpu.hpp>
+  #include <opencv2/ocl/ocl.hpp>
+#endif
 #include <algorithm>
 
 #include <rs/utils/RSAnalysisEngine.h>
@@ -99,7 +100,7 @@ public:
     outInfo("Destroy");
     return UIMA_ERR_NONE;
   }
-
+#if OPENCV_MAJOR_VERSION == 2
   void msColorSegmentations(const cv::Mat &img, ClusterWithParts &cwp)
   {
     cv::ocl::oclMat oclImgRaw, oclImgConverted;
@@ -156,7 +157,7 @@ public:
     outInfo("found " << cwp.colorClusterLabels.size() << " color cluster labels");
     outInfo("found " << cwp.colorClusters.size() << " color clusters");
   }
-
+#endif
   void overSegmentAndGrow(const pcl::PointIndicesPtr &indices, ClusterWithParts &cwp)
   {
     pcl::PointCloud<PointT>::Ptr clusterCloud(new pcl::PointCloud<PointT>());
@@ -199,7 +200,12 @@ public:
         pcl::Supervoxel<PointT>::Ptr neighbor_supervoxel = supervoxelClusters.at(adjacent_itr->second);
         pcl::PointNormal svNeighbourNormal;
         neighbor_supervoxel->getCentroidPointNormal(svNeighbourNormal);
-        Eigen::Map<const Eigen::Vector3f> point_a_normal = svNormal.normal, point_b_normal = svNeighbourNormal.normal;
+        Eigen::Map< Eigen::Vector3f> point_a_normal(svNormal.normal);
+        Eigen::Map< Eigen::Vector3f> point_b_normal(svNeighbourNormal.normal);
+
+//        point_a_normal[0]= svNormal.normal_x;point_a_normal[1]= svNormal.normal_y;point_a_normal[2]= svNormal.normal_z;
+//        point_b_normal[0]= svNeighbourNormal.normal_x;point_b_normal[2]= svNeighbourNormal.normal_y;point_b_normal[2]= svNeighbourNormal.normal_z;
+
         //outInfo("Angle between svl:" << supervoxel_label << " and svl:" << adjacent_itr->second << " is: " << fabs(point_a_normal.dot(point_b_normal)));
         Eigen::Vector3f dist(svNormal.x - svNeighbourNormal.x, svNormal.y - svNeighbourNormal.y, svNormal.z - svNeighbourNormal.z);
         if(std::abs(point_a_normal.dot(point_b_normal)) > 0.87 && !processed[(int)adjacent_itr->second - 1])
@@ -509,9 +515,10 @@ private:
     return UIMA_ERR_NONE;
   }
 
-  static bool enforceConvexNormalsSimilarity(const pcl::PointXYZRGBNormal &point_a, const pcl::PointXYZRGBNormal &point_b, float squared_distance)
+  static bool enforceConvexNormalsSimilarity(pcl::PointXYZRGBNormal &point_a, pcl::PointXYZRGBNormal &point_b, float squared_distance)
   {
-    Eigen::Map<const Eigen::Vector3f> point_a_normal = point_a.normal, point_b_normal = point_b.normal;
+    Eigen::Map<Eigen::Vector3f> point_a_normal( point_a.normal),
+            point_b_normal( point_b.normal);
 
     pcl::PointXYZRGBNormal temp;
     temp.x = point_a.x - point_b.x;

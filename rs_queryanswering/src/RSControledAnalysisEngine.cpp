@@ -338,10 +338,7 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
     {
       rs::Cluster &cluster = clusters[i];
       std::vector<rs::ClusterPart> parts;
-      std::vector<rs_demos::Pizza> pizza;
       cluster.annotations.filter(parts);
-      cluster.annotations.filter(pizza);
-
       for(int pIdx = 0; pIdx < parts.size(); ++pIdx)
       {
         rs::ClusterPart &part = parts[pIdx];

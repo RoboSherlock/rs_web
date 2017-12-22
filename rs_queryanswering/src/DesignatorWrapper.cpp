@@ -315,19 +315,19 @@ void DesignatorWrapper::convert(rs::ClusterPart &input, designator_integration::
 
 }
 
-void DesignatorWrapper::convert(rs_demos::Volume &input, designator_integration::KeyValuePair *object)
+/*void DesignatorWrapper::convert(rs_demos::Volume &input, designator_integration::KeyValuePair *object)
 {
   designator_integration::KeyValuePair *volume = new designator_integration::KeyValuePair("volume");
   volume->setValue(input.volume());
   object->addChild(volume);
-}
+}*/
 
-void DesignatorWrapper::convert(rs_demos::Substance &input, designator_integration::KeyValuePair *object)
+/*void DesignatorWrapper::convert(rs_demos::Substance &input, designator_integration::KeyValuePair *object)
 {
   designator_integration::KeyValuePair *substance = new designator_integration::KeyValuePair("contains");
   substance->setValue("substance", input.substanceName());
   object->addChild(substance);
-}
+}*/
 
 iai_robosherlock_msgs::PerceivedObjects DesignatorWrapper::getObjectsMsgs()
 {
@@ -359,7 +359,7 @@ void DesignatorWrapper::convert(rs::HandleAnnotation &input,
   handleDesignator.setValue("pose", pose_stamped_msgs);
 }
 
-void DesignatorWrapper::convert(rs_demos::Pizza &input, designator_integration::KeyValuePair *object)
+/*void DesignatorWrapper::convert(rs_demos::Pizza &input, designator_integration::KeyValuePair *object)
 {
   designator_integration::KeyValuePair *pizza = new designator_integration::KeyValuePair("pizza");
 
@@ -406,7 +406,7 @@ void DesignatorWrapper::convert(rs_demos::Pizza &input, designator_integration::
   }
   pizza->addChild(fields);
   object->addChild(pizza);
-}
+}*/
 
 template<>
 void DesignatorWrapper::convertAll(std::vector<rs::ClusterPart> &all, designator_integration::KeyValuePair *object)

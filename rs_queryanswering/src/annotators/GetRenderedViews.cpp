@@ -74,8 +74,10 @@ private:
   pcl::PointCloud<pcl::PointXYZ>::Ptr sphereCloud_;
   pcl::PointCloud<pcl::PointXYZRGBA>::Ptr viewCloud_;
 
+  bool publishAsMarkers_;
+
 public:
-  GetRenderedViews(): DrawingAnnotator(__func__),nh_("~"), it_(nh_)
+  GetRenderedViews(): DrawingAnnotator(__func__), nh_("~"), it_(nh_),publishAsMarkers_(false)
   {
     client_ = nh_.serviceClient<iai_robosherlock_msgs::UpdateObjects>("/update_objects");
     std::string configFile = ros::package::getPath("robosherlock") + "/config/config_unreal_vision.ini";
@@ -104,15 +106,15 @@ public:
     return UIMA_ERR_NONE;
   }
 
-  void generateViewPoints(pcl::PointCloud<pcl::PointXYZ>::Ptr &cloud, const tf::Vector3 centroid,float radius)
+  void generateViewPoints(pcl::PointCloud<pcl::PointXYZ>::Ptr &cloud, const tf::Vector3 centroid, float radius)
   {
     for(float theta = M_PI_2 + M_PI / 4; theta < M_PI - 2 * (M_PI / 18); theta += M_PI / 10)
     {
       for(float phi = -M_PI; phi < M_PI; phi += M_PI_2 / 15)
       {
         pcl::PointXYZ p;
-        p.x =  radius/2 * sin(theta) * cos(phi);
-        p.y =  radius/2 * sin(phi) * sin(theta);
+        p.x =  radius / 2 * sin(theta) * cos(phi);
+        p.y =  radius / 2 * sin(phi) * sin(theta);
         p.z =  radius * cos(theta) + centroid[2];
         cloud->push_back(p);
       }
@@ -121,25 +123,64 @@ public:
     cloud->height = 1;
   }
 
+  void publishViewPointsAsMarkers()
+  {
+    visualization_msgs::MarkerArray markers;
+    int idx = 0;
+    for(auto p : sphereCloud_->points)
+    {
+      visualization_msgs::Marker m;
+      m.scale.x = 0.01;
+      m.scale.y = 0.01;
+      m.scale.z = 0.01;
+
+      m.color.a = 1.0;
+      m.color.r = 0.0;
+      m.color.g = 1.0;
+      m.color.b = 0.0;
+      m.pose.position.x = p.x;
+      m.pose.position.y = p.y;
+      m.pose.position.z = p.z;
+
+      m.pose.orientation.w = 1.0;
+      m.pose.orientation.x = 0.0;
+      m.pose.orientation.x = 0.0;
+      m.pose.orientation.x = 0.0;
+
+      m.header.frame_id = "map";
+      m.header.stamp = ros::Time::now();
+      m.ns = "view_points";
+      m.id = idx++;
+      m.action = visualization_msgs::Marker::ADD;
+      m.type = visualization_msgs::Marker::SPHERE;
+      markers.markers.push_back(m);
+    }
+    marker_pub_.publish(markers);
+  }
+
   bool spawnCameraInUnreal(rs::Scene &scene, tf::Vector3 centroid)
   {
     tf::StampedTransform mapToCam, camToMap;
     rs::conversion::from(scene.viewPoint.get(), mapToCam);
 
-    camToMap  = tf::StampedTransform(mapToCam.inverse(),mapToCam.stamp_,mapToCam.child_frame_id_,mapToCam.frame_id_);
+    camToMap  = tf::StampedTransform(mapToCam.inverse(), mapToCam.stamp_, mapToCam.child_frame_id_, mapToCam.frame_id_);
 
-    tf::Vector3 centroidInMap = mapToCam*centroid;
-    outInfo("Centroid is: "<<centroid[0]<<" "<<centroid[1]<<" "<<centroid[2]);
-    outInfo("Centroid in map is: "<<centroidInMap[0]<<" "<<centroidInMap[1]<<" "<<centroidInMap[2]);
+    tf::Vector3 centroidInMap = mapToCam * centroid;
+    outInfo("Centroid is: " << centroid[0] << " " << centroid[1] << " " << centroid[2]);
+    outInfo("Centroid in map is: " << centroidInMap[0] << " " << centroidInMap[1] << " " << centroidInMap[2]);
 
     pcl::PointCloud<pcl::PointXYZ>::Ptr sphereCloud(new pcl::PointCloud<pcl::PointXYZ>);
-    generateViewPoints(sphereCloud,centroidInMap,centroid.length());
-    pcl::io::savePCDFileASCII("sphere.pcd",*sphereCloud);
+    generateViewPoints(sphereCloud, centroidInMap, centroid.length());
     outInfo("Sphere points size: " << sphereCloud->points.size());
 
     Eigen::Affine3d eigenTransform;
     tf::transformTFToEigen(mapToCam, eigenTransform);
     pcl::transformPointCloud<pcl::PointXYZ>(*sphereCloud, *sphereCloud_, eigenTransform);
+
+    if(publishAsMarkers_)
+    {
+      publishViewPointsAsMarkers();
+    }
 
     srand(time(NULL));
     int randomPointIdx = rand() % sphereCloud_->size() + 1;
@@ -154,11 +195,11 @@ public:
     mapToPlaneCenter.setRotation(tf::Quaternion(0, 0, 0, 1));
 
     mapToPoint.child_frame_id_ = "view_point";
-    mapToPoint.frame_id_ ="map";
+    mapToPoint.frame_id_ = "map";
     mapToPoint.setOrigin(tf::Vector3(pt.x, pt.y, pt.z));
 
     tf::Vector3 newZ((tf::Vector3(centroidInMap[0] - pt.x, centroidInMap[1] - pt.y, centroidInMap[2] - pt.z)).normalize());
-    tf::Vector3 ZAxes(0.0,0.0,1.0);
+    tf::Vector3 ZAxes(0.0, 0.0, 1.0);
     tf::Vector3 newX = (newZ.cross(ZAxes)).normalize();
     tf::Vector3 newY = (newZ.cross(newX)).normalize();
 
@@ -176,7 +217,6 @@ public:
     tf::Stamped<tf::Pose> poseStamped;
     poseStamped.setOrigin(mapToPoint.getOrigin());
     poseStamped.setRotation(mapToPoint.getRotation());
-
     iai_robosherlock_msgs::UpdateObjects updateCameraPose;
     updateCameraPose.request.name = "ARGBDCamera";
     tf::poseStampedTFToMsg(poseStamped, updateCameraPose.request.pose_stamped);
@@ -230,6 +270,7 @@ public:
   TyErrorId processWithLock(CAS &tcas, ResultSpecification const &res_spec)
   {
     outInfo("process start");
+    MEASURE_TIME;
     rs::StopWatch clock;
     rs::SceneCas cas(tcas);
     rs::Scene scene = cas.getScene();
@@ -278,7 +319,10 @@ public:
     doc.Parse(jsonQuery.c_str());
 
     std::string howToHighligh;
-    if(!doc.HasMember("render")) return UIMA_ERR_NONE;
+    if(!doc.HasMember("render"))
+    {
+      return UIMA_ERR_NONE;
+    }
 
     howToHighligh = doc["render"].GetString();
     int count = 0; //this is a hack
@@ -288,7 +332,10 @@ public:
       outInfo("Waiting for Unreal");
       usleep(100);
     }
-    if(count >= 5){ return UIMA_ERR_NONE; }
+    if(count >= 5)
+    {
+      return UIMA_ERR_NONE;
+    }
 
     unrealBridge_->setData(tcas);
 
@@ -321,9 +368,13 @@ public:
   void drawImageWithLock(cv::Mat disp)
   {
     if(!rgb_.empty())
-    disp  = rgb_.clone();
+    {
+      disp  = rgb_.clone();
+    }
     else
-      disp = cv::Mat::ones(cv::Size(640,480),CV_8UC3);
+    {
+      disp = cv::Mat::ones(cv::Size(640, 480), CV_8UC3);
+    }
   }
 
   void fillVisualizerWithLock(pcl::visualization::PCLVisualizer &visualizer, const bool firstRun)

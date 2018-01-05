@@ -1,0 +1,7 @@
+/knowrob_robosherlock/designator_integration_msgs/build
+/knowrob_robosherlock/designator_integration_msgs/.*
+/knowrob_robosherlock/iai_robosherlock_msgs/build
+/.gradle/
+/knowrob_robosherlock/.gradle/
+
+

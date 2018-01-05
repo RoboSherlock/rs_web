@@ -6,9 +6,6 @@
 #include <rs/utils/RSPipelineManager.h>
 #include <rs/scene_cas.h>
 
-#include <designator_integration_msgs/DesignatorResponse.h>
-#include <designator_integration_msgs/DesignatorRequest.h>
-
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/image_encodings.h>
@@ -144,11 +141,11 @@ public:
 
   void process();
 
-  void process(std::vector<designator_integration::Designator> &designator_response,
+  void process(std::vector<std::string> *designator_response,
                RSQuery *q = NULL);
 
   void process(bool reset_pipeline_after_process,
-               std::vector<designator_integration::Designator>&designator_response);
+               std::vector<std::string>*designator_response);
 
   // Call process() and
   // decide if the pipeline should be reset or not
@@ -159,7 +156,7 @@ public:
   // decide if the pipeline should be reset or not
   void process(std::vector<std::string> annotators,
                bool reset_pipeline_after_process,
-               std::vector<designator_integration::Designator> &designator_response,
+               std::vector<std::string> *designator_response,
                RSQuery *query = NULL);
 
   // Define a pipeline that should be executed,
@@ -170,8 +167,8 @@ public:
   //draw results on an image
   template <class T>
   void drawResulstOnImage(const std::vector<bool> &filter,
-                          const std::vector<designator_integration::Designator> &resultDesignators,
-                          designator_integration::Designator &requestDesignator);
+                          const std::vector<std::string> &resultDesignators,
+                          std::string &requestJson);
 
 
 };

@@ -114,7 +114,7 @@ void DesignatorWrapper::convert(rs::Object &input, const size_t id, rapidjson::D
   //  valuePair->setValue("LASTSEEN", now - input.lastSeen());
   //  object->addChild(valuePair);
    object->AddMember("id", std::to_string(id),object->GetAllocator());
-   object->AddMember("uid", std::to_string(uid),object->GetAllocator());
+   object->AddMember("uid", input.uid(), object->GetAllocator());
 }
 
 void DesignatorWrapper::convert(rs::Detection &input, rapidjson::Document *object)
@@ -371,59 +371,6 @@ void DesignatorWrapper::convert(rs::HandleAnnotation &input,
   rapidjson::Document poseJsonObj;
   poseJsonObj.Parse(poseJson);
   mergeJson(handleDesignator,poseJsonObj,"pose");
-}
-
-/*void DesignatorWrapper::convert(rs_demos::Pizza &input, rapidjson::Document *object)
-{
-  rapidjson::Document *pizza = new rapidjson::Document();
-
-  rs::PoseAnnotation pose = input.pose();
-  convert(pose, pizza);
-
-  rapidjson::Value size;
-  size.SetObject();
-  size.AddMember("width", input.size().width(),pizza->GetAllocator());
-  size.AddMember("height", input.size().height(),pizza->GetAllocator());
-  pizza->AddMember("size",size,pizza->GetAllocator());
-
-  rapidjson::Value gridSize;
-  gridSize.SetObject();
-  gridSize.AddMember("width", input.dimensions().width(),pizza->GetAllocator());
-  gridSize.AddMember("height", input.dimensions().height(),pizza->GetAllocator());
-  pizza->AddMember("dimensions",gridSize,pizza->GetAllocator());
-
-  rapidjson::Value fieldSize;
-  fieldSize.SetObject();
-  fieldSize.AddMember("width", input.fieldSize().width(),pizza->GetAllocator());
-  fieldSize.AddMember("height", input.fieldSize().height(),pizza->GetAllocator());
-  pizza->AddMember("field-size",fieldSize,pizza->GetAllocator());
-
-  rapidjson::Document *fields = new rapidjson::Document();
-  std::vector<rs_demos::PizzaField> fieldsVec = input.fields();
-  for(size_t i = 0; i < fieldsVec.size(); ++i)
-  {
-    rs_demos::PizzaField &inputF = fieldsVec[i];
-    rapidjson::Document *field = new rapidjson::Document();
-
-    rs::PoseAnnotation pose = inputF.pose();
-    convert(pose, field);
-
-    field->AddMember("x", inputF.position().x(),field->GetAllocator());
-    field->AddMember("y", inputF.position().y(),field->GetAllocator());
-
-    rapidjson::Document *ingredients = new rapidjson::Document();
-    std::vector<std::string> ingredientsVec = inputF.ingredients();
-    for(size_t j = 0; j < ingredientsVec.size(); ++j)
-    {
-      rapidjson::Value v(std::to_string(i).c_str(),ingredients->GetAllocator());
-      ingredients->AddMember(v, ingredientsVec[j],ingredients->GetAllocator());
-    }
-    field->AddMember("top-ingredient", ingredientsVec[ingredientsVec.size() - 1],field->GetAllocator());
-    mergeJson(*field,*ingredients,"ingredient");
-    mergeJson(*fields,*field,std::to_string(i));
-  }
-  mergeJson(*pizza,*fields,"fields");
-  mergeJson(*object,*pizza,"pizza");
 }
 
 template<>

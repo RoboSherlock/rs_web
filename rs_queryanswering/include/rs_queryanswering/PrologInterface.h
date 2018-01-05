@@ -26,9 +26,10 @@ class PrologInterface
 
   typedef std::shared_ptr<PlEngine> PlEnginePtr;
   PlEnginePtr engine;
+  bool useJsonProlog;
 
 public:
-  PrologInterface();
+  PrologInterface(bool json_prolog = false);
   ~PrologInterface()
   {
   }
@@ -143,6 +144,8 @@ public:
    * */
   bool buildPrologQueryFromDesignator(std::string *desig,
                                       std::string &prologQuery);
+
+  std::string buildPrologQueryFromKeys(const std::vector<std::string> &keys);
 
   /*brief
    * Create a vector of Annotator Names from the result of the knowrob_rs library.

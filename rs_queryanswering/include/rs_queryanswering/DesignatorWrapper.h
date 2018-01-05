@@ -9,9 +9,6 @@
 #include <rs/utils/output.h>
 
 #include <rs/types/all_types.h>
-#include <rs_demos/types/acat_types.h>
-#include <rs_demos/types/robohow_types.h>
-
 #include <designators/Designator.h>
 #include <designator_integration_msgs/DesignatorCommunication.h>
 

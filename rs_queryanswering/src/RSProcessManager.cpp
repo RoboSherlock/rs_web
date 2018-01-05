@@ -1,8 +1,5 @@
 #include <rs_queryanswering/RSProcessManager.h>
 
-using namespace designator_integration;
-
-
 RSProcessManager::RSProcessManager(const bool useVisualizer, const bool &waitForServiceCall,
                                    const bool useCWAssumption, ros::NodeHandle n):
   engine_(n), inspectionEngine_(n), nh_(n), waitForServiceCall_(waitForServiceCall),
@@ -650,7 +647,8 @@ bool RSProcessManager::designatorCallbackLogic(std::string &req,
   return true;
 }
 
-bool RSProcessManager::renderOffscreen(std::string object)
+//TODO dont use designator
+/*bool RSProcessManager::renderOffscreen(std::string object)
 {
   RSQuery *query = new RSQuery();
   processing_mutex_.lock();
@@ -669,7 +667,7 @@ bool RSProcessManager::renderOffscreen(std::string object)
   {
     outInfo(p);
   });
-  std::vector<Designator> resultDesignators;
+  std::vector<Designator> *resultDesignators;
   outInfo(FG_BLUE << "Executing offscreen rendering pipeline");
   engine_.process(newPipelineOrder, true, resultDesignators, query);
   outInfo("Executingoffscreen rendering pipeline: done");
@@ -677,7 +675,7 @@ bool RSProcessManager::renderOffscreen(std::string object)
   processing_mutex_.unlock();
   delete query;
   return true;
-}
+}*/
 
 bool RSProcessManager::handleQuery(std::string *req, std::vector<std::string> &resp)
 {

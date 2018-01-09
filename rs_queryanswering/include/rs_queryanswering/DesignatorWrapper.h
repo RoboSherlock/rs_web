@@ -9,7 +9,6 @@
 #include <rs/utils/output.h>
 
 #include <rs/types/all_types.h>
-#include <designators/Designator.h>
 #include <designator_integration_msgs/DesignatorCommunication.h>
 
 #include <boost/bind.hpp>

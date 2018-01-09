@@ -43,7 +43,7 @@ RSProcessManager::~RSProcessManager()
 void RSProcessManager::init(std::string &xmlFile, std::string configFile)
 {
   outInfo("initializing");
-  prologInterface = new PrologInterface();
+  prologInterface = new PrologInterface(withJsonProlog_);
   this->configFile_ = configFile;
 
   try

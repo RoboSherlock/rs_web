@@ -648,7 +648,7 @@ bool RSProcessManager::designatorCallbackLogic(std::string &req,
 }
 
 //TODO dont use designator
-/*bool RSProcessManager::renderOffscreen(std::string object)
+bool RSProcessManager::renderOffscreen(std::string object)
 {
   RSQuery *query = new RSQuery();
   processing_mutex_.lock();
@@ -667,15 +667,15 @@ bool RSProcessManager::designatorCallbackLogic(std::string &req,
   {
     outInfo(p);
   });
-  std::vector<Designator> *resultDesignators;
+  std::vector<std::string> resultDesignators;
   outInfo(FG_BLUE << "Executing offscreen rendering pipeline");
-  engine_.process(newPipelineOrder, true, resultDesignators, query);
+  engine_.process(newPipelineOrder, true, &resultDesignators, query);
   outInfo("Executingoffscreen rendering pipeline: done");
 
   processing_mutex_.unlock();
   delete query;
   return true;
-}*/
+}
 
 bool RSProcessManager::handleQuery(std::string *req, std::vector<std::string> &resp)
 {

@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
   nh.param("ae", analysisEnginesName, std::string(""));
   nh.param("wait",waitForServiceCall, false);
   nh.param("vis", useVisualizer, false);
-  nh.param("withJsonProlog", withJsonProlog, true);
+  nh.param("withJsonProlog", withJsonProlog, false);
   nh.param("cwa", useCWAssumption, false);
 
   rs::common::getAEPaths(analysisEnginesName, analysisEngineFile);

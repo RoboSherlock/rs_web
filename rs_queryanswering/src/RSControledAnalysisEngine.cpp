@@ -273,10 +273,10 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
     std::string desigString = resultDesignators[i];
     rapidjson::Document desig;
     desig.Parse(desigString.c_str());
-    std::cout<<desigString;
     if(desig.HasMember("id"))
     {
-      int clusterId = desig["id"].GetInt();
+      std::string cID(desig["id"].GetString());
+      int clusterId = std::atoi(cID.c_str());
 
       //Draw cluster on image
       rs::ImageROI roi = clusters[clusterId].rois();
@@ -300,35 +300,38 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
       }
       colorIdx++;
     }
+    if(desig.HasMember("handle")){
     std::string handleKvp = desig["handle"].GetString();
-    if(handleKvp != NULL)
-    {
-      //color the pixels of the handle
-      std::vector<rs::HandleAnnotation> handles;
-      scene.annotations.filter(handles);
-      for(int i = 0; i < handles.size(); ++i)
-      {
-        outInfo("Actual name: " << handles[i].name());
-        outInfo("Queried name: " << handleKvp);
-        if(handles[i].name() == handleKvp)
-        {
-          pcl::PointIndices indices;
-          rs::conversion::from(handles[i].indices(), indices);
-          outInfo("Number of inliers in handle " << i << ": " << indices.indices.size());
-          for(int j = 0; j < indices.indices.size(); ++j)
-          {
-            int idx = indices.indices[j];
-            cv::Vec3b new_color;
-            new_color[0] = 0;
-            new_color[0] = 0;
-            new_color[0] = 255;
-            rgb.at<cv::Vec3b>(cv::Point(idx % 640, idx / 640)) = new_color;
 
-            dispCloud->points[indices.indices[j]].rgba = rs::common::colors[i % rs::common::numberOfColors];
-            dispCloud->points[indices.indices[j]].a = 255;
+        if(handleKvp != NULL)
+        {
+          //color the pixels of the handle
+          std::vector<rs::HandleAnnotation> handles;
+          scene.annotations.filter(handles);
+          for(int i = 0; i < handles.size(); ++i)
+          {
+            outInfo("Actual name: " << handles[i].name());
+            outInfo("Queried name: " << handleKvp);
+            if(handles[i].name() == handleKvp)
+            {
+              pcl::PointIndices indices;
+              rs::conversion::from(handles[i].indices(), indices);
+              outInfo("Number of inliers in handle " << i << ": " << indices.indices.size());
+              for(int j = 0; j < indices.indices.size(); ++j)
+              {
+                int idx = indices.indices[j];
+                cv::Vec3b new_color;
+                new_color[0] = 0;
+                new_color[0] = 0;
+                new_color[0] = 255;
+                rgb.at<cv::Vec3b>(cv::Point(idx % 640, idx / 640)) = new_color;
+
+                dispCloud->points[indices.indices[j]].rgba = rs::common::colors[i % rs::common::numberOfColors];
+                dispCloud->points[indices.indices[j]].a = 255;
+              }
+            }
           }
         }
-      }
     }
   }
 

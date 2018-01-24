@@ -3,7 +3,7 @@
 RSProcessManager::RSProcessManager(const bool useVisualizer, const bool &waitForServiceCall,
                                    const bool useCWAssumption, ros::NodeHandle n):
   engine_(n), inspectionEngine_(n), nh_(n), waitForServiceCall_(waitForServiceCall),
-  useVisualizer_(useVisualizer), useCWAssumption_(useCWAssumption), withJsonProlog_(true), useIdentityResolution_(false),
+  useVisualizer_(useVisualizer), useCWAssumption_(useCWAssumption), withJsonProlog_(false), useIdentityResolution_(false),
   pause_(true), inspectFromAR_(false), visualizer_(".")
 {
 
@@ -368,8 +368,6 @@ bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(strBuff);
     val.Accept(writer);
 
-
-    std::cout<<strBuff.GetString();
     std::string reqMsg;
     std::vector<std::string> respMsg;
 
@@ -611,7 +609,6 @@ bool RSProcessManager::designatorCallbackLogic(std::string &req,
   rs::DesignatorWrapper::req_designator = new rapidjson::Document();
   rs::DesignatorWrapper::req_designator->Parse(req.c_str());
   rs::DesignatorWrapper::req_designator->AddMember("type","action",rs::DesignatorWrapper::req_designator->GetAllocator());
-  std::cout<<req.c_str();
 
   std::vector<std::string> filteredResponse;
   std::string *request = new std::string(rs::DesignatorWrapper::jsonToString(rs::DesignatorWrapper::req_designator));
@@ -620,34 +617,29 @@ bool RSProcessManager::designatorCallbackLogic(std::string &req,
   std::vector<std::string> executedPipeline = engine_.getNextPipeline();
 
   // Define an ACTION designator with the planned pipeline
-  rapidjson::Document *pipeline_action = new rapidjson::Document();
-  pipeline_action->AddMember("type","action",pipeline_action->GetAllocator());
+  rapidjson::Document pipeline_action(rapidjson::kObjectType);
+  pipeline_action.AddMember("type","action",pipeline_action.GetAllocator());
   rapidjson::Value lstDescription;
   lstDescription.SetArray();
   for(auto & annotatorName : executedPipeline)
   {
-    rapidjson::Value annotator(annotatorName.c_str(),pipeline_action->GetAllocator());
-    lstDescription.PushBack(annotator,pipeline_action->GetAllocator());
+    rapidjson::Value annotator(annotatorName.c_str(),pipeline_action.GetAllocator());
+    lstDescription.PushBack(annotator,pipeline_action.GetAllocator());
   }
-  pipeline_action->AddMember("pipeline-id", 0, pipeline_action->GetAllocator());
-  pipeline_action->AddMember("annotators", lstDescription, pipeline_action->GetAllocator());
-  //  filteredResponse.push_back(pipeline_action);
+  pipeline_action.AddMember("pipeline-id", 0, pipeline_action.GetAllocator());
+  pipeline_action.AddMember("annotators", lstDescription, pipeline_action.GetAllocator());
+  filteredResponse.push_back(rs::DesignatorWrapper::jsonToString(&pipeline_action));
 
-  //   Delete the allocated keyvalue pairs for the annotator names
 
   for(auto & designator : filteredResponse)
   {
     res.push_back(designator);
 
   }
-
-  lstDescription.Clear();
-  delete pipeline_action;
   outWarn("RS Query service call ended");
   return true;
 }
 
-//TODO dont use designator
 bool RSProcessManager::renderOffscreen(std::string object)
 {
   RSQuery *query = new RSQuery();
@@ -688,11 +680,15 @@ bool RSProcessManager::handleQuery(std::string *req, std::vector<std::string> &r
   //these are hacks,, where we need the
   query->asJson = *req;
   outInfo("Query as Json: " << query->asJson);
+
+
+
   if(req != NULL)
   {
     rapidjson::Document request;
     request.Parse(req->c_str());
-
+    //these checks are there for annotators that need to know
+    // about the query and the value queried for
     if(request.HasMember("timestamp"))
     {
       std::string ts = request["timestamp"].GetString();
@@ -806,7 +802,7 @@ bool RSProcessManager::handleQuery(std::string *req, std::vector<std::string> &r
   std::vector<std::string> topicResponse;
   for(auto & designator : resp)
   {
-    std::cout<<designator;
+    outInfo(designator);
     topicResponse.push_back(designator);
   }
   //desig_pub_.publish(topicResponse);
@@ -830,7 +826,7 @@ void RSProcessManager::filterResults(std::string &requestDesignator,
 
   for(rapidjson::Value::ConstMemberIterator it = request.MemberBegin(); it != request.MemberEnd(); ++it)
   {
-    if(it->name.GetString() == "timestamp" || it->name.GetString() == "location")
+    if(it->name == "timestamp" || it->name == "location")
     {
       continue;
     }
@@ -841,17 +837,18 @@ void RSProcessManager::filterResults(std::string &requestDesignator,
       rapidjson::Document resDesig;
       resDesig.Parse(resultDesignators[i].c_str());
       rapidjson::Document resultsForRequestedKey;
+      resultsForRequestedKey.SetObject();
       if(resDesig.HasMember("id"))
       {
-        if(it->name.GetString() == "size") //size is nested get it from the bounding box..bad design
+        if(it->name == "size") //size is nested get it from the bounding box..bad design
         {
           resultsForRequestedKey.AddMember("size",resDesig["boundingbox"]["size"],resultsForRequestedKey.GetAllocator());
         }
-        else if(it->name.GetString() == "cad-model")
+        else if(it->name == "cad-model")
         {
           resultsForRequestedKey.AddMember("cad-model",resDesig["pose"],resultsForRequestedKey.GetAllocator());
         }
-        else if(it->name.GetString() == "volume")
+        else if(it->name == "volume")
         {
           if(resDesig.HasMember("volume"))
           {
@@ -862,7 +859,7 @@ void RSProcessManager::filterResults(std::string &requestDesignator,
             designatorsToKeep[i] = false;
           }
         }
-        else if(it->name.GetString() == "contains")
+        else if(it->name == "contains")
         {
           if(resDesig.HasMember("contains"))
           {
@@ -873,32 +870,36 @@ void RSProcessManager::filterResults(std::string &requestDesignator,
             designatorsToKeep[i] = false;
           }
         }
-        else if(it->name.GetString() == "shape") //there can be multiple shapes and these are not nested
+        else if(it->name == "shape") //there can be multiple shapes and these are not nested
         {
           resultsForRequestedKey.AddMember("shape",resDesig["shape"],resultsForRequestedKey.GetAllocator());
         }
-        else if(it->name.GetString() == "type")//this shit needed so we don't loose al of our stuff just because all was sent instead of detection
+        else if(it->name == "type")//this shit needed so we don't loose al of our stuff just because all was sent instead of detection
         {
-          resultsForRequestedKey.AddMember("type",resDesig["class"],resultsForRequestedKey.GetAllocator());
+            //TODO should it always have class?
+            if(resDesig.HasMember("class")){
+                resultsForRequestedKey.AddMember("type",resDesig["class"],resultsForRequestedKey.GetAllocator());
+            }
         }
-        else if(it->name.GetString() == "ingredient")
+        else if(it->name == "ingredient")
         {
           resultsForRequestedKey.AddMember("ingredient",resDesig["pizza"],resultsForRequestedKey.GetAllocator());
         }
         else
         {
-          rapidjson::Value v(it->name.GetString(),resultsForRequestedKey.GetAllocator());
-          resultsForRequestedKey.AddMember(v,resDesig[it->name.GetString()],resultsForRequestedKey.GetAllocator());
+          rapidjson::Value v(it->name,resultsForRequestedKey.GetAllocator());
+          rs::DesignatorWrapper::jsonToString(&resDesig);
+          resultsForRequestedKey.AddMember(v,resDesig["shape"],resultsForRequestedKey.GetAllocator());
         }
       }
       else
       {
-        rapidjson::Value v(it->name.GetString(),resultsForRequestedKey.GetAllocator());
+        rapidjson::Value v(it->name,resultsForRequestedKey.GetAllocator());
         resultsForRequestedKey.AddMember(v,resDesig[it->name.GetString()],resultsForRequestedKey.GetAllocator());
         outWarn("No CLUSTER ID");
       }
 
-      if(resultsForRequestedKey.MemberCount() == 0)
+      if(!resultsForRequestedKey.MemberCount() == 0)
       {
         bool ok = false;
 
@@ -910,7 +911,7 @@ void RSProcessManager::filterResults(std::string &requestDesignator,
           bool hasCadPose = false;
           while(it != kvps_.MemberEnd())
           {
-            if(it->name.GetString() == "pose")
+            if(it->name == "pose")
             {
               if(kvps_["source"].GetString() == "TemplateAlignment")
               {
@@ -961,7 +962,7 @@ void RSProcessManager::filterResults(std::string &requestDesignator,
           rapidjson::Value::ConstMemberIterator it = kvps_.MemberBegin();
           while(it != kvps_.MemberEnd())
           {
-            if(it->name.GetString() != "pizza" && it->name.GetString() != "id" && it->name.GetString() != "timestamp")
+            if(it->name != "pizza" && it->name != "id" && it->name != "timestamp")
             {
               kvps_.EraseMember(it++);
             }

@@ -154,8 +154,15 @@ void RSControledAnalysisEngine::process(
     outError("Unknown exception!");
   }
   // Make a designator from the result
+
+
+  //this is where the pipeline ends...this is where we can filter annotators based on the query;
+  //only results get a json conversion and gget pushed back to the ROS interface;
   rs::DesignatorWrapper dw;
   dw.setCAS(cas);
+
+
+
   if(useIdentityResolution_)
   {
     dw.setMode(rs::DesignatorWrapper::OBJECT);
@@ -164,6 +171,8 @@ void RSControledAnalysisEngine::process(
   {
     dw.setMode(rs::DesignatorWrapper::CLUSTER);
   }
+
+
   dw.getObjectDesignators(*designatorResponse);
   outInfo("processing finished");
 }

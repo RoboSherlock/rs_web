@@ -7,6 +7,7 @@
 #include <rs_queryanswering/RSControledAnalysisEngine.h>
 #include <rs_queryanswering/KRDefinitions.h>
 #include <rs_queryanswering/PrologInterface.h>
+#include <rs_queryanswering/QueryInterface.h>
 #include <json_prolog/prolog.h>
 
 #include <designator_integration_msgs/DesignatorCommunication.h>
@@ -31,6 +32,7 @@ private:
   RSControledAnalysisEngine inspectionEngine_;
 
   PrologInterface *prologInterface;
+  QueryInterface *queryInterface;
 
   ros::NodeHandle nh_;
   ros::Publisher desig_pub_;
@@ -74,34 +76,15 @@ public:
 
   //again...thorin specific
   void getDemoObjects();
-  std::string toJson(const tf::StampedTransform &pose, std::string OID, std::string type);
-  std::string getObjectByID(std::string OID, std::string type);
-
 
   bool resetAECallback(iai_robosherlock_msgs::SetRSContext::Request &req,
                        iai_robosherlock_msgs::SetRSContext::Response &res);
 
-  bool designatorSingleSolutionCallback(std::string &req,
-                                        std::vector<std::string> &res);
-
-  bool designatorCallbackLogic(std::string &req,
-                               std::vector<std::string> &res);
-
   bool jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::Request &req,
                          iai_robosherlock_msgs::RSQueryService::Response &res);
 
-  bool handleQuery(std::string *req,
-                   std::vector<std::string> &resp);
-
   //special case for offscreen rendering the beliefstate using Unreal Engine
   bool renderOffscreen(std::string object);
-
-  //TODO: move to Designator wrapper or somewhere else
-  void filterResults(std::string &requestDesignator,
-                     std::vector<std::string> &resultDesignators,
-                     std::vector<std::string> &filteredResponse,
-                     std::vector<bool> &designatorsToKeep,
-                     const std::string superclass);
 
   //reset the pipeline in the AE;
   bool resetAE(std::string);
@@ -142,16 +125,6 @@ public:
   {
     lowLvlPipeline_.assign(llp.begin(), llp.end());
   }
-
-
-
-private:
-  /* *
-   * returns true if the planed Pipeline is not a subset of the lowLvl Pipeline
-   * why is this not in the Controlled AE?...MOVE
-   * */
-  bool subsetOfLowLvl(const std::vector<std::string> &plannedPipeline);
-
 
 
 };

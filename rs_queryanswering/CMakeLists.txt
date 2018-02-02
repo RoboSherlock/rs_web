@@ -42,8 +42,7 @@ find_include_dirs(RS_INCLUDE_DIRS_LIST)
 
 catkin_package(
     INCLUDE_DIRS ${RS_INCLUDE_DIRS_LIST} ${SWIPL_INCLUDE_DIRS}
-    CATKIN_DEPENDS designator_integration_msgs iai_robosherlock_msgs
-                   designator_integration_cpp json_prolog
+    CATKIN_DEPENDS designator_integration_msgs iai_robosherlock_msgs json_prolog
     LIBRARIES rs_designator_wrapper rs_kbAEmanagement ${SWIPL_LIBRARY_DIRS}
     CFG_EXTRAS ${PROJECT_NAME}_config.cmake
 )
@@ -85,7 +84,8 @@ target_link_libraries(rs_designator_wrapper
 add_library(rs_kbAEmanagement 
 	src/RSControledAnalysisEngine.cpp 
 	src/RSProcessManager.cpp 
-	src/PrologInterface.cpp)
+        src/PrologInterface.cpp
+        src/QueryInterface.cpp)
 target_link_libraries(rs_kbAEmanagement 
 	rs_designator_wrapper 
         ${SWIPL_LIBRARIES}
@@ -109,25 +109,4 @@ target_link_libraries(rs_prologrulescpp
 	${SWIPL_LIBRARIES}
 	${catkin_LIBRARIES})
 
-rs_add_library(rs_handleAnnotator 
-	src/annotators/HandleAnnotator.cpp 
-	src/annotators/HandleExtractor.cpp)
-target_link_libraries(rs_handleAnnotator 
-	${catkin_LIBRARIES})
-
-add_library(rs_templateMatcher 
-	src/annotators/TemplateAlignment.cpp)
-target_link_libraries(rs_templateMatcher 
-	${catkin_LIBRARIES})
-
-rs_add_library(rs_templateAlignmentAnnotator 
-	src/annotators/TemplateAlignmentAnnotator.cpp)
-target_link_libraries(rs_templateAlignmentAnnotator 
-	rs_templateMatcher 
-	${catkin_LIBRARIES})
-
-rs_add_library(rs_clusterToPartsSegmenter 
-	src/annotators/ClusterToPartsSegmenter.cpp)
-target_link_libraries(rs_clusterToPartsSegmenter 
-	${catkin_LIBRARIES}
-	${SWIPL_LIBRARIES})
+add_subdirectory(src/annotators)

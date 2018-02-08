@@ -70,12 +70,12 @@ bool DesignatorWrapper::getObjectDesignators(std::vector<std::string> &objectDes
   for(int i = 0; i < handles.size(); i++, res.Clear())
   {
     convert(handles[i], res);
-    objectDesignators.push_back(jsonToString(&res));
+    objectDesignators.push_back(jsonToString(res));
   }
   for(int i = 0; i < arMarkers.size(); i++, res.Clear())
   {
     convert(arMarkers[i], res);
-    objectDesignators.push_back(jsonToString(&res));
+    objectDesignators.push_back(jsonToString(res));
   }
 
   if(mode == CLUSTER)
@@ -448,11 +448,11 @@ void DesignatorWrapper::mergeJson (rapidjson::Document &destination, rapidjson::
   destination.AddMember(fieldNameV,source,destination.GetAllocator());
 }
 
-std::string DesignatorWrapper::jsonToString(rapidjson::Value *res)
+std::string DesignatorWrapper::jsonToString(rapidjson::Value &res)
 {
   rapidjson::StringBuffer buffer;
   rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-  res->Accept(writer);
+  res.Accept(writer);
   return buffer.GetString();
 }
 }

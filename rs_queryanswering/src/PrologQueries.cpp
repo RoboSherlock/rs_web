@@ -99,7 +99,7 @@ PREDICATE(cpp_add_kvp, 3)
     json.Parse(desig->c_str());
     rapidjson::Value v(key,json.GetAllocator());
     json.AddMember(v,value,json.GetAllocator());
-    *desig = rs::DesignatorWrapper::jsonToString(&json);
+    *desig = rs::DesignatorWrapper::jsonToString(json);
     return TRUE;
   }
   else

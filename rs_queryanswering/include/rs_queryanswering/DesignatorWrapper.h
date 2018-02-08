@@ -151,8 +151,8 @@ public:
       if(objectDesignator.MemberCount() > 0)
       {
         outInfo("Object as json:");
-        outInfo(jsonToString(&objectDesignator));
-        objectDesignators.push_back(jsonToString(&objectDesignator));
+        outInfo(jsonToString(objectDesignator));
+        objectDesignators.push_back(jsonToString(objectDesignator));
       }
     }
   }
@@ -193,7 +193,7 @@ public:
 
   //void convert(rs_demos::Pizza &input, rapidjson::Document *object);
   static void mergeJson (rapidjson::Document &destination, rapidjson::Document &source, std::string fieldName);
-  static std::string jsonToString(rapidjson::Value *res);
+  static std::string jsonToString(rapidjson::Value &res);
 
 
 

@@ -30,8 +30,9 @@ QueryInterface::QueryType QueryInterface::processQuery(std::vector<std::string> 
 //      {
 //        res.push_back(resp);
 //      }
-//      return NONE;
+//
 //    }
+    return NONE;
 }
 
 bool QueryInterface::handleInspect(std::vector<std::string> &res){
@@ -174,10 +175,6 @@ bool QueryInterface::handleDetect(std::vector<std::string> &res){
     rs::DesignatorWrapper::req_designator->Parse(req.c_str());
     rs::DesignatorWrapper::req_designator->AddMember("type","action",rs::DesignatorWrapper::req_designator->GetAllocator());
 
-    std::vector<std::string> filteredResponse;
-    std::string *request = new std::string(rs::DesignatorWrapper::jsonToString(rs::DesignatorWrapper::req_designator));
-
-
     std::vector<std::string> keys;
     std::vector<std::string> new_pipeline_order;
     prologInterface->extractQueryKeysFromDesignator(&req, keys);
@@ -288,192 +285,7 @@ bool QueryInterface::handleDetect(std::vector<std::string> &res){
 }
 
 
-//bool QueryInterface::designatorCallbackLogic(std::string &req,
-//    std::vector<std::string> &res)
-//{
-//  if(rs::DesignatorWrapper::req_designator)
-//  {
-//    delete rs::DesignatorWrapper::req_designator;
-//  }
-
-//  rs::DesignatorWrapper::req_designator = new rapidjson::Document();
-//  rs::DesignatorWrapper::req_designator->Parse(req.c_str());
-//  rs::DesignatorWrapper::req_designator->AddMember("type","action",rs::DesignatorWrapper::req_designator->GetAllocator());
-
-//  std::vector<std::string> filteredResponse;
-//  std::string *request = new std::string(rs::DesignatorWrapper::jsonToString(rs::DesignatorWrapper::req_designator));
-//  handleQuery(request, filteredResponse);
-
-//  std::vector<std::string> executedPipeline = engine_->getNextPipeline();
-
-//  // Define an ACTION designator with the planned pipeline
-//  rapidjson::Document pipeline_action(rapidjson::kObjectType);
-//  pipeline_action.AddMember("type","action",pipeline_action.GetAllocator());
-//  rapidjson::Value lstDescription;
-//  lstDescription.SetArray();
-//  for(auto & annotatorName : executedPipeline)
-//  {
-//    rapidjson::Value annotator(annotatorName.c_str(),pipeline_action.GetAllocator());
-//    lstDescription.PushBack(annotator,pipeline_action.GetAllocator());
-//  }
-//  pipeline_action.AddMember("pipeline-id", 0, pipeline_action.GetAllocator());
-//  pipeline_action.AddMember("annotators", lstDescription, pipeline_action.GetAllocator());
-//  filteredResponse.push_back(rs::DesignatorWrapper::jsonToString(&pipeline_action));
-
-
-//  for(auto & designator : filteredResponse)
-//  {
-//    res.push_back(designator);
-
-//  }
-//  outWarn("RS Query service call ended");
-//  return true;
-//}
-
-/*
-bool QueryInterface::handleQuery(std::string *req, std::vector<std::string> &resp)
-{
-  RSQuery *query = new RSQuery();
-  std::string superClass = "";
-  //  rs::DesignatorWrapper::req_designator = req;
-  //check Designator type...for some stupid reason req->type ==Designator::ACTION did not work
-
-  //these are hacks,, where we need the
-  query->asJson = *req;
-  outInfo("Query as Json: " << query->asJson);
-
-
-
-  if(req != NULL)
-  {
-    rapidjson::Document request;
-    request.Parse(req->c_str());
-    //these checks are there for annotators that need to know
-    // about the query and the value queried for
-    if(request.HasMember("timestamp"))
-    {
-      std::string ts = request["timestamp"].GetString();
-      query->timestamp = std::stoll(ts);
-      outInfo("received timestamp:" << query->timestamp);
-    }
-    if(request.HasMember("location"))
-    {
-      if(request["location"].HasMember("on"))
-      {
-        query->location = request["location"]["on"].GetString();
-
-        outInfo("received location:" << query->location);
-      }
-      if(request["location"].HasMember("in"))
-      {
-        query->location = request["location"]["in"].GetString();
-        outInfo("received location:" << query->location);
-      }
-    }
-    if(request.HasMember("obj-part") || request.HasMember("inspect"))
-    {
-      query->objToInspect = request["obj-part"].GetString();
-      outInfo("received obj-part request for object: " << query->objToInspect);
-    }
-    if(request.HasMember("ingredient"))
-    {
-      query->ingredient = request["ingredien"].GetString();
-      outInfo("received request for detection ingredient: " << query->ingredient);
-    }
-    if(request.HasMember("type"))
-    {
-      superClass = request["type"].GetString();
-    }
-  }
-  std::vector<std::string> keys;
-  std::vector<std::string> new_pipeline_order;
-  prologInterface->extractQueryKeysFromDesignator(req, keys);
-  try
-  {
-    prologInterface->planPipelineQuery(keys, new_pipeline_order);
-  }
-  catch(std::exception e)
-  {
-    outError("calling json_prolog was not successfull. Is the node running?");
-    processing_mutex_.unlock();
-    return false;
-  }
-
-  if(new_pipeline_order.empty())
-  {
-    outInfo("Can't find solution for pipeline planning");
-    processing_mutex_.unlock();
-    return false; // Indicate failure
-  }
-  std::for_each(new_pipeline_order.begin(), new_pipeline_order.end(), [](std::string & p)
-  {
-    outInfo(p);
-  });
-
-  //always estimate a pose...these could go directly into the planning phase in Prolog?
-  if(std::find(new_pipeline_order.begin(), new_pipeline_order.end(), "Cluster3DGeometryAnnotator") == new_pipeline_order.end())
-  {
-    std::vector<std::string>::iterator it = std::find(new_pipeline_order.begin(), new_pipeline_order.end(), "ClusterMerger");
-    if(it != new_pipeline_order.end())
-    {
-      new_pipeline_order.insert(it + 1, "Cluster3DGeometryAnnotator");
-    }
-  }
-
-  //for debugging advertise TF
-  //  new_pipeline_order.push_back("TFBroadcaster");
-
-  //whatever happens do ID res and spawn to gazebo...this is also pretty weird
-  if(std::find(new_pipeline_order.begin(), new_pipeline_order.end(), "ObjectIdentityResolution") == new_pipeline_order.end())
-  {
-    new_pipeline_order.push_back("ObjectIdentityResolution");
-    new_pipeline_order.push_back("BeliefToKnowRob");
-  }
-  new_pipeline_order.push_back("StorageWriter");
-
-  std::vector<std::string> resultDesignators;
-  if(subsetOfLowLvl(new_pipeline_order))
-  {
-    outInfo("Query answerable by lowlvl pipeline. Executing it");
-    engine_.process(resultDesignators, query);
-  }
-  else
-  {
-  outInfo(FG_BLUE << "Executing Pipeline # generated by query");
-  engine_.process(new_pipeline_order, true, &resultDesignators, query);
-  outInfo("Executing pipeline generated by query: done");
-  }
-
-  outInfo("Returned " << resultDesignators.size() << " designators on this execution");
-  std::vector<bool> desigsToKeep;
-
-  filterResults(*req, resultDesignators, resp, desigsToKeep, superClass);
-  if(useIdentityResolution_)
-  {
-    engine_.drawResulstOnImage<rs::Object>(desigsToKeep, resultDesignators, *req);
-  }
-  else
-  {
-    engine_.drawResulstOnImage<rs::Cluster>(desigsToKeep, resultDesignators, *req);
-  }
-
-  outInfo("The filteredResponse size:" << resp.size());
-  processing_mutex_.unlock();
-
-  std::vector<std::string> topicResponse;
-  for(auto & designator : resp)
-  {
-    outInfo(designator);
-    topicResponse.push_back(designator);
-  }
-  //desig_pub_.publish(topicResponse);
-  delete query;
-  return true;
-
-}
-*/
-void QueryInterface::filterResults(std::string &requestDesignator,
-                                     std::vector<std::string> &resultDesignators,
+void QueryInterface::filterResults(std::vector<std::string> &resultDesignators,
                                      std::vector<std::string> &filteredResponse,
                                      std::vector<bool> &designatorsToKeep,
                                      const std::string superclass)
@@ -481,11 +293,9 @@ void QueryInterface::filterResults(std::string &requestDesignator,
   outInfo("filtering the results based on the designator request");
   outInfo("Superclass: " << superclass);
   designatorsToKeep.resize(resultDesignators.size(), true);
+  const rapidjson::Value &detectQuery = query["detect"];
 
-  rapidjson::Document request;
-  request.Parse(requestDesignator.c_str());
-
-  for(rapidjson::Value::ConstMemberIterator it = request.MemberBegin(); it != request.MemberEnd(); ++it)
+  for(rapidjson::Value::ConstMemberIterator it = detectQuery.MemberBegin(); it != detectQuery.MemberEnd(); ++it)
   {
     if(it->name == "timestamp" || it->name == "location")
     {
@@ -550,9 +360,10 @@ void QueryInterface::filterResults(std::string &requestDesignator,
         }
         else
         {
-          rapidjson::Value v(it->name,resultsForRequestedKey.GetAllocator());
-          rs::DesignatorWrapper::jsonToString(&resDesig);
-          resultsForRequestedKey.AddMember(v,resDesig["shape"],resultsForRequestedKey.GetAllocator());
+          if(resDesig.HasMember("shape")){
+              rapidjson::Value v(it->name,resultsForRequestedKey.GetAllocator());
+              resultsForRequestedKey.AddMember(v,resDesig["shape"],resultsForRequestedKey.GetAllocator());
+          }
         }
       }
       else
@@ -592,7 +403,7 @@ void QueryInterface::filterResults(std::string &requestDesignator,
             }
           }
           ok = hasCadPose;
-          resultDesignators[i] = rs::DesignatorWrapper::jsonToString(&kvps_).c_str();
+          resultDesignators[i] = rs::DesignatorWrapper::jsonToString(kvps_).c_str();
         }
         if(resultsForRequestedKey.HasMember("obj-part"))
         {
@@ -635,7 +446,7 @@ void QueryInterface::filterResults(std::string &requestDesignator,
             }
 
           }
-          resultDesignators[i] = rs::DesignatorWrapper::jsonToString(&kvps_).c_str();
+          resultDesignators[i] = rs::DesignatorWrapper::jsonToString(kvps_).c_str();
         }
         //treat color differently because it is nested and has every color with ration in there
         if(resultsForRequestedKey.HasMember("color"))
@@ -723,7 +534,7 @@ void QueryInterface::filterResults(std::string &requestDesignator,
           }
         }
 
-        if(strstr(rs::DesignatorWrapper::jsonToString(&resultsForRequestedKey).c_str(),it->value.GetString()) != NULL
+        if(strstr(rs::DesignatorWrapper::jsonToString(resultsForRequestedKey).c_str(), it->value.GetString()) != NULL
            || it->value.GetString() == "")
         {
           ok = true;

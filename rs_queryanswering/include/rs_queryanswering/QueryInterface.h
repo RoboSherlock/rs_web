@@ -20,7 +20,12 @@ private:
     std::map<std::string,std::string> thorinObjects_;
     PrologInterface* prologInterface;
 
+    bool handleDetect(std::vector<std::string> &newPipelineOrder);
+    bool handleInspect(std::vector<std::string> &newPipelineOrder);
 
+    //TODO these do not belong here
+    std::string toJson(const tf::StampedTransform &pose, std::string OID, std::string type);
+    std::string getObjectByID(std::string OID, std::string type);
 public:
 
   enum QueryType{NONE, INSPECT, DETECT};
@@ -40,21 +45,9 @@ public:
 
   QueryType processQuery(std::vector<std::string> &newPipelineOrder);
 
-  bool handleDetect(std::vector<std::string> &newPipelineOrder);
-  bool handleInspect(std::vector<std::string> &newPipelineOrder);
-
-//  bool designatorCallbackLogic(std::string &req, std::vector<std::string> &res);
-
-  //bool handleQuery(std::string *req,
-  //                 std::vector<std::string> &resp);
-
-  void filterResults(std::string &requestDesignator,
-                     std::vector<std::string> &resultDesignators,
+  void filterResults(std::vector<std::string> &resultDesignators,
                      std::vector<std::string> &filteredResponse,
                      std::vector<bool> &designatorsToKeep,
                      const std::string superclass);
-
-  std::string toJson(const tf::StampedTransform &pose, std::string OID, std::string type);
-  std::string getObjectByID(std::string OID, std::string type);
 
 };

@@ -346,6 +346,10 @@ void QueryInterface::filterResults(std::vector<std::string> &resultDesignators,
           if(resDesig.HasMember("shape")){
              resultsForRequestedKey.AddMember("shape",resDesig["shape"],resultsForRequestedKey.GetAllocator());
           }
+          else
+          {
+            designatorsToKeep[i] = false;
+          }
         }
         else if(it->name == "type")//this shit needed so we don't loose al of our stuff just because all was sent instead of detection
         {
@@ -360,10 +364,9 @@ void QueryInterface::filterResults(std::vector<std::string> &resultDesignators,
         }
         else
         {
-          if(resDesig.HasMember("shape")){
-              rapidjson::Value v(it->name,resultsForRequestedKey.GetAllocator());
-              resultsForRequestedKey.AddMember(v,resDesig["shape"],resultsForRequestedKey.GetAllocator());
-          }
+          rapidjson::Value v(it->name,resultsForRequestedKey.GetAllocator());
+          resultsForRequestedKey.AddMember(v,resDesig[it->name.GetString()],resultsForRequestedKey.GetAllocator());
+
         }
       }
       else

@@ -154,12 +154,6 @@ void DesignatorWrapper::convert(rs::Segment &input, rapidjson::Document *object)
 
 void DesignatorWrapper::convert(geometry_msgs::PoseStamped &pose, rapidjson::Document *object, rapidjson::MemoryPoolAllocator<> &alloc) {
 
-//    std::sprintf(poseJson,"{\"header\":{\"seq\":%d,\"stamp\":{\"sec\":%d,\"nsec\":%d},\"frame_id\":\"%s\"},\"pose\":{\"position\":{\"x\":%f,\"y\":%f,\"z\":%f},\"orientation\":{\"x\":%f,\"y\":%f,\"z\":%f,\"w\":%f}}}",
-//                  pose.header.seq, pose.header.stamp.sec, pose.header.stamp.nsec, pose.header.frame_id.c_str(),
-//                  pose.pose.position.x, pose.pose.position.y, pose.pose.position.z,pose.pose.orientation.x,
-//                  pose.pose.orientation.y,pose.pose.orientation.z,pose.pose.orientation.w);
-
-
     rapidjson::Value headerKey("header", alloc);
     rapidjson::Value headerVal(rapidjson::kObjectType);
     headerVal.AddMember("seq", pose.header.seq, alloc);
@@ -241,26 +235,23 @@ void DesignatorWrapper::convert(rs::PoseAnnotation &input, rapidjson::Document *
   geometry_msgs::PoseStamped pose_stamped_msgs;
   rs::conversion::from(input.camera(), tf_stamped_pose);
 
-  tf::StampedTransform transf(tf::Transform(tf_stamped_pose.getRotation(),tf_stamped_pose.getOrigin()),tf_stamped_pose.stamp_,tf_stamped_pose.frame_id_,"");
-  transf.child_frame_id_ = "";
-  geometry_msgs::TransformStamped transf_msg;
-
   tf::poseStampedTFToMsg(tf_stamped_pose, pose_stamped_msgs);
-  tf::transformStampedTFToMsg(transf,transf_msg);
 
   rapidjson::Document nestedValue(&object->GetAllocator());
   nestedValue.SetObject();
-  //nestedValue.AddMember("transform",transf_stamped_msg,nestedValue.GetAllocator());
   nestedValue.AddMember("source",input.source(),object->GetAllocator());
 
-  char poseJson[300];
-  std::sprintf(poseJson,"{\"header\":{\"seq\":%d,\"stamp\":{\"sec\":%d,\"nsec\":%d},\"frame_id\":\"%s\"},\"child_frame_id\":\"%s\",\"transform\":{\"translation\":{\"x\":%f,\"y\":%f,\"z\":%f},\"rotation\":{\"x\":%f,\"y\":%f,\"z\":%f,\"w\":%f}}}",
-                                transf_msg.header.seq,transf_msg.header.stamp.sec,transf_msg.header.stamp.nsec,transf_msg.header.frame_id.c_str(),transf_msg.child_frame_id.c_str(),
-                                transf_msg.transform.translation.x,transf_msg.transform.translation.y,transf_msg.transform.translation.z,transf_msg.transform.rotation.x,transf_msg.transform.rotation.y,transf_msg.transform.rotation.z,transf_msg.transform.rotation.w);
   rapidjson::Document poseJsonObj(&object->GetAllocator());
-  poseJsonObj.Parse(poseJson);
-  mergeJson(nestedValue,poseJsonObj,"transform");
-  mergeJson(*object,nestedValue,"pose");
+  poseJsonObj.SetObject();
+  convert(pose_stamped_msgs, &poseJsonObj, object->GetAllocator());
+  nestedValue.AddMember("pose", poseJsonObj, object->GetAllocator());
+
+  uint64_t diff= now - tf_stamped_pose.stamp_.toNSec();
+  outWarn("Time diff in poses: "<<diff);
+  if(diff == 0)
+  {
+    object->AddMember("pose", nestedValue, object->GetAllocator());
+  }
 }
 
 void DesignatorWrapper::convert(rs::SemanticColor &input, rapidjson::Document *object)

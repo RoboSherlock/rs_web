@@ -139,16 +139,6 @@ public:
       useIdentityResolution_=useIDres;
   }
 
-  /* *
-   * returns true if the planed Pipeline is not a subset of the lowLvl Pipeline
-   * */
-  bool subsetOfLowLvl(const std::vector<std::string> &plannedPipeline)
-  {
-    std::vector<std::string> intersection;
-    std::set_intersection(next_pipeline_order.begin(), next_pipeline_order.end(), plannedPipeline.begin(), plannedPipeline.end(),  std::back_inserter(intersection));
-    return intersection.size() == plannedPipeline.size() ? true : false;
-  }
-
   void process();
 
   void process(std::vector<std::string> *designator_response,

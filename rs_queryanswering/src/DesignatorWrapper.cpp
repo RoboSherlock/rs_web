@@ -219,7 +219,7 @@ void DesignatorWrapper::convert(rs::Geometry &input, rapidjson::Document *object
   rapidjson::Value poseKey("pose", object->GetAllocator());
   boundingBox.AddMember(poseKey, jsonPose, object->GetAllocator());
 
-  rapidjson::Value boundingKey("boundingBox", object->GetAllocator());
+  rapidjson::Value boundingKey("boundingbox", object->GetAllocator());
   object->AddMember(boundingKey, boundingBox, object->GetAllocator());
 
 }

@@ -50,4 +50,13 @@ public:
                      std::vector<bool> &designatorsToKeep,
                      const std::string superclass);
 
+  void oldFilter(std::vector<std::string> &resultDesignators,
+                 std::vector<std::string> &filteredResponse,
+                 std::vector<bool> &designatorsToKeep,
+                 const std::string superclass);
+
+  void filterByEquals();
+  void filterByClass();
+
+
 };

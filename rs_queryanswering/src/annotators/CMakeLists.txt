@@ -30,3 +30,8 @@ rs_add_library(rs_getRenderedViews
 	GetRenderedViews.cpp)
 target_link_libraries(rs_getRenderedViews 
 	${catkin_LIBRARIES})
+
+rs_add_library(rs_offScreenSceneVariation 
+	OffScreenSceneVariation.cpp)
+target_link_libraries(rs_offScreenSceneVariation 
+	${catkin_LIBRARIES})

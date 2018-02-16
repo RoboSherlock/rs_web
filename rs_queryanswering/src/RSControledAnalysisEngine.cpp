@@ -155,9 +155,6 @@ void RSControledAnalysisEngine::process(
   }
   // Make a designator from the result
 
-
-  //this is where the pipeline ends...this is where we can filter annotators based on the query;
-  //only results get a json conversion and gget pushed back to the ROS interface;
   rs::DesignatorWrapper dw;
   dw.setCAS(cas);
 

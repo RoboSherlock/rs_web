@@ -89,36 +89,6 @@ bool QueryInterface::handleInspect(std::vector<std::string> &res)
 
 
   std_srvs::Trigger triggerSrv;
-  //TODO is this needed?
-  //    if(inspectFromAR_)
-  //    {
-  //      if(triggerKRPoseUpdate_.call(triggerSrv))
-  //      {
-  //        outInfo("Called update KR from QR successfully");
-  //      }
-  //      else
-  //      {
-  //        outError("Is the node for updating object positions from AR markers still running? Calling qr_to_kr failed!");
-  //        return false;
-  //      }
-
-  //      if(objToQueryFor != "")
-  //      {
-
-  //        json_prolog::Prolog pl;
-  //        json_prolog::PrologQueryProxy bdgs = pl.query("owl_individual_of(I,'" + thorinObjects_[objToQueryFor] + "')");
-  //        for(json_prolog::PrologQueryProxy::iterator it = bdgs.begin(); it != bdgs.end(); it++)
-  //        {
-  //          res.push_back(getObjectByID((*it)["I"].toString(), objToQueryFor).c_str());
-  //        }
-  //      }
-  //      else
-  //      {
-  //        outError("Object to inspect is invalid!");
-  //        return false;
-  //      }
-  //    }
-  //    else
   {
     outWarn("******************************************");
     std::string inspectionAnnotator = "";
@@ -312,31 +282,19 @@ bool getConfigForKey(std::string key, std::string &location, std::string &check)
 
 //TODO this should be more generic, a few hacks in here. Currently first checking subclass, then checking equal
 //if superclass not set
-bool QueryInterface::checkSubClass(const std::string &resultValue, const std::string &superclass, const std::string &queryValue){
+bool QueryInterface::checkSubClass(const std::string &resultValue, const std::string &queryValue){
     bool ok = false;
-    if(superclass != "" && rs_queryanswering::krNameMapping.count(superclass) == 1)
+    if(rs_queryanswering::krNameMapping.count(queryValue) == 1)
     {
       try
       {
-        ok = prologInterface->q_subClassOf(resultValue, superclass);
+        ok = prologInterface->q_subClassOf(resultValue, queryValue);
       }
       catch(std::exception &e)
       {
         outError("Prolog Exception: Malformed owl_subclass of. Child or superclass undefined:");
         outError("     Child: " << resultValue);
-        outError("     Parent: " << superclass);
-      }
-    }
-    else if(strcasecmp(resultValue.c_str(), queryValue.c_str()) == 0 || queryValue == "")
-    {
-      ok = true;
-    }
-    else if(resultValue == "bottle_acid" || resultValue == "bottle_base")
-    {
-      std::string new_name = "bottle";
-      if(strcasecmp(new_name.c_str(), queryValue.c_str()) == 0)
-      {
-        ok = true;
+        outError("     Parent: " << queryValue);
       }
     }
     return ok;

@@ -302,8 +302,7 @@ bool QueryInterface::checkSubClass(const std::string &resultValue, const std::st
 
 void QueryInterface::filterResults(std::vector<std::string> &resultDesignators,
                                    std::vector<std::string> &filteredResponse,
-                                   std::vector<bool> &designatorsToKeep,
-                                   const std::string superclass)
+                                   std::vector<bool> &designatorsToKeep)
 {
 
   const rapidjson::Value &detectQuery = query["detect"];
@@ -335,7 +334,7 @@ void QueryInterface::filterResults(std::vector<std::string> &resultDesignators,
         else if(check == "CLASS")
         {
             const std::string resultValue = value->GetString();
-            if(!checkSubClass(resultValue, superclass, queryValue)) {
+            if(!checkSubClass(resultValue, queryValue)) {
                 designatorsToKeep[i] = false;
             }
         }

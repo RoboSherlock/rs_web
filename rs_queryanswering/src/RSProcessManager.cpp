@@ -245,7 +245,6 @@ bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::
   if(queryType == QueryInterface::QueryType::DETECT){
 
       RSQuery *query = new RSQuery();
-      std::string superClass = "";
       //  rs::DesignatorWrapper::req_designator = req;
       //check Designator type...for some stupid reason req->type ==Designator::ACTION did not work
 
@@ -291,10 +290,6 @@ bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::
           query->ingredient = request["ingredien"].GetString();
           outInfo("received request for detection ingredient: " << query->ingredient);
         }
-        if(request.HasMember("type"))
-        {
-          superClass = request["type"].GetString();
-        }
       }
 
       std::vector<std::string> resultDesignators;
@@ -308,7 +303,7 @@ bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::
       std::vector<std::string> filteredResponse;
       std::vector<bool> desigsToKeep;
 
-      queryInterface->filterResults(resultDesignators, filteredResponse, desigsToKeep, superClass);
+      queryInterface->filterResults(resultDesignators, filteredResponse, desigsToKeep);
 
 
       if(useIdentityResolution_)

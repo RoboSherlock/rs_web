@@ -46,8 +46,7 @@ public:
 
   void filterResults(std::vector<std::string> &resultDesignators,
                      std::vector<std::string> &filteredResponse,
-                     std::vector<bool> &designatorsToKeep,
-                     const std::string superclass);
+                     std::vector<bool> &designatorsToKeep);
 
   void oldFilter(std::vector<std::string> &resultDesignators,
                  std::vector<std::string> &filteredResponse,

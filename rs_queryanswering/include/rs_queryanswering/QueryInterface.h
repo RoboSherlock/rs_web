@@ -40,11 +40,6 @@ public:
   {
   }
 
-  inline void setUseJsonPrologInterface(bool useJsonProlog)
-  {
-
-  }
-
   bool parseQuery(std::string query);
 
   QueryType processQuery(std::vector<std::string> &newPipelineOrder);
@@ -59,6 +54,6 @@ public:
                  std::vector<bool> &designatorsToKeep,
                  const std::string superclass);
 
-  bool checkSubClass(const std::string &resultValue, const std::string &superclass, const std::string &queryValue);
+  bool checkSubClass(const std::string &resultValue, const std::string &queryValue);
 
 };

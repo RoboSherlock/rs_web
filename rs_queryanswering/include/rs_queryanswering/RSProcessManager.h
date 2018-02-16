@@ -99,7 +99,6 @@ public:
 
   inline void setUseJsonPrologInterface(bool useJsonProlog)
   {
-    queryInterface->setUseJsonPrologInterface(useJsonProlog);
     withJsonProlog_ = useJsonProlog;
   }
 

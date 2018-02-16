@@ -295,7 +295,7 @@ bool QueryInterface::handleDetect(std::vector<std::string> &res)
 
 }
 
-void getConfigForKey(std::string key, std::string &location, std::string &check)
+bool getConfigForKey(std::string key, std::string &location, std::string &check)
 {
   //TODO Error handling
   const std::string &configFile = ros::package::getPath("rs_queryanswering") + "/config/filter_config.ini";
@@ -305,14 +305,55 @@ void getConfigForKey(std::string key, std::string &location, std::string &check)
   try
   {
     boost::property_tree::ini_parser::read_ini(configFile, pt);
-    location = pt.get<std::string>(key + ".location");
-    check = pt.get<std::string>(key + ".check");
-
+    boost::optional<boost::property_tree::ptree&> child = pt.get_child_optional(key);
+    //Use config if we have one, otherwise use default
+    if(child) {
+        location = pt.get<std::string>(key + ".location");
+        check = pt.get<std::string>(key + ".check");
+    } else {
+        location = "/"+ key;
+        check = "EQUAL";
+    }
+    return true;
   }
   catch(boost::property_tree::ini_parser::ini_parser_error &e)
   {
     throw_exception_message("Error opening config file: " + configFile);
+    return false;
   }
+  return false;
+}
+
+//TODO this should be more generic, a few hacks in here. Currently first checking subclass, then checking equal
+//if superclass not set
+bool QueryInterface::checkSubClass(const std::string &resultValue, const std::string &superclass, const std::string &queryValue){
+    bool ok = false;
+    if(superclass != "" && rs_queryanswering::krNameMapping.count(superclass) == 1)
+    {
+      try
+      {
+        ok = prologInterface->q_subClassOf(resultValue, superclass);
+      }
+      catch(std::exception &e)
+      {
+        outError("Prolog Exception: Malformed owl_subclass of. Child or superclass undefined:");
+        outError("     Child: " << resultValue);
+        outError("     Parent: " << superclass);
+      }
+    }
+    else if(strcasecmp(resultValue.c_str(), queryValue.c_str()) == 0 || queryValue == "")
+    {
+      ok = true;
+    }
+    else if(resultValue == "bottle_acid" || resultValue == "bottle_base")
+    {
+      std::string new_name = "bottle";
+      if(strcasecmp(new_name.c_str(), queryValue.c_str()) == 0)
+      {
+        ok = true;
+      }
+    }
+    return ok;
 }
 
 void QueryInterface::filterResults(std::vector<std::string> &resultDesignators,
@@ -322,12 +363,14 @@ void QueryInterface::filterResults(std::vector<std::string> &resultDesignators,
 {
 
   const rapidjson::Value &detectQuery = query["detect"];
+  designatorsToKeep.resize(resultDesignators.size(), true);
+
   for(rapidjson::Value::ConstMemberIterator it = detectQuery.MemberBegin(); it != detectQuery.MemberEnd(); ++it)
   {
     std::string location, check;
-    filterByEquals();
     std::string key = it->name.GetString();
     getConfigForKey(key, location, check);
+    const std::string queryValue = it->value.GetString();
 
     outInfo("No. of resulting Object Designators: " << resultDesignators.size());
     for(size_t i = 0; i < resultDesignators.size(); ++i)
@@ -340,14 +383,24 @@ void QueryInterface::filterResults(std::vector<std::string> &resultDesignators,
       {
         if(check == "EQUAL")
         {
-          designatorsToKeep[i] = value->GetString() == it->value.GetString();
+          std::string resultValue = value->GetString();
+          outInfo(value->GetString());
+          outInfo(it->value.GetString());
+          if(resultValue != queryValue) {
+              designatorsToKeep[i] = false;
+          }
         }
         else if(check == "CLASS")
         {
-
+            const std::string resultValue = value->GetString();
+            if(!checkSubClass(resultValue, superclass, queryValue)) {
+                designatorsToKeep[i] = false;
+            }
         }
       }
-
+      else {
+        designatorsToKeep[i] = false;
+      }
 
     }
   }
@@ -358,16 +411,6 @@ void QueryInterface::filterResults(std::vector<std::string> &resultDesignators,
       filteredResponse.push_back(resultDesignators[i]);
     }
   }
-}
-
-bool QueryInterface::filterByEquals(rapidjson::Value *value, std::string queryValue)
-{
-
-}
-
-void QueryInterface::filterByClass()
-{
-
 }
 
 

@@ -55,8 +55,6 @@ public:
                  std::vector<bool> &designatorsToKeep,
                  const std::string superclass);
 
-  void filterByEquals();
-  void filterByClass();
-
+  bool checkSubClass(const std::string &resultValue, const std::string &superclass, const std::string &queryValue);
 
 };

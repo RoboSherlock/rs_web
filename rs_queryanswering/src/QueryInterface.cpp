@@ -27,20 +27,6 @@ QueryInterface::QueryType QueryInterface::processQuery(std::vector<std::string> 
     handleInspect(res);
     return INSPECT;
   }
-  //old query stuff
-  //TODO still needed?
-  //    else {
-  //      std::vector<std::string> respMsg;
-  //      std::string stringQuery = rs::DesignatorWrapper::jsonToString(&query);
-
-  //      designatorCallbackLogic(stringQuery, respMsg);
-
-  //      for(auto resp : respMsg)
-  //      {
-  //        res.push_back(resp);
-  //      }
-  //
-  //    }
   return NONE;
 }
 
@@ -365,12 +351,12 @@ void QueryInterface::filterResults(std::vector<std::string> &resultDesignators,
   const rapidjson::Value &detectQuery = query["detect"];
   designatorsToKeep.resize(resultDesignators.size(), true);
 
-  for(rapidjson::Value::ConstMemberIterator it = detectQuery.MemberBegin(); it != detectQuery.MemberEnd(); ++it)
+  for(rapidjson::Value::ConstMemberIterator queryIt = detectQuery.MemberBegin(); queryIt != detectQuery.MemberEnd(); ++queryIt)
   {
     std::string location, check;
-    std::string key = it->name.GetString();
+    std::string key = queryIt->name.GetString();
     getConfigForKey(key, location, check);
-    const std::string queryValue = it->value.GetString();
+    const std::string queryValue = queryIt->value.GetString();
 
     outInfo("No. of resulting Object Designators: " << resultDesignators.size());
     for(size_t i = 0; i < resultDesignators.size(); ++i)
@@ -383,9 +369,7 @@ void QueryInterface::filterResults(std::vector<std::string> &resultDesignators,
       {
         if(check == "EQUAL")
         {
-          std::string resultValue = value->GetString();
-          outInfo(value->GetString());
-          outInfo(it->value.GetString());
+          std::string resultValue = value->GetString();;
           if(resultValue != queryValue) {
               designatorsToKeep[i] = false;
           }
@@ -396,6 +380,15 @@ void QueryInterface::filterResults(std::vector<std::string> &resultDesignators,
             if(!checkSubClass(resultValue, superclass, queryValue)) {
                 designatorsToKeep[i] = false;
             }
+        }
+        else if(check == "GEQ") {
+            float volumeofCurrentObj = value->GetDouble();
+            float volumeAsked = atof(queryValue.c_str());
+              outWarn("Volume asked as float: " << volumeAsked);
+              if(volumeAsked > volumeofCurrentObj)
+              {
+                designatorsToKeep[i] = false;
+              }
         }
       }
       else {

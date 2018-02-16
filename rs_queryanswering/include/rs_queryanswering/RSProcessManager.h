@@ -6,7 +6,6 @@
 #include <rs_queryanswering/DesignatorWrapper.h>
 #include <rs_queryanswering/RSControledAnalysisEngine.h>
 #include <rs_queryanswering/KRDefinitions.h>
-#include <rs_queryanswering/PrologInterface.h>
 #include <rs_queryanswering/QueryInterface.h>
 #include <json_prolog/prolog.h>
 
@@ -31,7 +30,6 @@ private:
   RSControledAnalysisEngine engine_;
   RSControledAnalysisEngine inspectionEngine_;
 
-  PrologInterface *prologInterface;
   QueryInterface *queryInterface;
 
   ros::NodeHandle nh_;
@@ -101,6 +99,7 @@ public:
 
   inline void setUseJsonPrologInterface(bool useJsonProlog)
   {
+    queryInterface->setUseJsonPrologInterface(useJsonProlog);
     withJsonProlog_ = useJsonProlog;
   }
 
@@ -124,16 +123,6 @@ public:
   inline void setLowLvlPipeline(std::vector<std::string> llp)
   {
     lowLvlPipeline_.assign(llp.begin(), llp.end());
-  }
-
-  /* *
-   * returns true if the planed Pipeline is not a subset of the lowLvl Pipeline
-   * */
-  bool subsetOfLowLvl(const std::vector<std::string> &plannedPipeline)
-  {
-    std::vector<std::string> intersection;
-    std::set_intersection(lowLvlPipeline_.begin(), lowLvlPipeline_.end(), plannedPipeline.begin(), plannedPipeline.end(),  std::back_inserter(intersection));
-    return intersection.size() == plannedPipeline.size() ? true : false;
   }
 
 

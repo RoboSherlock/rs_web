@@ -30,7 +30,6 @@ public:
 
   enum QueryType{NONE, INSPECT, DETECT};
 
-  RSControledAnalysisEngine* engine_;
   rapidjson::Document query;
 
   QueryInterface(bool withJsonProlog){
@@ -39,6 +38,11 @@ public:
   }
   ~QueryInterface()
   {
+  }
+
+  inline void setUseJsonPrologInterface(bool useJsonProlog)
+  {
+
   }
 
   bool parseQuery(std::string query);

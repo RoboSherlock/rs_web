@@ -1,0 +1,589 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://www.knowrob.org/kb/rs-iai-objects#"
+     xml:base="http://www.knowrob.org/kb/rs-iai-objects"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:xml="http://www.w3.org/XML/1998/namespace"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:knowrob="http://knowrob.org/kb/knowrob.owl#"
+     xmlns:kitchen="http://knowrob.org/kb/iai-kitchen.owl#">
+    <owl:Ontology rdf:about="http://www.knowrob.org/kb/rs-iai-objects.owl">
+        <owl:imports rdf:resource="package://iai_kitchen/owl/iai-kitchen-objects.owl"/>
+    </owl:Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#AlbiHimbeerJuice -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#AlbiHimbeerJuice">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/AlbiHimbeerJuice/AlbiHimbeerJuice.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#BlueMetalPlateWhiteSpeckles -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#BlueMetalPlateWhiteSpeckles">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/BlueMetalPlateWhiteSpeckles/BlueMetalPlateWhiteSpeckles.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#BluePlasticBowl -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#BluePlasticBowl">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/BluePlasticBowl/BluePlasticBowl.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#BluePlasticFork -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#BluePlasticFork">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/BluePlasticFork/BluePlasticFork.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#BluePlasticKnife -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#BluePlasticKnife">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/BluePlasticKnife/BluePlasticKnife.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#ComdoCappuccinoClassico -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#ComdoCappuccinoClassico">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/ComdoCapuccinoClassico/ComdoCappuccinoClassico.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#ElBrygCoffee -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#ElBrygCoffee">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/ElBrygCoffee/ElBrygCoffee.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#FryingPan -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#FryingPan">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/FryingPan/FryingPan.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#HelaCurryKetchup -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#HelaCurryKetchup">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/HelaCurryKetchyup/HelaCurryKetchyup.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#JaMilch -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#JaMilch">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/JaMilch/JaMilch.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#JodSalz -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#JodSalz">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/JodSalz/JodSalz.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#KelloggsCornFlakes -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#KelloggsCornFlakes">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/KelloggsCornFlakes/KelloggsCornFlakes.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#KellogsToppasMini -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#KellogsToppasMini">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/KelloggsToppasMini/KelloggsToppasMini.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#KnusperSchokoKeks -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#KnusperSchokoKeks">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/KnusperSchokoKeks/KnusperSchokoKeks.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#LargeGreySpoon -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#LargeGreySpoon">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/LargeGreySpoon/LargeGreySpoon.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#LinuxCup -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#LinuxCup">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/LinuxCup/LinuxCup.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#LionCerealBox -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#LionCerealBox">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/LionCerealBox/LionCerealBox</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#MarkenSalz -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#MarkenSalz">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/MarkenSalz/MarkenSalz.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#MeerSalz -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#MeerSalz">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/MeerSalz/MeerSalz.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#MondaminPancakeMix -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#MondaminPancakeMix">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/MondaminPancakeMix/MondaminPancakeMix.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#NesquikCereal -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#NesquikCereal">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://kitchen/iai_kitchen_objects/NesquikCereal/NesquikCereal.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#PfannerGruneIcetea -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#PfannerGruneIcetea">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/PfannerGruneIcetea/PfannerGruneIcetea.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#PfannerPfirsichIcetea -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#PfannerPfirsichIcetea">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/PfannerPfirsichIcetea/PfannerPfirsichIcetea.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#PopcornPot -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#PopcornPot">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/PopcornPot/PopcornPot.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#PringlesPaprika -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#PringlesPaprika">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/PringlesPaprika/PringlesPaprika.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#PringlesSalt -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#PringlesSalt">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/PringlesSalt/PringlesSalt.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#PringlesVinegar -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#PringlesVinegar">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/PringlesVinegar/PringlesVinegar.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#RedMetalBowlWhiteSpeckles -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#RedMetalBowlWhiteSpeckles">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/RedMetalBowlWhiteSpeckles/RedMetalBowlWhiteSpeckles.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#RedMetalCupWhiteSpeckles -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#RedMetalCupWhiteSpeckles">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/RedMetalCupWhiteSpeckles/RedMetalCupWhiteSpeckles.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#RedMetalPlateWhiteSpeckles -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#RedMetalPlateWhiteSpeckles">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/RedMetalPlateWhiteSpeckles/RedMetalPlateWhiteSpeckles.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#RedPlasticFork -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#RedPlasticFork">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/RedPlasticFork/RedPlasticFork.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#RedPlasticKnife -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#RedPlasticKnife">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/RedPlasticKnife/RedPlasticKnife.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#ReineButterMilch -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#ReineButterMilch">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/ReineButterMilch/ReineButterMilch.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#SeverinPancakeMaker -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#SeverinPancakeMaker">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/SeverinPancakeMaker/SeverinPancakeMaker.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#SiggBottle -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#SiggBottle">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/SiggBottle/SiggBottle.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#SojaMilch -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#SojaMilch">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/SojaMilch/SojaMilch.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#SpitzenReis -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#SpitzenReis">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/SpitzenReis/SpitzenReis.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#TomatoAlGustoBasilikum -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#TomatoAlGustoBasilikum">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/TomatoAlGustoBasilikum/TomatoAlGustoBasilikum.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#TomatoSauceOroDiParma -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#TomatoSauceOroDiParma">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/TomatoSauceOroDiParma/TomatoSauceOroDiParma.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#VollMilch -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#VollMilch">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/VollMilch/VollMilch.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#WhiteBottle -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#WhiteBottle">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/WhiteBottle/WhiteBottle.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#WhiteCeramicIkeaBowl -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#WhiteCeramicIkeaBowl">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/WhiteCeramicIkeaBowl/WhiteCeramicIkeaBowl.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#YellowCeramicPlate -->
+
+    <rdf:Description rdf:about="http://knowrob.org/kb/iai-kitchen.owl#YellowCeramicPlate">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/YellowCeramicPlate/YellowCeramicPlate.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 4.2.5.20160517-0735) https://github.com/owlcs/owlapi -->
+

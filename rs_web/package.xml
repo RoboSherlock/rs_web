@@ -12,11 +12,12 @@
   
   <build_depend>knowrob_robosherlock</build_depend>
   <build_depend>rosprolog</build_depend>
+ 
   <run_depend>knowrob_robosherlock</run_depend>
   <run_depend>rosprolog</run_depend>
   <run_depend>rosbridge_server</run_depend>
   <run_depend>web_video_server</run_depend>
-
+  <run_depend>tf2_web_republisher</run_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

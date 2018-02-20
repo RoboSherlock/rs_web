@@ -1,7 +1,15 @@
 :- module(rs_similar_objects,
   [
-  rs_object_candidates/1
+  rs_object_candidates/1,
+  rdf_all_similar/3
 ]).
+
+
+rdf_all_similar(Class, Super, MostSim) :-
+  findall([A, D], (rdfs_subclass_of(A, Super),
+                   rdf_wup_similarity(A, Class, D)), Dists),
+  predsort(compare_inference_probs, Dists, MostSim).
+
 
 rs_object_candidates([]).
 

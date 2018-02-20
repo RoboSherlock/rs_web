@@ -251,7 +251,7 @@ bool QueryInterface::handleDetect(std::vector<std::string> &res)
 
 }
 
-bool getConfigForKey(std::string key, std::string &location, std::string &check)
+bool getConfigForKey(std::string key, std::string &location, std::string &check, double &thresh)
 {
   //TODO Error handling
   const std::string &configFile = ros::package::getPath("rs_queryanswering") + "/config/filter_config.ini";
@@ -261,15 +261,11 @@ bool getConfigForKey(std::string key, std::string &location, std::string &check)
   try
   {
     boost::property_tree::ini_parser::read_ini(configFile, pt);
-    boost::optional<boost::property_tree::ptree&> child = pt.get_child_optional(key);
-    //Use config if we have one, otherwise use default
-    if(child) {
-        location = pt.get<std::string>(key + ".location");
-        check = pt.get<std::string>(key + ".check");
-    } else {
-        location = "/"+ key;
-        check = "EQUAL";
-    }
+
+    location = pt.get<std::string>(key + ".location", "/" + key);
+    check = pt.get<std::string>(key + ".check", "EQUAL");
+    thresh = pt.get<double> (key + ".threshold", 0.f);
+
     return true;
   }
   catch(boost::property_tree::ini_parser::ini_parser_error &e)
@@ -282,22 +278,38 @@ bool getConfigForKey(std::string key, std::string &location, std::string &check)
 
 //TODO this should be more generic, a few hacks in here. Currently first checking subclass, then checking equal
 //if superclass not set
-bool QueryInterface::checkSubClass(const std::string &resultValue, const std::string &queryValue){
-    bool ok = false;
-    if(rs_queryanswering::krNameMapping.count(queryValue) == 1)
+bool QueryInterface::checkSubClass(const std::string &resultValue, const std::string &queryValue)
+{
+  bool ok = false;
+  if(rs_queryanswering::krNameMapping.count(queryValue) == 1)
+  {
+    try
     {
-      try
+      ok = prologInterface->q_subClassOf(resultValue, queryValue);
+    }
+    catch(std::exception &e)
+    {
+      outError("Prolog Exception: Malformed owl_subclass of. Child or superclass undefined:");
+      outError("     Child: " << resultValue);
+      outError("     Parent: " << queryValue);
+    }
+  }
+  return ok;
+}
+
+bool checkThresholdOnList(rapidjson::Value &list, const float threshold, std::string requestedKey)
+{
+  for(rapidjson::Value::ConstMemberIterator listIt = list.MemberBegin(); listIt != list.MemberEnd(); ++listIt)
+  {
+    if(listIt->name == requestedKey)
+    {
+      if(listIt->value.GetDouble() > threshold)
       {
-        ok = prologInterface->q_subClassOf(resultValue, queryValue);
-      }
-      catch(std::exception &e)
-      {
-        outError("Prolog Exception: Malformed owl_subclass of. Child or superclass undefined:");
-        outError("     Child: " << resultValue);
-        outError("     Parent: " << queryValue);
+        return true;
       }
     }
-    return ok;
+  }
+  return false;
 }
 
 void QueryInterface::filterResults(std::vector<std::string> &resultDesignators,
@@ -312,7 +324,8 @@ void QueryInterface::filterResults(std::vector<std::string> &resultDesignators,
   {
     std::string location, check;
     std::string key = queryIt->name.GetString();
-    getConfigForKey(key, location, check);
+    double thresh;
+    getConfigForKey(key, location, check, thresh);
     const std::string queryValue = queryIt->value.GetString();
 
     outInfo("No. of resulting Object Designators: " << resultDesignators.size());
@@ -327,28 +340,39 @@ void QueryInterface::filterResults(std::vector<std::string> &resultDesignators,
         if(check == "EQUAL")
         {
           std::string resultValue = value->GetString();;
-          if(resultValue != queryValue) {
-              designatorsToKeep[i] = false;
+          if(resultValue != queryValue)
+          {
+            designatorsToKeep[i] = false;
           }
         }
         else if(check == "CLASS")
         {
-            const std::string resultValue = value->GetString();
-            if(!checkSubClass(resultValue, queryValue)) {
-                designatorsToKeep[i] = false;
-            }
+          const std::string resultValue = value->GetString();
+          if(!checkSubClass(resultValue, queryValue))
+          {
+            designatorsToKeep[i] = false;
+          }
         }
-        else if(check == "GEQ") {
-            float volumeofCurrentObj = value->GetDouble();
-            float volumeAsked = atof(queryValue.c_str());
-              outWarn("Volume asked as float: " << volumeAsked);
-              if(volumeAsked > volumeofCurrentObj)
-              {
-                designatorsToKeep[i] = false;
-              }
+        else if(check == "GEQ")
+        {
+          float volumeofCurrentObj = value->GetDouble();
+          float volumeAsked = atof(queryValue.c_str());
+          outWarn("Volume asked as float: " << volumeAsked);
+          if(volumeAsked > volumeofCurrentObj)
+          {
+            designatorsToKeep[i] = false;
+          }
+        }
+        else if(check == "LOWTHRESHLIST")
+        {
+          if(!checkThresholdOnList(*value, thresh, queryValue))
+          {
+            designatorsToKeep[i] = false;
+          }
         }
       }
-      else {
+      else
+      {
         designatorsToKeep[i] = false;
       }
 

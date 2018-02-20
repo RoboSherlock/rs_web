@@ -68,6 +68,7 @@ private:
     {"cereal", "SM_KoellnMuesliKnusperHonigNussNew_2"},
     {"spoon", "SM_Spoon_Dessert9_2"}
   };
+
   ObjectAlternatives objectAlternatives_;
   ObjectMap objReplacement_;
   ros::ServiceClient client_;
@@ -106,6 +107,8 @@ public:
   TyErrorId initialize(AnnotatorContext &ctx)
   {
     outInfo("initialize");
+
+    ros::service::waitForService("/json_prolog/simple_query");
 
     thread_ = std::thread(&TFBroadcasterWrapper::run, &broadCasterObject_);
     sphereCloud_ = boost::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
@@ -177,8 +180,8 @@ public:
     json_prolog::Prolog pl;
     std::stringstream plQuery;
 
-    plQuery << "owl_direct_subclass_of(" << rs_queryanswering::krNameMapping[objectName] << ",Superclass),";
-    plQuery << "rdf_most_similar(" << rs_queryanswering::krNameMapping[objectName] << ",Superclass,D)";
+    plQuery << "owl_direct_subclass_of(kitchen:'" << objectName<<"',Superclass),";
+    plQuery << "rdf_all_similar(kitchen:'" << objectName<< "',Superclass,D)";
     outDebug("Asking query:" << plQuery.str());
     json_prolog::PrologQueryProxy bdgs = pl.query(plQuery.str());
     outDebug("Found solution: " << (bool)(bdgs.begin() != bdgs.end()));
@@ -261,18 +264,9 @@ public:
       {
         marker.type = visualization_msgs::Marker::MESH_RESOURCE;
         std::string name = detections[0].name();
-
-        //if name exists use that; if not use a new one
-
-//        if(objectAlternatives_.find(name) == objectAlternatives_.end())
-//        {
-//          std::vector<std::string> objectCandidates;
-//          findObjectCandidates(name, objectCandidates);
-//          objectAlternatives_[name]  = objectCandidates;
-//        }
-
         resource_retriever::Retriever r;
-        std::string mesh_resource = "package://rs_resources/objects_dataset/cad_models/" + objReplacement_[name] + "/" + objReplacement_[name] + ".dae";
+//        std::string mesh_resource = "package://rs_resources/objects_dataset/cad_models/" + objReplacement_[name] + "/" + objReplacement_[name] + ".dae";
+        std::string mesh_resource = "package://rs_resources/objects_dataset/cad_models/" + name + "/" + name + ".dae";
         try
         {
           r.get(mesh_resource);
@@ -409,13 +403,14 @@ public:
   {
     outInfo("process start");
     MEASURE_TIME;
+
     rs::StopWatch clock;
     rs::SceneCas cas(tcas);
     rs::Scene scene = cas.getScene();
 
     std::vector<rs::Cluster> clusters;
     scene.identifiables.filter(clusters);
-
+    outInfo("Found "<<clusters.size()<<" object hypotheses");
     for(auto c : clusters)
     {
       std::vector<rs::Detection> detections;
@@ -430,16 +425,19 @@ public:
         objectAlternatives_[name]  = objectCandidates;
       }
 
-      srand(time(NULL));
-      int randomPointIdx = rand() % (objectAlternatives_[name].size()+1);
-      if(randomPointIdx<objectAlternatives_[name].size())
+      if(objReplacement_.find(name) == objReplacement_.end())
       {
-      outInfo(name<<" REPLACED BY " <<objectAlternatives_[name].at(randomPointIdx));
-      objReplacement_[name] = objectAlternatives_[name].at(randomPointIdx);
-      }
-      else
-      {
-        objReplacement_[name] = "";//if we don't want this object in the scene;
+        srand(time(NULL));
+        int randomPointIdx = rand() % (objectAlternatives_[name].size()+1);
+        if(randomPointIdx<objectAlternatives_[name].size() )
+        {
+          outInfo(name<<" REPLACED BY " <<objectAlternatives_[name].at(randomPointIdx));
+          objReplacement_[name] = objectAlternatives_[name].at(randomPointIdx);
+        }
+        else
+        {
+          objReplacement_[name] = "";//if we don't want this object in the scene;
+        }
       }
     }
 
@@ -460,10 +458,10 @@ public:
     pcl::compute3DCentroid(*cloud, planeInliers, temp);
     tf::Vector3 centroid(temp[0], temp[1], temp[2]);
 
-    //    if(!spawnCameraInUnreal(scene, centroid))
-    //    {
-    //      return UIMA_ERR_NONE;
-    //    }
+        if(!spawnCameraInUnreal(scene, centroid))
+        {
+          return UIMA_ERR_NONE;
+        }
 
     //for visualizations
     Eigen::Affine3d eigenTransform;

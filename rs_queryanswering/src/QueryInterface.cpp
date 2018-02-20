@@ -394,14 +394,31 @@ void QueryInterface::filterResults(std::vector<std::string> &resultDesignators,
           }
 
         }
-        else
-        {
-          outWarn("There is no such check: " + check + ". Please check the filter_config.ini");
-          designatorsToKeep[i] = false;
-        }
+      }
+      else if(check == "CONTAINSEQUAL")
+      {
+          std::string delimiter = "*";
+          int delLoc = location.find(delimiter);
+          std::string prefix = location.substr(0, delLoc-1);
+          std::string suffix = location.substr(delLoc+1, location.size());
+          if(rapidjson::Value *suffixVal = rapidjson::Pointer(prefix).Get(resultJson)){
+              for(int i = 0; i < suffixVal->Size(); i ++){
+                  std::string newLocation = prefix + "/" + std::to_string(i) + suffix;
+                  if(rapidjson::Value *value = rapidjson::Pointer(newLocation).Get(resultJson)){
+                      std::string resultValue = value->GetString();;
+                      if(resultValue != queryValue)
+                      {
+                        designatorsToKeep[i] = false;
+                      }
+                  }
+              }
+          }
       }
       else
       {
+
+        outWarn("There is no such check: " + check + ". Please check the filter_config.ini");
+        designatorsToKeep[i] = false;
         designatorsToKeep[i] = false;
       }
 

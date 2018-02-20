@@ -230,9 +230,6 @@ void DesignatorWrapper::convert(rs::Shape &input, rapidjson::Document *object)
 {
   if(!object->HasMember("shape"))
   {
-    //rapidjson::Value array(rapidjson::kArrayType);
-    //object->AddMember("shape", array, object->GetAllocator());
-
     rapidjson::Pointer("/shape/0").Set(*object, input.shape());
   }
   else
@@ -266,7 +263,17 @@ void DesignatorWrapper::convert(rs::PoseAnnotation &input, rapidjson::Document *
   outWarn("Time diff in poses: " << diff);
   if(diff == 0)
   {
-    object->AddMember("pose", nestedValue, object->GetAllocator());
+      if(!object->HasMember("pose"))
+      {
+        rapidjson::Pointer("/pose/0").Set(*object, nestedValue);
+      }
+      else
+      {
+        rapidjson::Value &array = (*object)["pose"];
+        std::string size = std::to_string(array.Size());
+        rapidjson::Pointer("/pose/" + size).Set(*object, nestedValue);
+      }
+    //object->AddMember("pose", nestedValue, object->GetAllocator());
   }
 }
 

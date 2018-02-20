@@ -251,9 +251,8 @@ bool QueryInterface::handleDetect(std::vector<std::string> &res)
 
 }
 
-bool getConfigForKey(std::string key, std::string &location, std::string &check, double &thresh)
+bool getConfigForKey(std::string key, std::string &location, std::string &check, double &thresh, bool &keepLower)
 {
-  //TODO Error handling
   const std::string &configFile = ros::package::getPath("rs_queryanswering") + "/config/filter_config.ini";
 
   outInfo("Path to config file: " FG_BLUE << configFile);
@@ -265,6 +264,7 @@ bool getConfigForKey(std::string key, std::string &location, std::string &check,
     location = pt.get<std::string>(key + ".location", "/" + key);
     check = pt.get<std::string>(key + ".check", "EQUAL");
     thresh = pt.get<double> (key + ".threshold", 0.f);
+    keepLower = pt.get<bool> (key + ".keepLower", true);
 
     return true;
   }
@@ -276,8 +276,6 @@ bool getConfigForKey(std::string key, std::string &location, std::string &check,
   return false;
 }
 
-//TODO this should be more generic, a few hacks in here. Currently first checking subclass, then checking equal
-//if superclass not set
 bool QueryInterface::checkSubClass(const std::string &resultValue, const std::string &queryValue)
 {
   bool ok = false;
@@ -297,15 +295,25 @@ bool QueryInterface::checkSubClass(const std::string &resultValue, const std::st
   return ok;
 }
 
-bool checkThresholdOnList(rapidjson::Value &list, const float threshold, std::string requestedKey)
+bool QueryInterface::checkThresholdOnList(rapidjson::Value &list, const float threshold, std::string requestedKey, bool keepLower)
 {
   for(rapidjson::Value::ConstMemberIterator listIt = list.MemberBegin(); listIt != list.MemberEnd(); ++listIt)
   {
     if(listIt->name == requestedKey)
     {
-      if(listIt->value.GetDouble() > threshold)
+      if(!keepLower)
       {
-        return true;
+        if(listIt->value.GetDouble() >= threshold)
+        {
+          return true;
+        }
+      }
+      else
+      {
+        if(listIt->value.GetDouble() < threshold)
+        {
+          return true;
+        }
       }
     }
   }
@@ -325,7 +333,8 @@ void QueryInterface::filterResults(std::vector<std::string> &resultDesignators,
     std::string location, check;
     std::string key = queryIt->name.GetString();
     double thresh;
-    getConfigForKey(key, location, check, thresh);
+    bool keepLower;
+    getConfigForKey(key, location, check, thresh, keepLower);
     const std::string queryValue = queryIt->value.GetString();
 
     outInfo("No. of resulting Object Designators: " << resultDesignators.size());
@@ -363,12 +372,32 @@ void QueryInterface::filterResults(std::vector<std::string> &resultDesignators,
             designatorsToKeep[i] = false;
           }
         }
-        else if(check == "LOWTHRESHLIST")
+        else if(check == "THRESHLIST")
         {
-          if(!checkThresholdOnList(*value, thresh, queryValue))
+          if(!checkThresholdOnList(*value, thresh, queryValue, keepLower))
           {
             designatorsToKeep[i] = false;
           }
+        }
+        else if(check == "CONTAINS")
+        {
+          bool found = false;
+          for(auto &v : value->GetArray())
+            if(v == queryValue)
+            {
+              found = true;
+            }
+
+          if(!found)
+          {
+            designatorsToKeep[i] = false;
+          }
+
+        }
+        else
+        {
+          outWarn("There is no such check: " + check + ". Please check the filter_config.ini");
+          designatorsToKeep[i] = false;
         }
       }
       else
@@ -378,271 +407,6 @@ void QueryInterface::filterResults(std::vector<std::string> &resultDesignators,
 
     }
   }
-  for(int i = 0; i < designatorsToKeep.size(); ++i)
-  {
-    if(designatorsToKeep[i])
-    {
-      filteredResponse.push_back(resultDesignators[i]);
-    }
-  }
-}
-
-
-void QueryInterface::oldFilter(std::vector<std::string> &resultDesignators,
-                               std::vector<std::string> &filteredResponse,
-                               std::vector<bool> &designatorsToKeep,
-                               const std::string superclass)
-{
-  outInfo("filtering the results based on the designator request");
-  outInfo("Superclass: " << superclass);
-  designatorsToKeep.resize(resultDesignators.size(), true);
-  const rapidjson::Value &detectQuery = query["detect"];
-
-  for(rapidjson::Value::ConstMemberIterator it = detectQuery.MemberBegin(); it != detectQuery.MemberEnd(); ++it)
-  {
-    if(it->name == "timestamp" || it->name == "location")
-    {
-      continue;
-    }
-
-    outInfo("No. of resulting Object Designators: " << resultDesignators.size());
-    for(size_t i = 0; i < resultDesignators.size(); ++i)
-    {
-      rapidjson::Document resDesig;
-      resDesig.Parse(resultDesignators[i].c_str());
-      rapidjson::Document resultsForRequestedKey;
-      resultsForRequestedKey.SetObject();
-      if(resDesig.HasMember("id"))
-      {
-        if(it->name == "size") //size is nested get it from the bounding box..bad design
-        {
-          if(resDesig.HasMember("boundingbox"))
-          {
-            resultsForRequestedKey.AddMember("size", resDesig["boundingbox"]["size"], resultsForRequestedKey.GetAllocator());
-          }
-          else
-          {
-            designatorsToKeep[i] = false;
-          }
-        }
-        else if(it->name == "cad-model")
-        {
-          resultsForRequestedKey.AddMember("cad-model", resDesig["pose"], resultsForRequestedKey.GetAllocator());
-        }
-        else if(it->name == "volume")
-        {
-          if(resDesig.HasMember("volume"))
-          {
-            resultsForRequestedKey.AddMember("volume", resDesig["volume"], resultsForRequestedKey.GetAllocator());
-          }
-          else
-          {
-            designatorsToKeep[i] = false;
-          }
-        }
-        else if(it->name == "contains")
-        {
-          if(resDesig.HasMember("contains"))
-          {
-            resultsForRequestedKey.AddMember("contains", resDesig["contains"], resultsForRequestedKey.GetAllocator());
-          }
-          else
-          {
-            designatorsToKeep[i] = false;
-          }
-        }
-        else if(it->name == "shape") //there can be multiple shapes and these are not nested
-        {
-          if(resDesig.HasMember("shape"))
-          {
-            resultsForRequestedKey.AddMember("shape", resDesig["shape"], resultsForRequestedKey.GetAllocator());
-          }
-          else
-          {
-            designatorsToKeep[i] = false;
-          }
-        }
-        else if(it->name == "type")//this shit needed so we don't loose al of our stuff just because all was sent instead of detection
-        {
-          //TODO should it always have class?
-          if(resDesig.HasMember("class"))
-          {
-            resultsForRequestedKey.AddMember("type", resDesig["class"], resultsForRequestedKey.GetAllocator());
-          }
-        }
-        else if(it->name == "ingredient")
-        {
-          resultsForRequestedKey.AddMember("ingredient", resDesig["pizza"], resultsForRequestedKey.GetAllocator());
-        }
-        else
-        {
-          rapidjson::Value v(it->name, resultsForRequestedKey.GetAllocator());
-          resultsForRequestedKey.AddMember(v, resDesig[it->name.GetString()], resultsForRequestedKey.GetAllocator());
-
-        }
-      }
-      else
-      {
-        rapidjson::Value v(it->name, resultsForRequestedKey.GetAllocator());
-        resultsForRequestedKey.AddMember(v, resDesig[it->name.GetString()], resultsForRequestedKey.GetAllocator());
-        outWarn("No CLUSTER ID");
-      }
-
-      if(!resultsForRequestedKey.MemberCount() == 0)
-      {
-        bool ok = false;
-
-        if(resultsForRequestedKey.HasMember("pose"))
-        {
-          rapidjson::Document kvps_;
-          kvps_.Parse(resultDesignators[i].c_str());
-          rapidjson::Value::ConstMemberIterator it = kvps_.MemberBegin();
-          bool hasCadPose = false;
-          while(it != kvps_.MemberEnd())
-          {
-            if(it->name == "pose")
-            {
-              if(kvps_["source"].GetString() == "TemplateAlignment")
-              {
-                hasCadPose = true;
-                ++it;
-              }
-              else
-              {
-                kvps_.EraseMember(it++);
-              }
-            }
-            else
-            {
-              ok = true;
-            }
-          }
-          ok = hasCadPose;
-          resultDesignators[i] = rs::DesignatorWrapper::jsonToString(kvps_).c_str();
-        }
-        if(resultsForRequestedKey.HasMember("obj-part"))
-        {
-          ok = true;
-        }
-        if(resultsForRequestedKey.HasMember("pizza"))
-        {
-          ok = true;
-          rapidjson::Document kvps_;
-          kvps_.Parse(resultDesignators[i].c_str());
-          rapidjson::Value::ConstMemberIterator it = kvps_.MemberBegin();
-          while(it != kvps_.MemberEnd())
-          {
-            if(it->name != "pizza" && it->name != "id" && it->name != "timestamp")
-            {
-              kvps_.EraseMember(it++);
-            }
-            else
-            {
-              ++it;
-            }
-
-          }
-          resultDesignators[i] = rs::DesignatorWrapper::jsonToString(kvps_).c_str();
-        }
-        //treat color differently because it is nested and has every color with ration in there
-        if(resultsForRequestedKey.HasMember("color"))
-        {
-          for(auto iter = resultsForRequestedKey["color"].MemberBegin(); iter != resultsForRequestedKey["color"].MemberEnd(); ++iter)
-          {
-            if(strcasecmp(iter->value.GetString(), it->value.GetString()) == 0 || it->value.GetString() == "")
-            {
-              if(iter->value.GetDouble() > 0.20)
-              {
-                ok = true;
-              }
-            }
-          }
-        }
-        if(resultsForRequestedKey.HasMember("volume"))
-        {
-          float volumeofCurrentObj = resultsForRequestedKey["volume"].GetDouble();
-          outWarn("Volume as a float: " << volumeofCurrentObj);
-          if(it->value.GetString() == "")
-          {
-            ok = true;
-          }
-          else
-          {
-            float volumeAsked = atof(it->value.GetString());
-            outWarn("Volume asked as float: " << volumeAsked);
-            if(volumeAsked <= volumeofCurrentObj)
-            {
-              ok = true;
-            }
-          }
-        }
-        if(resultsForRequestedKey.HasMember("contains"))
-        {
-          if(it->value.GetString() == "")
-          {
-            ok = true;
-          }
-          else
-          {
-            std::string substanceName = resultsForRequestedKey["contains"]["substance"].GetString();
-            std::string substanceAsked = it->value.GetString();
-            outWarn("Substance asked : " << substanceAsked);
-            if(strcasecmp(substanceName.c_str(), substanceAsked.c_str()) == 0)
-            {
-              ok = true;
-            }
-          }
-        }
-
-        //another nested kv-p...we need a new interface...this one sux
-        if(resultsForRequestedKey.HasMember("class"))
-        {
-          for(auto iter = resultsForRequestedKey["class"].MemberBegin(); iter != resultsForRequestedKey["class"].MemberEnd(); ++iter)
-          {
-            if(iter->name.GetString() == "name")
-            {
-              if(superclass != "" && rs_queryanswering::krNameMapping.count(superclass) == 1)
-              {
-                try
-                {
-                  ok = prologInterface->q_subClassOf(iter->value.GetString(), superclass);
-                }
-                catch(std::exception &e)
-                {
-                  outError("Prolog Exception: Malformed owl_subclass of. Child or superclass undefined:");
-                  outError("     Child: " << iter->name.GetString());
-                  outError("     Parent: " << superclass);
-                }
-              }
-              else if(strcasecmp(iter->value.GetString(), it->value.GetString()) == 0 || it->value.GetString() == "")
-              {
-                ok = true;
-              }
-              else if(iter->value.GetString() == "bottle_acid" || iter->value.GetString() == "bottle_base")
-              {
-                std::string new_name = "bottle";
-                if(strcasecmp(new_name.c_str(), it->value.GetString()) == 0)
-                {
-                  ok = true;
-                }
-              }
-            }
-          }
-        }
-
-        if(strstr(rs::DesignatorWrapper::jsonToString(resultsForRequestedKey).c_str(), it->value.GetString()) != NULL
-           || it->value.GetString() == "")
-        {
-          ok = true;
-        }
-        if(!ok)
-        {
-          designatorsToKeep[i] = false;
-        }
-      }
-    }
-  }
-
   for(int i = 0; i < designatorsToKeep.size(); ++i)
   {
     if(designatorsToKeep[i])

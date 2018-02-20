@@ -54,5 +54,6 @@ public:
                  const std::string superclass);
 
   bool checkSubClass(const std::string &resultValue, const std::string &queryValue);
+  bool checkThresholdOnList(rapidjson::Value &list, const float threshold, std::string requestedKey, bool keepLower);
 
 };

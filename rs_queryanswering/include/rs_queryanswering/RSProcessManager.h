@@ -7,7 +7,6 @@
 #include <rs_queryanswering/RSControledAnalysisEngine.h>
 #include <rs_queryanswering/KRDefinitions.h>
 #include <rs_queryanswering/QueryInterface.h>
-#include <json_prolog/prolog.h>
 
 #include <designator_integration_msgs/DesignatorCommunication.h>
 #include <iai_robosherlock_msgs/SetRSContext.h>
@@ -80,6 +79,8 @@ public:
 
   bool jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::Request &req,
                          iai_robosherlock_msgs::RSQueryService::Response &res);
+
+  bool handleQuery(std::string& req, std::vector<std::string>& res);
 
   //special case for offscreen rendering the beliefstate using Unreal Engine
   bool renderOffscreen(std::string object);

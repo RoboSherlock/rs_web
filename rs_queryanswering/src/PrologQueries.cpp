@@ -277,8 +277,7 @@ PREDICATE(cpp_process_once, 1)
     void *myobj = A1;
     std::string *desig  = (std::string *)myobj;
     std::vector<std::string> resp;
-    //TODO this needs to be done differently
-    //pm->handleQuery(desig, resp);
+    pm->handleQuery(*desig, resp);
     return TRUE;
   }
   else

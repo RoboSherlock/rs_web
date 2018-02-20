@@ -419,7 +419,6 @@ void QueryInterface::filterResults(std::vector<std::string> &resultDesignators,
 
         outWarn("There is no such check: " + check + ". Please check the filter_config.ini");
         designatorsToKeep[i] = false;
-        designatorsToKeep[i] = false;
       }
 
     }

@@ -68,6 +68,19 @@
     
 
 
+    <!-- http://knowrob.org/kb/iai-kitchen.owl#BlueCeramicIkeaMug -->
+
+    <owl:Class rdf:about="http://knowrob.org/kb/iai-kitchen.owl#BlueCeramicIkeaMug">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
+                <owl:hasValue rdf:datatype="http://www.w3.org/2001/XMLSchema#string">package://rs_resources/objects_dataset/cad_models/BlueCeamikIkeaMug/BlueCeramicIkeaMug.dae</owl:hasValue>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
     <!-- http://knowrob.org/kb/iai-kitchen.owl#BlueMetalPlateWhiteSpeckles -->
 
     <owl:Class rdf:about="http://knowrob.org/kb/iai-kitchen.owl#BlueMetalPlateWhiteSpeckles">

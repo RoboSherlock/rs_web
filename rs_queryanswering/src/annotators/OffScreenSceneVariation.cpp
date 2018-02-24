@@ -18,6 +18,7 @@
 #include <rs/io/TFBroadcasterWrapper.hpp>
 #include <rs/DrawingAnnotator.h>
 #include <rs_queryanswering/KRDefinitions.h>
+#include <rs/io/Storage.h>
 
 //ROS
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
@@ -78,7 +79,7 @@ private:
 
   image_transport::Publisher image_pub_;
   image_transport::ImageTransport it_;
-  cv::Mat object_, rgb_;
+  cv::Mat object_, rgb_, depth_, disp_;
 
   std::thread thread_;
   TFBroadcasterWrapper broadCasterObject_;
@@ -89,8 +90,14 @@ private:
 
   bool publishAsMarkers_;
 
+  std::string host;
+  std::string db;
+  rs::Storage storage;
+
+  bool withStorage;
 public:
-  OffScreenSceneVariation(): DrawingAnnotator(__func__), nh_("~"), it_(nh_), publishAsMarkers_(false)
+  OffScreenSceneVariation(): DrawingAnnotator(__func__), nh_("~"), it_(nh_), publishAsMarkers_(false),
+      host("127.0.0.1"),db("UnrealGeneratedScenes"),withStorage(false)
   {
     client_ = nh_.serviceClient<iai_robosherlock_msgs::UpdateObjects>("/update_objects");
     std::string configFile = ros::package::getPath("robosherlock") + "/config/config_unreal_vision.ini";
@@ -107,12 +114,27 @@ public:
   TyErrorId initialize(AnnotatorContext &ctx)
   {
     outInfo("initialize");
+    if(ctx.isParameterDefined("withStorage"))
+    {
+      ctx.extractValue("withStorage", withStorage);
+    }
 
     ros::service::waitForService("/json_prolog/simple_query");
 
     thread_ = std::thread(&TFBroadcasterWrapper::run, &broadCasterObject_);
     sphereCloud_ = boost::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
     viewCloud_ = boost::make_shared<pcl::PointCloud<pcl::PointXYZRGBA>>();
+
+    if(withStorage)
+    {storage = rs::Storage(host, db, false);
+
+
+    storage.enableViewStoring("color_image_hd", true);
+    storage.enableViewStoring("depth_image_hd", true);
+    storage.enableViewStoring("camera_info",true);
+    storage.enableViewStoring("camera_info_hd",true);
+    storage.enableViewStoring("scene",true);
+}
     return UIMA_ERR_NONE;
   }
 
@@ -125,6 +147,7 @@ public:
 
   void generateViewPoints(pcl::PointCloud<pcl::PointXYZ>::Ptr &cloud, const tf::Vector3 centroid, float radius)
   {
+    cloud->points.push_back(pcl::PointXYZ(0,0,0));
     for(float theta = M_PI_2 + M_PI / 4; theta < M_PI - 2 * (M_PI / 18); theta += M_PI / 10)
     {
       for(float phi = -M_PI; phi < M_PI; phi += M_PI_2 / 15)
@@ -218,8 +241,9 @@ public:
     //    objectCandidates.erase(std::unique(objectCandidates.begin(),objectCandidates.end()),objectCandidates.end());
     std::set<std::string> set(objectCandidates.begin(), objectCandidates.end());
     objectCandidates.assign(set.begin(), set.end());
+    outInfo("Objec candidates for "<<objectName<<" are: ");
     for(auto s : objectCandidates)
-      outInfo(s);
+      outInfo("     -"<<s);
   }
 
   template <class T>
@@ -265,8 +289,8 @@ public:
         marker.type = visualization_msgs::Marker::MESH_RESOURCE;
         std::string name = detections[0].name();
         resource_retriever::Retriever r;
-//        std::string mesh_resource = "package://rs_resources/objects_dataset/cad_models/" + objReplacement_[name] + "/" + objReplacement_[name] + ".dae";
-        std::string mesh_resource = "package://rs_resources/objects_dataset/cad_models/" + name + "/" + name + ".dae";
+        std::string mesh_resource = "package://rs_resources/objects_dataset/cad_models/" + objReplacement_[name] + "/" + objReplacement_[name] + ".dae";
+//        std::string mesh_resource = "package://rs_resources/objects_dataset/cad_models/" + name + "/" + name + ".dae";
         try
         {
           r.get(mesh_resource);
@@ -289,10 +313,10 @@ public:
     object_marker_pub_.publish(markers);
   }
 
-  bool spawnCameraInUnreal(rs::Scene &scene, tf::Vector3 centroid)
+  bool spawnCameraInUnreal(/*rs::Scene &scene,*/tf::StampedTransform mapToCam,tf::Vector3 centroid)
   {
-    tf::StampedTransform mapToCam, camToMap;
-    rs::conversion::from(scene.viewPoint.get(), mapToCam);
+    tf::StampedTransform /*mapToCam,*/ camToMap;
+//    rs::conversion::from(scene.viewPoint.get(), mapToCam);
 
     camToMap  = tf::StampedTransform(mapToCam.inverse(), mapToCam.stamp_, mapToCam.child_frame_id_, mapToCam.frame_id_);
 
@@ -301,6 +325,8 @@ public:
     outInfo("Centroid in map is: " << centroidInMap[0] << " " << centroidInMap[1] << " " << centroidInMap[2]);
 
     pcl::PointCloud<pcl::PointXYZ>::Ptr sphereCloud(new pcl::PointCloud<pcl::PointXYZ>);
+    //points are generated in camera frame where center of the sphere is the original location of the
+    //camera (0, 0, 0) and then transformed to map frame;
     generateViewPoints(sphereCloud, centroidInMap, centroid.length());
     outInfo("Sphere points size: " << sphereCloud->points.size());
 
@@ -317,7 +343,8 @@ public:
     int randomPointIdx = rand() % sphereCloud_->size() + 1;
     outInfo("Random index: " << randomPointIdx);
 
-    pcl::PointXYZ pt = sphereCloud_->points[randomPointIdx];
+    //no random: replace with randomPointIdx to get random view-points
+    pcl::PointXYZ pt = sphereCloud_->points[0];
 
     tf::StampedTransform mapToPlaneCenter, mapToPoint;
     mapToPlaneCenter.child_frame_id_ = "center_point";
@@ -411,6 +438,15 @@ public:
     std::vector<rs::Cluster> clusters;
     scene.identifiables.filter(clusters);
     outInfo("Found "<<clusters.size()<<" object hypotheses");
+
+
+    tf::StampedTransform mapToCam;
+    for (int counter = 0; counter<30; counter++)
+    {
+        if (counter == 0)
+        {
+            rs::conversion::from(scene.viewPoint.get(), mapToCam);
+        }
     for(auto c : clusters)
     {
       std::vector<rs::Detection> detections;
@@ -425,8 +461,8 @@ public:
         objectAlternatives_[name]  = objectCandidates;
       }
 
-      if(objReplacement_.find(name) == objReplacement_.end())
-      {
+     // if(objReplacement_.find(name) == objReplacement_.end())
+      //{
         srand(time(NULL));
         int randomPointIdx = rand() % (objectAlternatives_[name].size()+1);
         if(randomPointIdx<objectAlternatives_[name].size() )
@@ -438,7 +474,7 @@ public:
         {
           objReplacement_[name] = "";//if we don't want this object in the scene;
         }
-      }
+      //}
     }
 
     publishObjects(clusters);
@@ -458,52 +494,66 @@ public:
     pcl::compute3DCentroid(*cloud, planeInliers, temp);
     tf::Vector3 centroid(temp[0], temp[1], temp[2]);
 
-        if(!spawnCameraInUnreal(scene, centroid))
-        {
+    if(!spawnCameraInUnreal(mapToCam, centroid))
+    {
           return UIMA_ERR_NONE;
-        }
+    }
 
     //for visualizations
     Eigen::Affine3d eigenTransform;
     tf::StampedTransform mapToCam;
-    rs::conversion::from(scene.viewPoint.get(), mapToCam);
+//    rs::conversion::from(scene.viewPoint.get(), mapToCam);
     tf::transformTFToEigen(mapToCam, eigenTransform);
     pcl::transformPointCloud<pcl::PointXYZRGBA>(*cloud, *viewCloud_, eigenTransform);
 
 
     int count = 0; //so we don't block
-    while(!unrealBridge_->newData() && count < 5)
+    outInfo("Waiting for Unreal");
+    while(!unrealBridge_->newData())//&& count < 5)
     {
       count++;
-      outInfo("Waiting for Unreal");
       usleep(100);
     }
-    if(count >= 5)
-    {
-      return UIMA_ERR_NONE;
-    }
-
+    //    if(count >= 5)
+    //    {
+    //      return UIMA_ERR_NONE;
+    //    }*/
+    std::stringstream ss;
+    ss<<counter<<"_"<<scene.timestamp();
+  //  cas.get(VIEW_COLOR_IMAGE, rgb_);
+   // cv::imwrite("original_color"+ss.str()+".png",rgb_);
     unrealBridge_->setData(tcas);
     sensor_msgs::CameraInfo cam_info;
+
     cas.get(VIEW_OBJECT_IMAGE, object_);
     cas.get(VIEW_COLOR_IMAGE, rgb_);
+    cas.get(VIEW_DEPTH_IMAGE, depth_);
+
+    cv::imwrite("unreal_mask"+ss.str()+".png",object_);
+   cv::imwrite("unreal_color"+ss.str()+".png",rgb_);
+//    cv::imwrite("unreal_depth"+ss.str()+".png",depth_);
+
+    outInfo("cv::Mat type: "<<object_.type());
     cas.get(VIEW_CAMERA_INFO, cam_info);
 
     std::map<std::string, cv::Vec3b> objectMap;
     cas.get(VIEW_OBJECT_MAP, objectMap);
+    if(withStorage)
+        storage.storeScene(*tcas.getBaseCas(), scene.timestamp());
+    }
     return UIMA_ERR_NONE;
+
   }
 
-  void drawImageWithLock(cv::Mat disp)
+
+
+  void drawImageWithLock(cv::Mat &disp)
   {
-    if(!rgb_.empty())
-    {
-      disp  = rgb_.clone();
-    }
-    else
-    {
-      disp = cv::Mat::ones(cv::Size(640, 480), CV_8UC3);
-    }
+      if(!object_.empty())
+        disp  = object_.clone();
+      else
+          disp = cv::Mat::ones(640,480,CV_8UC3);
+
   }
 
   void fillVisualizerWithLock(pcl::visualization::PCLVisualizer &visualizer, const bool firstRun)

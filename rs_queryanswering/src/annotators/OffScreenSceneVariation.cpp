@@ -537,7 +537,7 @@ public:
 
       int count = 0; //so we don't block
       outInfo("Waiting for Unreal");
-      sleep(5);
+      sleep(2);
       while(!unrealBridge_->newData())//&& count < 5)
       {
         count++;
@@ -552,15 +552,15 @@ public:
       unrealBridge_->setData(tcas);
       sensor_msgs::CameraInfo cam_info;
 
-      cas.get(VIEW_OBJECT_IMAGE, object_);
-      cas.get(VIEW_COLOR_IMAGE, rgb_);
-      cas.get(VIEW_DEPTH_IMAGE, depth_);
-      cv::imwrite("unreal_mask" + ss.str() + ".png", object_);
-      cv::imwrite("unreal_color" + ss.str() + ".png", rgb_);
+      cas.get(VIEW_OBJECT_IMAGE_HD, object_);
+      cas.get(VIEW_COLOR_IMAGE_HD, rgb_);
+//      cas.get(VIEW_DEPTH_IMAGE_HD, depth_);
+      //cv::imwrite("unreal_mask" + ss.str() + ".png", object_);
+      //cv::imwrite("unreal_color" + ss.str() + ".png", rgb_);
       //    cv::imwrite("unreal_depth"+ss.str()+".png",depth_);
 
       outInfo("cv::Mat type: " << object_.type());
-      cas.get(VIEW_CAMERA_INFO, cam_info);
+//      cas.get(VIEW_CAMERA_INFO_HD, cam_info);
 
       std::map<std::string, cv::Vec3b> objectMap;
       cas.get(VIEW_OBJECT_MAP, objectMap);
@@ -584,17 +584,19 @@ public:
               cv::Mat mask_full = cv::Mat::zeros(rgb_.rows, rgb_.cols, CV_8U);
               for(cv::Point &p : points)
               {
-                indices.indices.push_back(p.y * rgb_.cols + p.x);
+                indices.indices.push_back(p.y/2 * rgb_.cols/2 + p.x/2);
                 mask_full.at<uint8_t>(p.y, p.x) = 255;
               }
+              std::set<int> tempSet( indices.indices.begin(), indices.indices.end() );
+              indices.indices.assign(tempSet.begin(),tempSet.end());
               rs::PointIndices uimaIndices = rs::conversion::to(tcas, indices);
               rcp.indices.set(uimaIndices);
 
-              cv::Rect roi  = cv::boundingRect(points),
-                       roiHires = cv::Rect(roi.x << 1, roi.y << 1, roi.width << 1, roi.height << 1);
+              cv::Rect roiHires = cv::boundingRect(points),
+                       roi = cv::Rect(roi.x >> 1, roi.y >> 1, roi.width >> 1, roi.height >> 1);
               cv::Mat mask, maskHires;
-              mask_full(roi).copyTo(mask);
-              cv::resize(mask, maskHires, cv::Size(0, 0), 2.0, 2.0, cv::INTER_NEAREST);
+              mask_full(roiHires).copyTo(maskHires);
+              cv::resize(maskHires, mask, cv::Size(0, 0), 0.5, 0.5, cv::INTER_NEAREST);
 
               rs::ImageROI imageRoi = rs::create<rs::ImageROI>(tcas);
               imageRoi.mask(rs::conversion::to(tcas, mask));

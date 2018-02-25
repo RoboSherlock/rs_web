@@ -50,6 +50,19 @@
 #include <cmath>
 #include <chrono>
 
+// basic file operations
+#include <iostream>
+#include <fstream>
+
+// basic file operations
+#include <iostream>
+#include <fstream>
+using namespace std;
+
+
+
+
+
 
 using namespace uima;
 
@@ -57,17 +70,28 @@ class OffScreenSceneVariation : public DrawingAnnotator
 {
 
   using ObjectMap = std::map<std::string, std::string>;
-  using UnrealNameMap = std::map<std::string, std::string>;
+  using ClassLabelToID = std::map<std::string, int>;
   using ObjectAlternatives = std::map<std::string, std::vector<std::string>>;
   using VariationConfig = std::map<int, ObjectMap *>;
 private:
 
-  UnrealNameMap uNameMapping =
+  ClassLabelToID labelToID =
   {
-    {"cup", "SM_CupEcoOrange_2"},
-    {"bowl", "SM_Bowl_8"},
-    {"cereal", "SM_KoellnMuesliKnusperHonigNussNew_2"},
-    {"spoon", "SM_Spoon_Dessert9_2"}
+    {"BluePlasticSpoon", 0}, {"EdekaRedBowl", 1},
+    {"JaMilch", 2}, {"KelloggsCornFlakes", 3}, {"KelloggsToppasMini", 4},
+    {"KnusperSchokoKeks", 5}, {"KoellnMuesliKnusperHonigNuss", 6},
+    {"LargeGreySpoon", 7}, {"LionCerealBox", 8},
+    {"NesquikCereal", 9}, {"RedMetalBowlWhiteSpeckles", 10},
+    {"RedPlasticSpoon", 11},      {"SojaMilch", 12},
+    {"VollMilch", 13},      {"WeideMilchSmall", 14},
+    {"WhiteCeramicIkeaBowl", 15},      {"AlbiHimbeerJuice", 16},
+    {"BlueCeramicIkeaMug", 17},      {"BlueMetalPlateWhiteSpeckles", 18},
+    {"BluePlasticKnife", 19},      {"CupEcoOrange", 20},
+    {"JodSalz", 21},      {"LinuxCup", 22},
+    {"MarkenSalz", 23},      {"MeerSalz", 24},
+    {"PfannerGruneIcetea", 25},      {"PfannerPfirsichIcetea", 26},
+    {"RedMetalCupWhiteSpeckles", 27},      {"RedMetalPlateWhiteSpeckles", 28},
+    {"RedPlasticKnife", 29},      {"YellowCeramicPlate", 30}
   };
 
   ObjectAlternatives objectAlternatives_;
@@ -100,6 +124,9 @@ private:
 
   int variations;
   bool first;
+
+  ofstream imageListFile_;
+
 public:
   OffScreenSceneVariation(): DrawingAnnotator(__func__), nh_("~"), it_(nh_), publishAsMarkers_(false),
     host("127.0.0.1"), db("UnrealGeneratedScenes"), withStorage(false), variations(1), first(true)
@@ -114,6 +141,9 @@ public:
     marker_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("viewpoints", 1, true);
 
     object_marker_pub_ = nh_.advertise<visualization_msgs::MarkerArray>("markers", 1, true);
+
+    imageListFile_.open("images.txt");
+
   }
 
   TyErrorId initialize(AnnotatorContext &ctx)
@@ -149,6 +179,7 @@ public:
   TyErrorId destroy()
   {
     outInfo("destroy");
+    imageListFile_.close();
     for(VariationConfig::iterator it = variationsConfig_.begin();
         it != variationsConfig_.end(); ++it)
     {
@@ -161,9 +192,9 @@ public:
   void generateViewPoints(pcl::PointCloud<pcl::PointXYZ>::Ptr &cloud, const tf::Vector3 centroid, float radius)
   {
     cloud->points.push_back(pcl::PointXYZ(0, 0, 0));
-    for(float theta = M_PI_2 + M_PI / 4; theta < M_PI - 2 * (M_PI / 18); theta += M_PI / 10)
+    for(float theta = M_PI_2 + M_PI / 4; theta < M_PI - 2 * (M_PI / 18); theta += M_PI / 20)
     {
-      for(float phi = -M_PI; phi < M_PI; phi += M_PI_2 / 15)
+      for(float phi = -M_PI; phi < M_PI; phi += M_PI_2 / 20)
       {
         pcl::PointXYZ p;
         p.x =  radius / 2 * sin(theta) * cos(phi);
@@ -455,7 +486,7 @@ public:
 
 
     tf::StampedTransform mapToCam;
-    for(int counter = 0; counter < variations; counter++)
+    for (int counter = 0; counter < variations; counter++)
     {
       ObjectMap *objReplacement;
       if(!first)
@@ -544,27 +575,28 @@ public:
         usleep(100);
       }
 
-
       std::stringstream ss;
       ss << "_" << counter << "_" << scene.timestamp();
       //  cas.get(VIEW_COLOR_IMAGE, rgb_);
       // cv::imwrite("original_color"+ss.str()+".png",rgb_);
+      outInfo("Setting data from unreal");
       unrealBridge_->setData(tcas);
-      sensor_msgs::CameraInfo cam_info;
+      outInfo("Data form Unreal successfully set to CAS");
 
       cas.get(VIEW_OBJECT_IMAGE_HD, object_);
       cas.get(VIEW_COLOR_IMAGE_HD, rgb_);
-//      cas.get(VIEW_DEPTH_IMAGE_HD, depth_);
-      //cv::imwrite("unreal_mask" + ss.str() + ".png", object_);
-      //cv::imwrite("unreal_color" + ss.str() + ".png", rgb_);
-      //    cv::imwrite("unreal_depth"+ss.str()+".png",depth_);
 
-      outInfo("cv::Mat type: " << object_.type());
-//      cas.get(VIEW_CAMERA_INFO_HD, cam_info);
+      cv::Mat rgbLowRes;
+      cas.get(VIEW_COLOR_IMAGE, rgbLowRes);
+      std::stringstream imgFileName;
+      imgFileName << "unreal_color_" << counter << "_" << scene.timestamp();
+      cv::imwrite(imgFileName.str() + ".png", rgbLowRes);
+      imageListFile_ << imgFileName.str() <<".png"<< std::endl;
 
       std::map<std::string, cv::Vec3b> objectMap;
       cas.get(VIEW_OBJECT_MAP, objectMap);
-
+      ofstream gtFileYolo;
+      gtFileYolo.open(imgFileName.str() + ".txt");
       scene.identifiables.allocate();
       for(auto obj : *variationsConfig_[counter])
       {
@@ -584,16 +616,17 @@ public:
               cv::Mat mask_full = cv::Mat::zeros(rgb_.rows, rgb_.cols, CV_8U);
               for(cv::Point &p : points)
               {
-                indices.indices.push_back(p.y/2 * rgb_.cols/2 + p.x/2);
+                indices.indices.push_back(p.y / 2 * rgb_.cols / 2 + p.x / 2);
                 mask_full.at<uint8_t>(p.y, p.x) = 255;
               }
-              std::set<int> tempSet( indices.indices.begin(), indices.indices.end() );
-              indices.indices.assign(tempSet.begin(),tempSet.end());
+              std::set<int> tempSet(indices.indices.begin(), indices.indices.end());
+              indices.indices.assign(tempSet.begin(), tempSet.end());
               rs::PointIndices uimaIndices = rs::conversion::to(tcas, indices);
               rcp.indices.set(uimaIndices);
 
               cv::Rect roiHires = cv::boundingRect(points),
-                       roi = cv::Rect(roi.x >> 1, roi.y >> 1, roi.width >> 1, roi.height >> 1);
+                       roi = cv::Rect(roiHires.x >> 1, roiHires.y >> 1,
+                                      roiHires.width >> 1, roiHires.height >> 1);
               cv::Mat mask, maskHires;
               mask_full(roiHires).copyTo(maskHires);
               cv::resize(maskHires, mask, cv::Size(0, 0), 0.5, 0.5, cv::INTER_NEAREST);
@@ -617,10 +650,16 @@ public:
               gt.classificationGT.set(classification);
               uimaCluster.annotations.append(gt);
               scene.identifiables.append(uimaCluster);
+
+              float obj_center_x = (roi.x+roi.width/2)/ (float)(rgbLowRes.cols);
+              float obj_center_y = (roi.y+roi.height/2)/(float)(rgbLowRes.rows);
+              gtFileYolo<<labelToID[obj.second]<<" "<<obj_center_x<<" "<<obj_center_y<<" "
+                                              <<roi.width/(float)rgbLowRes.cols<<" "<<roi.height/(float)rgbLowRes.rows<<std::endl;
             }
           }
         }
       }
+      gtFileYolo.close();
       //scene.identifiables.se
       if(withStorage)
       {
@@ -628,10 +667,8 @@ public:
         storage.storeScene(*tcas.getBaseCas(), (uint64_t)scene.timestamp());
       }
     }
-
     first = false;
     return UIMA_ERR_NONE;
-
   }
 
   void drawImageWithLock(cv::Mat &disp)
@@ -640,7 +677,6 @@ public:
       disp  = object_.clone();
     else
       disp = cv::Mat::ones(640, 480, CV_8UC3);
-
   }
 
   void fillVisualizerWithLock(pcl::visualization::PCLVisualizer &visualizer, const bool firstRun)

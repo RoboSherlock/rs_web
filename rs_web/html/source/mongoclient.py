@@ -18,9 +18,9 @@ import time
 
 
 class MongoWrapper(object):
-    def __init__(self):
+    def __init__(self, dbname="PnP25ObjSymbolicGT"):
         self.client = MongoClient()
-        self.db = self.client["KBRExperiments"]
+        self.db = self.client[dbname]
         self.active_collection = None
 
     def set_main_collection(self, _type):
@@ -177,6 +177,7 @@ class MongoWrapper(object):
 
     def get_scene_image(self, ts):
         # start_time = time.time()
+        print(ts)
         img = self.get_image_for_scene_id(self.db.scene.find({'timestamp': ts})[0]['_parent'], 0.22)
         # print("getting image took: %s seconds ---" % (time.time() - start_time),file=sys.stderr)
         # start_time = time.time()
@@ -188,13 +189,30 @@ class MongoWrapper(object):
     #add for set correcting groundTruth in database.....
     def setGTinDB(self, inputTS, imgNumber, objName):
         print("database Name", self.db)
-        identiIndex=imgNumber-1
-        getIdentifiable= self.db.scene.find({'timestamp':inputTS})[0]['identifiables'][identiIndex]
-        getgt = getIdentifiable['annotations']
-        annoIndex=len(getgt)-1
-        print("size of annotation Array", annoIndex)
-        self.db.scene.update({"timestamp": inputTS}, {"$set":{"identifiables"+"."+str(identiIndex)+"."+"annotations"+"."+str(annoIndex)+"."+"classificationGT"+"."+"classname": objName }})
+        identifiable_index = imgNumber-1
+        identifiable= self.db.scene.find({'timestamp':inputTS})[0]['identifiables'][identifiable_index]
+        annotations = identifiable['annotations']
 
+        gt_index = -1
+        idx = 0
+        for a in annotations:
+            if a['_type'] == 'rs.annotation.GroundTruth':
+                gt_index = idx
+            idx = idx + 1
+        if gt_index != -1:
+            self.db.scene.update({"timestamp": inputTS},
+                                 {"$set":{"identifiables"+"."+str(identifiable_index)+"."+
+                                          "annotations"+"."+str(gt_index)+"."+
+                                          "classificationGT"+"."+"classname": objName }})
+        else:
+            self.db.scene.update({'timestamp':inputTS},
+                                 {'$push': {'identifiables'+"."+str(identifiable_index)+"."+
+                                            'annotations': {'classificationGT': {"classname": objName,
+                                                                                 'featurename': '',
+                                                                                 'classifier': 'GroundTruth',
+                                                                                 'model': ''},
+                                                            '_type': 'rs.annotation.GroundTruth'}
+                                            }})
 
     def countHypothesesWithAnnotations(self):
         global_count = 0
@@ -243,15 +261,16 @@ class MongoWrapper(object):
                     obj_dict[str(annot['name'])] = obj_dict.get(str(annot['name']),0) + 1
 
                     elapsed_seen = (ts - first_timestamp)/1000000000
-                    print("{0} ::: {1}".format(index,elapsed_seen))
+                    print("{0} ::: {1}".format(index, elapsed_seen))
 
-                    count=count+1
+                    count= count+1
             index += 1
         global_count = global_count+count
 
         print("Object{0} : '{1}' hypotheses : {2} detections ".format(obj_id+1, len(cluster_ids),count))
         print(obj_dict)
         return global_count
+
 
 if __name__ == "__main__":
 

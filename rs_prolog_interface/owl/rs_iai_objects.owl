@@ -227,6 +227,7 @@
     <!-- http://knowrob.org/kb/iai-kitchen.owl#KelloggsToppasMini -->
 
     <owl:Class rdf:about="http://knowrob.org/kb/iai-kitchen.owl#KelloggsToppasMini">
+        <rdfs:subClassOf rdf:resource="http://knowrob.org/kb/knowrob.owl#BreakfastCereal"/>
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="http://knowrob.org/kb/knowrob.owl#pathToCadModel"/>
@@ -624,6 +625,12 @@
             </owl:Restriction>
         </rdfs:subClassOf>
     </owl:Class>
+    
+
+
+    <!-- http://knowrob.org/kb/knowrob.owl#BreakfastCereal -->
+
+    <owl:Class rdf:about="http://knowrob.org/kb/knowrob.owl#BreakfastCereal"/>
 </rdf:RDF>
 
 

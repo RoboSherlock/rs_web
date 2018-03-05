@@ -10,19 +10,35 @@
     <vendor/>
     <configurationParameters>
         <configurationParameter>
-            <name>test_param</name>
-            <type>Float</type>
+            <name>variations</name>
+            <type>Integer</type>
             <multiValued>false</multiValued>
             <mandatory>false</mandatory>
         </configurationParameter>
+
+        <configurationParameter>
+            <name>withStorage</name>
+            <type>Boolean</type>
+            <multiValued>false</multiValued>
+            <mandatory>false</mandatory>
+        </configurationParameter>
+
     </configurationParameters>
     <configurationParameterSettings>
         <nameValuePair>
-            <name>test_param</name>
+            <name>variations</name>
             <value>
-                <float>0.01</float>
+                <integer>30</integer>
             </value>
         </nameValuePair>
+
+        <nameValuePair>
+            <name>withStorage</name>
+            <value>
+                <boolean>true</boolean>
+            </value>
+        </nameValuePair>
+
     </configurationParameterSettings>
     <typeSystemDescription>
         <imports>

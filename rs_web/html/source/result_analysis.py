@@ -22,14 +22,6 @@ from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import precision_recall_fscore_support
 
-# cm_oneshot_class = confusion_matrix(res_analysis.gt_class_oneshot,
-#                                     res_analysis.predicted_class_oneshot,
-#                                     list(res_analysis.class_labels))
-#
-# cm_amortized_class = confusion_matrix(res_analysis.gt_class_amortized,
-#                                       res_analysis.predicted_class_amortized,
-#                                       list(res_analysis.class_labels))
-
 # ===============================================================================
 # cm_oneshot_shape = confusion_matrix(res_analysis.gt_shape_oneshot,
 #                                     res_analysis.predicted_shape_oneshot,
@@ -217,9 +209,11 @@ def plot_confusion_matrix(cm, classes,
     fmt = '.2f' if normalize else 'd'
     thresh = cm.max() / 2.
     for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
-        plt.text(j, i, format(cm[i, j], fmt),
+        if cm[i,j] != 0:
+            plt.text(j, i, format(cm[i, j], fmt),
                  horizontalalignment="center",
-                 color="white" if cm[i, j] > thresh else "black")
+                 verticalalignment='center',
+                 color="white" )#if cm[i, j] > thresh else "black")
 
     plt.tight_layout()
     plt.ylabel('True label')
@@ -274,7 +268,7 @@ class RSResultAnalysis(object):
                     gr_truth = ''
                     for annot in ident['annotations']:
                         if annot['_type'] == 'rs.annotation.Detection':
-                            if annot['confidence'] > 0.65:
+                            if annot['confidence'] > 0.6:
                                 classification_hyp = annot['name']
                         if annot['_type'] == 'rs.annotation.GroundTruth':
                             gr_truth = annot['classificationGT']['classname']
@@ -433,8 +427,15 @@ if __name__ == "__main__":
                 'PnP20ObjSymbolicGTFixed',
                 'PnP25ObjSymbolicGTFixed']
 
-    amortization_coefficients = range(1, 20, 1)
+    amortization_coefficients  = range(1,20,1)
     confidence_thresholds = pl.frange(0.6, 0.8, 0.02)
+
+    # confidence_thresholds = [0.6]
+    # amortization_coefficients = [13]
+    print(confidence_thresholds)
+    for i,v in enumerate(confidence_thresholds):
+    	temp = float("{0:.2f}".format(v))
+        confidence_thresholds[i]=temp
     print(confidence_thresholds)
     # accuracies = [][]
     all_accuracies = [] #np.zeros((len(cutoffs), len(coeffs)))
@@ -481,6 +482,21 @@ if __name__ == "__main__":
                 gt_class_amortized.extend(res_analysis.gt_class_amortized)
                 predicted_class_amortized.extend(res_analysis.predicted_class_amortized)
 
+                acc = accuracy_score(res_analysis.gt_class_oneshot, res_analysis.predicted_class_oneshot)
+                [p, r, f, s] = precision_recall_fscore_support(res_analysis.gt_class_oneshot,
+                                                               res_analysis.predicted_class_oneshot,
+                                                               labels=list(res_analysis.class_labels),
+                                                               average='weighted')
+                print('OneShot')
+                print(e, ':', "Precision:", p, ' Recall: ', r, ' Accuracy: ', acc)
+                acc = accuracy_score(res_analysis.gt_class_amortized, res_analysis.predicted_class_amortized)
+                [p, r, f, s] = precision_recall_fscore_support(res_analysis.gt_class_amortized,
+                                                               res_analysis.predicted_class_amortized,
+                                                               labels=list(res_analysis.class_labels),
+                                                               average='weighted')
+                print('Amortized')
+                print(e, ':', "Precision:", p, ' Recall: ', r, ' Accuracy: ', acc)
+                print(e, 'Total number of hyp:',res_analysis.obj_hyp_count)
                 total_nr_of_hypotheses = total_nr_of_hypotheses + res_analysis.obj_hyp_count
 
                 class_labels = class_labels | res_analysis.class_labels
@@ -491,9 +507,12 @@ if __name__ == "__main__":
                                                            predicted_class_oneshot,
                                                            labels=list(class_labels),
                                                            average='weighted')
+            print('OneShot')
+            print(e, ':', "Precision:", p, ' Recall: ', r, ' Accuracy: ', acc)
             average_oneshot_accuracy.append(acc)
             average_oneshot_precision.append(p)
             oneshot_hypotheses_classified.append(len(gt_class_oneshot)/float(total_nr_of_hypotheses))
+
 
             acc = accuracy_score(gt_class_amortized, predicted_class_amortized)
 
@@ -501,7 +520,8 @@ if __name__ == "__main__":
                                                            predicted_class_amortized,
                                                            labels=list(class_labels),
                                                            average='weighted')
-
+            print('Amortized')
+            print (e,':',"Precision:",p,' Recall: ',r,' Accuracy: ',acc)
             average_amortized_accuracy.append(acc)
             average_amortized_precision.append(p)
 
@@ -514,6 +534,27 @@ if __name__ == "__main__":
             scatter_cutoffs.append(ce)
 
             amortized_hypotheses_classified.append(len(gt_class_amortized)/float(total_nr_of_hypotheses))
+
+            # cm_oneshot_class = confusion_matrix(res_analysis.gt_class_oneshot,
+            #                                     res_analysis.predicted_class_oneshot,
+            #                                     list(res_analysis.class_labels))
+            #
+            # cm_amortized_class = confusion_matrix(res_analysis.gt_class_amortized,
+            #                                       res_analysis.predicted_class_amortized,
+            #                                       list(res_analysis.class_labels))
+            #
+            # plt.figure()
+            # plot_confusion_matrix(cm_oneshot_class, list(res_analysis.class_labels),
+            #                       normalize=False,
+            #                       with_labels=False,
+            #                       title='CM one shot')
+            # plt.savefig('cm_oneshot_class.png')
+            # plt.figure()
+            # plot_confusion_matrix(cm_amortized_class, list(res_analysis.class_labels),
+            #                       normalize=False,
+            #                       with_labels=False,
+            #                       title='CM Amortized')
+            # plt.savefig('cm_oneshot_class.png')
 
         print("OneShot accuracies: ", average_oneshot_accuracy)
         print("OneShot instances:", oneshot_hypotheses_classified)
@@ -577,11 +618,7 @@ if __name__ == "__main__":
     ax.set_ylabel('Confidence threshold (cf)')
     ax.set_zlabel('Sum')
     ax.legend([scatter1_proxy], ['Accuracy + % obj hypt'], numpoints=1)
-    # best_idx = grid_accuracies    .index(max(grid_accuracies))
 
-    # print("best acc:", max(grid_accuracies), 'at position', )
-    # print("best scatter:", max(grid_accuracies), 'at position', grid_accuracies.index(best_idx),' with hyp %:',
-    #       grid_hyp_percent.index(best_idx))
     plt.savefig('gs_3d_sum.png')
 
     plt.figure(figsize=(8, 6))
@@ -607,6 +644,18 @@ if __name__ == "__main__":
 
     plt.title('Grid Search Accuracy')
     plt.savefig('gs_accuracy.png')
+
+    print(grid_sum)
+    arr = heat_map_acc + heat_map_hyp
+    row = np.where(arr == arr.max())[0][0]
+    col = np.where(arr == arr.max())[1][0]
+    res_coeff =  amortization_coefficients[np.where(arr == arr.max())[1][0]]
+    res_threshold =  confidence_thresholds[np.where(arr == arr.max())[0][0]]
+     
+    print('Chosen Accuracy: ',heat_map_acc[row][col] )
+    print('% of hypotheses: ',heat_map_hyp[row][col] )
+   
+    print('MAX VALUE IS: ', max(grid_sum), ' with params: ', res_coeff, ' threshold: ',res_threshold)  
 
     plt.show()
 

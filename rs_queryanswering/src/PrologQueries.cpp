@@ -64,10 +64,18 @@ std::thread thread;
  *                                  ADD DESIGNATOR
  * *************************************************************************/
 
+
+//what ever happens to all these pointers? This smells like a huge memory leak
+
 PREDICATE(cpp_add_designator, 2)
 {
+
   std::string desigType((char *)A1);
-  std::string *desig = (std::string *)"{\"type\":\"action\"}";
+  outInfo("Desigtype: "<<desigType);
+
+  std::string *desig = new std::string("{\"detect\":\"\"}");
+
+  outInfo("Sending back: "<<*desig);
   return A2 = static_cast<void *>(desig);
 }
 
@@ -77,11 +85,11 @@ PREDICATE(cpp_init_kvp, 3)
 {
   void *obj = A1;
   std::string type((char *)A2);
+  outInfo("Type: "<<type);
   std::transform(type.begin(), type.end(), type.begin(), ::toupper);
-  std::string *desig = (std::string *)obj;
-  //not sure what should go here
-  //KeyValuePair *kvp = desig->addChild(type);
-  return A3; //= static_cast<void *>(kvp);
+  std::string *desig = (std::string*)(obj);
+  outInfo("Type: "<<*desig);
+  return A3 = static_cast<void *>(desig);
 }
 
 PREDICATE(cpp_add_kvp, 3)
@@ -90,15 +98,16 @@ PREDICATE(cpp_add_kvp, 3)
   std::transform(key.begin(), key.end(), key.begin(), ::toupper);
   std::string value = (std::string)A2;
   void *obj = A3;
-  std::string *desig = (std::string *)obj;
-
+  std::string *desig = (std::string*)(obj);
+  outInfo("Desig now: "<<*desig);
   if(desig)
   {
-    //std::cerr<<"Adding Kvp: ("<<key<<" : "<<value<<")\n";
+    outInfo("Adding Kvp: ("<<key<<" : "<<value);
     rapidjson::Document json;
     json.Parse(desig->c_str());
     rapidjson::Value v(key,json.GetAllocator());
     json.AddMember(v,value,json.GetAllocator());
+
     *desig = rs::DesignatorWrapper::jsonToString(json);
     return TRUE;
   }
@@ -111,10 +120,10 @@ PREDICATE(cpp_add_kvp, 3)
 PREDICATE(cpp_print_desig, 1)
 {
   void *obj = A1;
-  std::string *desig = (std::string *)obj;
+  std::string *desig = (std::string*)(obj);
   if(desig)
   {
-    std::cout<<desig;
+    std::cout<<*desig<<std::endl;
     return TRUE;
   }
   else
@@ -129,7 +138,7 @@ PREDICATE(cpp_init_desig, 1)
   if(!req_desig)
   {
     std::cerr << "Initializing designator: " << std::endl;
-    req_desig =  (std::string *)"{\"location\":{\"location\":\"on table\"}}";
+    req_desig =  new std::string("{\"location\":{\"location\":\"on table\"}}");
     return A1 = (void *)req_desig;
   }
   else
@@ -158,7 +167,7 @@ PREDICATE(cpp_init_rs, 2)
 {
   if(!pm)
   {
-    ros::init(ros::M_string(), std::string("RoboSherlock"));
+    ros::init(ros::M_string(), std::string("/RoboSherlock"));
     ros::NodeHandle nh("~");
     dlopen("libpython2.7.so", RTLD_LAZY | RTLD_GLOBAL);
     std::string pipelineName((char *)A1);
@@ -272,6 +281,7 @@ PREDICATE(change_context, 1)
  */
 PREDICATE(cpp_process_once, 1)
 {
+  outInfo("Cpp_proces_once");
   if(pm)
   {
     void *myobj = A1;

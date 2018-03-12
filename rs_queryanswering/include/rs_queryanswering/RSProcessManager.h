@@ -35,11 +35,6 @@ private:
   ros::Publisher desig_pub_;
   ros::ServiceServer service, singleService, setContextService, jsonService;
 
-  //specific to thorin
-  ros::ServiceClient triggerKRPoseUpdate_;
-  std::map<std::string,std::string> thorinObjects_;
-  std::vector<std::string> seenObjects_;
-
 
   const bool waitForServiceCall_;
   const bool useVisualizer_;
@@ -71,8 +66,6 @@ public:
 
   void stop();
 
-  //again...thorin specific
-  void getDemoObjects();
 
   bool resetAECallback(iai_robosherlock_msgs::SetRSContext::Request &req,
                        iai_robosherlock_msgs::SetRSContext::Response &res);

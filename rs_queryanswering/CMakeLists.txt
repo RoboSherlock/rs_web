@@ -4,7 +4,7 @@ project(rs_queryanswering)
 find_package(catkin REQUIRED rosjava_build_tools rosprolog
              designator_integration_msgs knowrob_common knowrob_actions knowrob_srdl
              tf tf_conversions knowrob_vis robosherlock rs_addons 
-	     roslib rospack iai_robosherlock_msgs image_transport visualization_msgs resource_retriever
+             roslib rospack iai_robosherlock_msgs image_transport visualization_msgs resource_retriever
              json_prolog)
 
 find_package(PkgConfig)
@@ -56,6 +56,7 @@ catkin_package(
 include_directories(
         include
         ${RS_INCLUDE_DIRS_LIST}
+        ${PCL_INCLUDE_DIRS}
         ${catkin_INCLUDE_DIRS}
         )
 
@@ -84,11 +85,11 @@ target_link_libraries(rs_designator_wrapper
 add_library(rs_kbAEmanagement 
 	src/RSControledAnalysisEngine.cpp 
 	src/RSProcessManager.cpp 
-        src/PrologInterface.cpp
-        src/QueryInterface.cpp)
+    src/PrologInterface.cpp
+    src/QueryInterface.cpp)
 target_link_libraries(rs_kbAEmanagement 
 	rs_designator_wrapper 
-        ${SWIPL_LIBRARIES}
+    ${SWIPL_LIBRARIES}
 	${catkin_LIBRARIES})
 
 rs_add_executable(runAE 

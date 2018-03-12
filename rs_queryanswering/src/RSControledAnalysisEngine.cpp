@@ -14,7 +14,7 @@ void RSControledAnalysisEngine::init(const std::string &AEFile, const std::vecto
     outError("createAnalysisEngine failed." << errorInfo.asString());
     throw uima::Exception(errorInfo);
   }
-  // RSPipelineManager rspm(engine);
+
   rspm = new RSPipelineManager(engine);
   std::vector<icu::UnicodeString> &non_const_nodes = rspm->getFlowConstraintNodes();
 
@@ -30,9 +30,9 @@ void RSControledAnalysisEngine::init(const std::string &AEFile, const std::vecto
   outInfo("*** Number of Annotators in AnnotatorManager: " << rspm->aengine->getNbrOfAnnotators());
 
   // After all annotators have been initialized, pick the default pipeline
-
   rspm->setDefaultPipelineOrdering(lowLvlPipeline);
   rspm->setPipelineOrdering(lowLvlPipeline);
+
   // Get a new CAS
   outInfo("Creating a new CAS");
   cas = engine->newCAS();
@@ -62,9 +62,8 @@ void RSControledAnalysisEngine::process()
   process(d);
 }
 
-void RSControledAnalysisEngine::process(
-  std::vector<std::string> *designatorResponse,
-  RSQuery *q)
+void RSControledAnalysisEngine::process(std::vector<std::string> &designatorResponse,
+                                        RSQuery *q)
 {
   outInfo("executing analisys engine: " << name);
   cas->reset();
@@ -170,23 +169,23 @@ void RSControledAnalysisEngine::process(
   }
 
 
-  dw.getObjectDesignators(*designatorResponse);
+  dw.getObjectDesignators(designatorResponse);
   outInfo("processing finished");
 }
 
 // Call process() and decide if the pipeline should be reset or not
 void RSControledAnalysisEngine::process(bool reset_pipeline_after_process)
 {
-  std::vector<std::string> *d = NULL;
-  process(reset_pipeline_after_process, d);
+  std::vector<std::string> designator_results;
+  process(reset_pipeline_after_process, designator_results);
 }
 
 // Call process() and decide if the pipeline should be reset or not
-void RSControledAnalysisEngine::process(bool reset_pipeline_after_process, std::vector<std::string> *designatorResponse)
+void RSControledAnalysisEngine::process(bool reset_pipeline_after_process, std::vector<std::string> &designatorResponse)
 {
   process_mutex->lock();
   outInfo(FG_CYAN << "process(bool,desig) - LOCK OBTAINED");
-  process(designatorResponse, 0);
+  process(designatorResponse, nullptr);
   if(reset_pipeline_after_process)
   {
     resetPipelineOrdering();  // reset pipeline to default
@@ -201,7 +200,7 @@ void RSControledAnalysisEngine::process(bool reset_pipeline_after_process, std::
 // decide if the pipeline should be reset or not
 void RSControledAnalysisEngine::process(std::vector<std::string> annotators,
                                         bool reset_pipeline_after_process,
-                                        std::vector<std::string> *designator_response,
+                                        std::vector<std::string> &designator_response,
                                         RSQuery *query)
 {
   process_mutex->lock();
@@ -222,8 +221,8 @@ void RSControledAnalysisEngine::process(std::vector<std::string> annotators,
 // decide if the pipeline should be reset or not
 void RSControledAnalysisEngine::process(std::vector<std::string> annotators, bool reset_pipeline_after_process)
 {
-  std::vector<std::string> *d = NULL;
-  process(annotators, reset_pipeline_after_process, d);
+  std::vector<std::string> designator_response;
+  process(annotators, reset_pipeline_after_process, designator_response);
 }
 
 template <class T>
@@ -241,9 +240,6 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
   sceneCas.get(VIEW_COLOR_IMAGE, rgb);
   sceneCas.get(VIEW_CAMERA_INFO, cam_info);
   sceneCas.get(VIEW_CLOUD, *dispCloud);
-
-
-
 
   uint64_t now = sceneCas.getScene().timestamp();
   std::vector<T> clusters;
@@ -306,38 +302,39 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
       }
       colorIdx++;
     }
-    if(desig.HasMember("handle")){
-    std::string handleKvp = desig["handle"].GetString();
+    if(desig.HasMember("handle"))
+    {
+      std::string handleKvp = desig["handle"].GetString();
 
-        if(handleKvp != NULL)
+      if(handleKvp != NULL)
+      {
+        //color the pixels of the handle
+        std::vector<rs::HandleAnnotation> handles;
+        scene.annotations.filter(handles);
+        for(int i = 0; i < handles.size(); ++i)
         {
-          //color the pixels of the handle
-          std::vector<rs::HandleAnnotation> handles;
-          scene.annotations.filter(handles);
-          for(int i = 0; i < handles.size(); ++i)
+          outInfo("Actual name: " << handles[i].name());
+          outInfo("Queried name: " << handleKvp);
+          if(handles[i].name() == handleKvp)
           {
-            outInfo("Actual name: " << handles[i].name());
-            outInfo("Queried name: " << handleKvp);
-            if(handles[i].name() == handleKvp)
+            pcl::PointIndices indices;
+            rs::conversion::from(handles[i].indices(), indices);
+            outInfo("Number of inliers in handle " << i << ": " << indices.indices.size());
+            for(int j = 0; j < indices.indices.size(); ++j)
             {
-              pcl::PointIndices indices;
-              rs::conversion::from(handles[i].indices(), indices);
-              outInfo("Number of inliers in handle " << i << ": " << indices.indices.size());
-              for(int j = 0; j < indices.indices.size(); ++j)
-              {
-                int idx = indices.indices[j];
-                cv::Vec3b new_color;
-                new_color[0] = 0;
-                new_color[0] = 0;
-                new_color[0] = 255;
-                rgb.at<cv::Vec3b>(cv::Point(idx % 640, idx / 640)) = new_color;
+              int idx = indices.indices[j];
+              cv::Vec3b new_color;
+              new_color[0] = 0;
+              new_color[0] = 0;
+              new_color[0] = 255;
+              rgb.at<cv::Vec3b>(cv::Point(idx % 640, idx / 640)) = new_color;
 
-                dispCloud->points[indices.indices[j]].rgba = rs::common::colors[i % rs::common::numberOfColors];
-                dispCloud->points[indices.indices[j]].a = 255;
-              }
+              dispCloud->points[indices.indices[j]].rgba = rs::common::colors[i % rs::common::numberOfColors];
+              dispCloud->points[indices.indices[j]].a = 255;
             }
           }
         }
+      }
     }
   }
 

@@ -287,10 +287,12 @@ void DesignatorWrapper::convert(rs::SemanticColor &input, rapidjson::Document *o
 
   for(size_t i = 0; i < colors.size(); ++i)
   {
-    const std::string &color = colors[i];
     const float &ratio = ratios[i];
-    rapidjson::Value v(colors[i].c_str(), object->GetAllocator());
-    nestedValue.AddMember(v, ratio, object->GetAllocator());
+    if(ratio>0.1)
+    {
+      rapidjson::Value v(colors[i].c_str(), object->GetAllocator());
+      nestedValue.AddMember(v, ratio, object->GetAllocator());
+    }
   }
   object->AddMember("color", nestedValue, object->GetAllocator());
 }

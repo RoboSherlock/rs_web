@@ -16,10 +16,12 @@
 #include <map>
 
 #include <iai_robosherlock_msgs/PerceivedObjects.h>
+
 #include <rapidjson/document.h>
-#include "rapidjson/writer.h"
-#include "rapidjson/stringbuffer.h"
-#include "rapidjson/allocators.h"
+#include <rapidjson/writer.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/allocators.h>
+#include <rapidjson/prettywriter.h>
 
 namespace rs
 {
@@ -151,7 +153,12 @@ public:
       if(objectDesignator.MemberCount() > 0)
       {
         outInfo("Object as json:");
-        outInfo(jsonToString(objectDesignator));
+
+        rapidjson::StringBuffer buffer;
+        rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+        objectDesignator.Accept(writer);
+        outInfo(buffer.GetString());
+
         objectDesignators.push_back(jsonToString(objectDesignator));
       }
     }
@@ -184,18 +191,12 @@ public:
   void convert(rs::Goggles &input, rapidjson::Document *object);
   void convert(rs::Features &input, rapidjson::Document *object);
   void convert(rs::ClusterPart &input, rapidjson::Document *object);
-  //void convert(rs_demos::Volume &input, rapidjson::Document *object);
-  //void convert(rs_demos::Substance &input, rapidjson::Document *object);
   void convert(geometry_msgs::PoseStamped &pose, rapidjson::Document *object, rapidjson::MemoryPoolAllocator<>& alloc);
-
   void convert(rs::ARMarker &input, rapidjson::Document &res);
   void convert(rs::HandleAnnotation &input, rapidjson::Document &res);
 
-  //void convert(rs_demos::Pizza &input, rapidjson::Document *object);
   static void mergeJson (rapidjson::Document &destination, rapidjson::Document &source, std::string fieldName);
   static std::string jsonToString(rapidjson::Value &res);
-
-
 
 };
 

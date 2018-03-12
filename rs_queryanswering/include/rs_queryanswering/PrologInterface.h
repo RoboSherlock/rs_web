@@ -34,6 +34,8 @@ class PrologInterface
   PlEnginePtr engine;
   bool useJsonProlog;
 
+  std::vector<std::string> krNamespaces;
+
 public:
   PrologInterface(bool json_prolog = false);
   ~PrologInterface()
@@ -51,34 +53,35 @@ public:
    * out: vector of annotator names forming the pipeline
    */
   bool planPipelineQuery(const std::vector<std::string> &keys,
-                                std::vector<std::string> &pipeline)
+                         std::vector<std::string> &pipeline)
   {
     if(!useJsonProlog)
     {
-        PlTermv av(2);
-        PlTail l(av[0]);
-        for(auto key : keys)
+      PlTermv av(2);
+      PlTail l(av[0]);
+      for(auto key : keys)
+      {
+        l.append(key.c_str());
+      }
+      l.close();
+      PlQuery q("build_single_pipeline_from_predicates", av);
+      std::string prefix("http://knowrob.org/kb/rs_components.owl#");
+      while(q.next_solution())
+      {
+        //      std::cerr<<(char*)av[1]<<std::endl;
+        PlTail res(av[1]);//result is a list
+        PlTerm e;//elements of that list
+        while(res.next(e))
         {
-          l.append(key.c_str());
+          std::string element((char *)e);
+          element.erase(0, prefix.length());
+          pipeline.push_back(element);
         }
-        l.close();
-        PlQuery q("build_single_pipeline_from_predicates", av);
-        std::string prefix("http://knowrob.org/kb/rs_components.owl#");
-        while(q.next_solution())
-        {
-          //      std::cerr<<(char*)av[1]<<std::endl;
-          PlTail res(av[1]);//result is a list
-          PlTerm e;//elements of that list
-          while(res.next(e))
-          {
-              std::string element((char*)e);
-              element.erase(0,prefix.length());
-              pipeline.push_back(element);
-          }
-        }
-        return true;
+      }
+      return true;
     }
-    else{
+    else
+    {
       outInfo("Calling Json Prolog");
       json_prolog::Prolog pl;
       json_prolog::PrologQueryProxy bdgs = pl.query(buildPrologQueryFromKeys(keys));
@@ -101,46 +104,73 @@ public:
    * */
   bool q_subClassOf(std::string child, std::string parent)
   {
-      if(!useJsonProlog)
-          {
-            PlTermv av(2);
-            av[0] =  rs_queryanswering::makeUri(rs_queryanswering::krNameMapping[child]).c_str();
-            av[1] =  rs_queryanswering::makeUri(rs_queryanswering::krNameMapping[parent]).c_str();
-            try
-            {
-              if(PlCall("owl_subclass_of", av))
-              {
-                outInfo(child << " is subclass of " << parent);
-                return true;
-              }
-              else
-              {
-                outInfo(child << " is NOT subclass of " << parent);
-                return false;
-              }
-            }
-            catch(PlException &ex)
-            {
-              outError((char *)ex);
-              return false;
-            }
-            return false;
-          }
-          else
-          {
-            std::stringstream prologQuery;
-            prologQuery << "owl_subclass_of(" << rs_queryanswering::krNameMapping[child] << "," << rs_queryanswering::krNameMapping[parent] << ").";
-            outInfo("Asking Query: " << prologQuery.str());
-            json_prolog::Prolog pl;
-            json_prolog::PrologQueryProxy bdgs = pl.query(prologQuery.str());
-
-            if(bdgs.begin() != bdgs.end())
-            {
-              outInfo(rs_queryanswering::krNameMapping[child] << " IS " << rs_queryanswering::krNameMapping[parent]);
-              return true;
-            }
-            return false;
+    if(!useJsonProlog)
+    {
+      PlTermv av(2);
+      av[0] =  rs_queryanswering::makeUri(rs_queryanswering::krNameMapping[child]).c_str();
+      av[1] =  rs_queryanswering::makeUri(rs_queryanswering::krNameMapping[parent]).c_str();
+      try
+      {
+        if(PlCall("owl_subclass_of", av))
+        {
+          outInfo(child << " is subclass of " << parent);
+          return true;
+        }
+        else
+        {
+          outInfo(child << " is NOT subclass of " << parent);
+          return false;
+        }
       }
+      catch(PlException &ex)
+      {
+        outError((char *)ex);
+        return false;
+      }
+      return false;
+    }
+    else
+    {
+      std::stringstream prologQuery;
+      json_prolog::Prolog pl;
+
+      if(addNamespace(child) && addNamespace(parent))
+      {
+        prologQuery << "owl_subclass_of(" << child << "," << parent << ").";
+        outInfo("Asking Query: " << prologQuery.str());
+        json_prolog::PrologQueryProxy bdgs = pl.query(prologQuery.str());
+        if(bdgs.begin() != bdgs.end())
+        {
+          outInfo(child << " IS " << parent);
+          return true;
+        }
+      }
+      else
+      {
+        outError("Child or parent are not defined in the ontology under any of the known namespaces");
+        outError(" Child : "<<child);
+        outError(" Parent: "<<parent);
+        return false;
+      }
+      return false;
+    }
+  }
+
+  bool addNamespace(std::string &entry)
+  {
+    json_prolog::Prolog pl;
+    for(auto ns : rs_queryanswering::krNamespaces)
+    {
+      std::stringstream prologQuery;
+      prologQuery << "rdf_has(" << ns << ":'" << entry << "',rdf:type, owl:'Class').";
+      json_prolog::PrologQueryProxy bdgs = pl.query(prologQuery.str());
+      if(bdgs.begin() != bdgs.end())
+      {
+        entry = ns + ":'" + entry + "'";
+        return true;
+      }
+    }
+    return false;
   }
 
   /*brief
@@ -148,37 +178,37 @@ public:
    * */
   bool q_classProperty(std::string className, std::string property, std::string value)
   {
-      if(!useJsonProlog)
-          {
-            PlTermv av(3);
-            av[0] =  rs_queryanswering::makeUri(rs_queryanswering::krNameMapping[className]).c_str();
-            av[1] =  rs_queryanswering::makeUri(property).c_str();
-            av[2] =  rs_queryanswering::makeUri(value).c_str();
-            try
-            {
-              if(PlCall("class_properties", av))
-              {
-                outInfo(className << " " << property << " " << value);
-                return true;
-              }
-              else
-              {
-                outInfo(className << " has NO " << property << " " << value);
-                return false;
-              }
-            }
-            catch(PlException &ex)
-            {
-              std::cerr << (char *)ex << std::endl;
-              return false;
-            }
-            return false;
-          }
-          else
-          {
-            outInfo("Calling Json Prolog");
-          }
+    if(!useJsonProlog)
+    {
+      PlTermv av(3);
+      av[0] =  rs_queryanswering::makeUri(rs_queryanswering::krNameMapping[className]).c_str();
+      av[1] =  rs_queryanswering::makeUri(property).c_str();
+      av[2] =  rs_queryanswering::makeUri(value).c_str();
+      try
+      {
+        if(PlCall("class_properties", av))
+        {
+          outInfo(className << " " << property << " " << value);
+          return true;
+        }
+        else
+        {
+          outInfo(className << " has NO " << property << " " << value);
+          return false;
+        }
+      }
+      catch(PlException &ex)
+      {
+        std::cerr << (char *)ex << std::endl;
+        return false;
+      }
       return false;
+    }
+    else
+    {
+      outInfo("Calling Json Prolog");
+    }
+    return false;
   }
 
   /*brief

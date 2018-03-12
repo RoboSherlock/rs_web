@@ -23,9 +23,6 @@ private:
     bool handleDetect(std::vector<std::string> &newPipelineOrder);
     bool handleInspect(std::vector<std::string> &newPipelineOrder);
 
-    //TODO these do not belong here
-    std::string toJson(const tf::StampedTransform &pose, std::string OID, std::string type);
-    std::string getObjectByID(std::string OID, std::string type);
 public:
 
   enum QueryType{NONE, INSPECT, DETECT};

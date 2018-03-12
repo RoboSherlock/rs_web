@@ -14,6 +14,12 @@
 namespace rs_queryanswering
 {
 
+static std::vector<std::string> krNamespaces =
+{
+  "knowrob",
+  "kitchen"
+};
+
 static std::map<std::string, std::string> krNameMapping =
 {
   //superclasses

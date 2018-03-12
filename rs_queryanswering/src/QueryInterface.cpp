@@ -242,19 +242,10 @@ bool QueryInterface::checkThresholdOnList(rapidjson::Value &list, const float th
     if(listIt->name == requestedKey)
     {
       if(!keepLower)
-      {
         if(listIt->value.GetDouble() >= threshold)
-        {
           return true;
-        }
-      }
-      else
-      {
-        if(listIt->value.GetDouble() < threshold)
-        {
+        else if(listIt->value.GetDouble() < threshold)
           return true;
-        }
-      }
     }
   }
   return false;
@@ -288,19 +279,20 @@ void QueryInterface::filterResults(std::vector<std::string> &resultDesignators,
       {
         if(check == "EQUAL")
         {
-          std::string resultValue = value->GetString();;
-          if(resultValue != queryValue)
+          if(value->GetType() == rapidjson::Type::kStringType)
           {
-            designatorsToKeep[i] = false;
+            std::string resultValue = value->GetString();;
+            if(resultValue != queryValue)
+              designatorsToKeep[i] = false;
           }
+          else
+              designatorsToKeep[i] = false;
         }
         else if(check == "CLASS")
         {
           const std::string resultValue = value->GetString();
           if(!checkSubClass(resultValue, queryValue))
-          {
             designatorsToKeep[i] = false;
-          }
         }
         else if(check == "GEQ")
         {
@@ -324,43 +316,38 @@ void QueryInterface::filterResults(std::vector<std::string> &resultDesignators,
           bool found = false;
           for(auto &v : value->GetArray())
             if(v == queryValue)
-            {
               found = true;
-            }
-
           if(!found)
-          {
             designatorsToKeep[i] = false;
-          }
-
+        }
+        else
+        {
+          outWarn("There is no such check: " + check + ". Please check the filter_config.ini");
+          designatorsToKeep[i] = false;
         }
       }
       else if(check == "CONTAINSEQUAL")
       {
-          std::string delimiter = "*";
-          int delLoc = location.find(delimiter);
-          std::string prefix = location.substr(0, delLoc-1);
-          std::string suffix = location.substr(delLoc+1, location.size());
-          if(rapidjson::Value *suffixVal = rapidjson::Pointer(prefix).Get(resultJson)){
-              for(int i = 0; i < suffixVal->Size(); i ++){
-                  std::string newLocation = prefix + "/" + std::to_string(i) + suffix;
-                  if(rapidjson::Value *value = rapidjson::Pointer(newLocation).Get(resultJson)){
-                      std::string resultValue = value->GetString();;
-                      if(resultValue != queryValue)
-                      {
-                        designatorsToKeep[i] = false;
-                      }
-                  }
-              }
+        std::string delimiter = "*";
+        int delLoc = location.find(delimiter);
+        std::string prefix = location.substr(0, delLoc - 1);
+        std::string suffix = location.substr(delLoc + 1, location.size());
+        if(rapidjson::Value *suffixVal = rapidjson::Pointer(prefix).Get(resultJson))
+        {
+          for(int i = 0; i < suffixVal->Size(); i ++)
+          {
+            std::string newLocation = prefix + "/" + std::to_string(i) + suffix;
+            if(rapidjson::Value *value = rapidjson::Pointer(newLocation).Get(resultJson))
+            {
+              std::string resultValue = value->GetString();;
+              if(resultValue != queryValue)
+                designatorsToKeep[i] = false;
+            }
           }
+        }
       }
       else
-      {
-
-        outWarn("There is no such check: " + check + ". Please check the filter_config.ini");
-        designatorsToKeep[i] = false;
-      }
-
+          designatorsToKeep[i] = false;
     }
   }
   for(int i = 0; i < designatorsToKeep.size(); ++i)
@@ -370,123 +357,5 @@ void QueryInterface::filterResults(std::vector<std::string> &resultDesignators,
       filteredResponse.push_back(resultDesignators[i]);
     }
   }
-}
-
-std::string QueryInterface::getObjectByID(std::string OID, std::string type)
-{
-  json_prolog::Prolog pl;
-  std::string q = "knowrob_beliefstate:get_object_transform('" + OID + "', T)";
-  outInfo("query: " << q);
-  json_prolog::PrologQueryProxy bdgs = pl.query(q);
-  for(json_prolog::PrologQueryProxy::iterator it = bdgs.begin(); it != bdgs.end(); it++)
-  {
-    json_prolog::PrologBindings bdg = *it;
-    outInfo("T = " << bdg["T"]);
-    std::vector<json_prolog::PrologValue> poseList = bdg["T"].as<std::vector<json_prolog::PrologValue>>();
-    assert(poseList.size() == 4);
-    tf::StampedTransform transform;
-    for(int i = 0; i < poseList.size(); ++i)
-    {
-      switch(i)
-      {
-      case 0:
-        {
-          transform.frame_id_ = poseList[0].as<std::string>();
-          transform.stamp_ = ros::Time::now();
-          break;
-        }
-      case 1:
-        {
-          transform.child_frame_id_ = poseList[1].as<std::string>();
-          break;
-        }
-      case 2:
-        {
-          std::vector<json_prolog::PrologValue> positionValues = poseList[2].as<std::vector<json_prolog::PrologValue>>();
-          assert(positionValues.size() == 3);
-          tf::Vector3 vec;
-          vec.setX(std::atof(positionValues[0].toString().c_str()));//sad: posigionValues[0].as<double>() sometimes segfaults :(
-          vec.setY(std::atof(positionValues[1].toString().c_str()));
-          vec.setZ(std::atof(positionValues[2].toString().c_str()));
-          transform.setOrigin(vec);
-          break;
-        }
-      case 3:
-        {
-          std::vector<json_prolog::PrologValue> orientationValues = poseList[3].as<std::vector<json_prolog::PrologValue>>();
-          assert(orientationValues.size() == 4);
-          tf::Quaternion quat;//no clue why the same conversion used for position does not work here
-          quat.setX(std::atof(orientationValues[0].toString().c_str()));
-          quat.setY(std::atof(orientationValues[1].toString().c_str()));
-          quat.setZ(std::atof(orientationValues[2].toString().c_str()));
-          quat.setW(std::atof(orientationValues[3].toString().c_str()));
-          transform.setRotation(quat);
-          break;
-        }
-      default:
-        outError("How the hell did I end up here with an assert before the code ? ");
-        break;
-      }
-    }
-    outInfo("converting to Json");
-    return (toJson(transform, OID, type));
-  }
-  return "";
-}
-
-
-std::string QueryInterface::toJson(const tf::StampedTransform &pose, std::string OID, std::string type)
-{
-  rapidjson::StringBuffer s;
-  rapidjson::Writer<rapidjson::StringBuffer> jsonWriter(s);
-
-  //OMG writing it like this is reeeeaally shitty
-  jsonWriter.StartObject();
-  jsonWriter.String("id");
-  jsonWriter.String(OID.c_str());
-  jsonWriter.String("pose");
-
-  jsonWriter.StartObject();
-  jsonWriter.String("transform");
-
-  jsonWriter.StartObject();
-  jsonWriter.String("frame_id");
-  jsonWriter.String(pose.frame_id_.c_str());
-  jsonWriter.String("child_frame_id");
-  jsonWriter.String(pose.child_frame_id_.c_str());
-  jsonWriter.String("stamp");
-  jsonWriter.Uint64(pose.stamp_.toNSec());
-  jsonWriter.String("pos_x");
-  jsonWriter.Double(pose.getOrigin().x());
-  jsonWriter.String("pos_y");
-  jsonWriter.Double(pose.getOrigin().y());
-  jsonWriter.String("pos_z");
-  jsonWriter.Double(pose.getOrigin().z());
-  jsonWriter.String("rot_x");
-  jsonWriter.Double(pose.getRotation().x());
-  jsonWriter.String("rot_y");
-  jsonWriter.Double(pose.getRotation().y());
-  jsonWriter.String("rot_z");
-  jsonWriter.Double(pose.getRotation().z());
-  jsonWriter.String("rot_w");
-  jsonWriter.Double(pose.getRotation().w());
-  jsonWriter.EndObject();
-
-  jsonWriter.String("source");
-  jsonWriter.String("Simulation");
-  jsonWriter.EndObject();
-
-  jsonWriter.String("class");
-
-  jsonWriter.StartObject();
-  jsonWriter.String("name");
-  jsonWriter.String(type.c_str());
-  jsonWriter.String("confidence");
-  jsonWriter.Double(1.0);
-  jsonWriter.EndObject();
-
-  jsonWriter.EndObject();
-
-  outInfo(s.GetString());
-  return s.GetString();
+  outInfo("Matching Object Descriptions: " << filteredResponse.size());
 }

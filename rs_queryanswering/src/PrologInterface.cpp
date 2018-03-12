@@ -53,14 +53,11 @@ bool PrologInterface::extractQueryKeysFromDesignator(std::string *desig,
   //add the ones that are interpretable to the queriedKeys;
   for (rapidjson::Value::ConstMemberIterator iter = json.MemberBegin(); iter != json.MemberEnd(); ++iter)
   {
-    if(std::find(rs_queryanswering::rsQueryTerms.begin(), rs_queryanswering::rsQueryTerms.end(), iter->name.GetString()) != std::end(rs_queryanswering::rsQueryTerms))
-    {
+    if(std::find(rs_queryanswering::rsQueryTerms.begin(), rs_queryanswering::rsQueryTerms.end(),
+                 iter->name.GetString()) != std::end(rs_queryanswering::rsQueryTerms))
       keys.push_back(iter->name.GetString());
-    }
     else
-    {
       outWarn(iter->name.GetString() << " is not a valid query-language term");
-    }
   }
   if(json.HasMember("type"))
   {
@@ -103,20 +100,16 @@ bool PrologInterface::buildPrologQueryFromDesignator(std::string *desig,
 
 std::string PrologInterface::buildPrologQueryFromKeys(const std::vector<std::string> &keys)
 {
-
   std::string prologQuery = "build_single_pipeline_from_predicates([";
   for(int i = 0; i < keys.size(); i++)
   {
     prologQuery += keys.at(i);
     if(i < keys.size() - 1)
-    {
       prologQuery += ",";
-    }
   }
   prologQuery += "], A)";
   return prologQuery;
 }
-
 
 std::vector< std::string > PrologInterface::createPipelineFromPrologResult(std::string queryResult)
 {

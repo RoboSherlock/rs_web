@@ -60,7 +60,7 @@ void RSControledAnalysisEngine::setCWAssumption(const std::vector<std::string> &
 
 void RSControledAnalysisEngine::process()
 {
-  std::vector<std::string> *d = NULL;
+  std::vector<std::string> d;
   process(d);
 }
 
@@ -101,14 +101,6 @@ void RSControledAnalysisEngine::process(std::vector<std::string> &designatorResp
       }
       outInfo("setting in CAS: ts:" << q->timestamp << " location: " << q->location);
       sceneCas.set("QUERY", query);
-    }
-    if(!cwObjects_.empty())
-    {
-      outInfo("setting list of objects for closed world assumption in the CAS");
-      rs::SceneCas sceneCas(*cas);
-      rs::CWAssumption cwAssump = rs::create<rs::CWAssumption>(*cas);
-      cwAssump.cwObjects(cwObjects_);
-      sceneCas.set("CWA", cwAssump);
     }
     outInfo("processing CAS");
     try

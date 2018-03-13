@@ -1,11 +1,10 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(rs_queryanswering)
 
-find_package(catkin REQUIRED rosprolog
-             designator_integration_msgs knowrob_common knowrob_actions knowrob_srdl
-             tf tf_conversions knowrob_vis robosherlock rs_addons 
-             roslib rospack iai_robosherlock_msgs image_transport visualization_msgs resource_retriever
-             json_prolog)
+find_package(catkin REQUIRED tf tf_conversions robosherlock rs_addons 
+			     roslib rospack iai_robosherlock_msgs 
+			     image_transport visualization_msgs 
+			     resource_retriever json_prolog)
 
 find_package(PkgConfig)
 pkg_check_modules(SWIPL REQUIRED swipl)
@@ -13,7 +12,7 @@ include_directories(${SWIPL_INCLUDE_DIRS})
 link_directories(${SWIPL_LIBRARY_DIRS})
 message(STATUS "SWIPL found.")
 
-find_package(RapidJSON QUIET)
+find_package(RapidJSON REQUIRED)
 if(${RapidJSON_FOUND})
     add_definitions(-DWITH_JSON -DRAPIDJSON_HAS_STDSTRING)
 endif()    
@@ -42,7 +41,7 @@ find_include_dirs(RS_INCLUDE_DIRS_LIST)
 
 catkin_package(
     INCLUDE_DIRS ${RS_INCLUDE_DIRS_LIST} ${SWIPL_INCLUDE_DIRS}
-    CATKIN_DEPENDS designator_integration_msgs iai_robosherlock_msgs json_prolog
+    CATKIN_DEPENDS iai_robosherlock_msgs json_prolog
     LIBRARIES rs_designator_wrapper rs_kbAEmanagement ${SWIPL_LIBRARY_DIRS}
     CFG_EXTRAS ${PROJECT_NAME}_config.cmake
 )

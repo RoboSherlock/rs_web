@@ -228,7 +228,7 @@ bool RSProcessManager::handleQuery(std::string &request, std::vector<std::string
       }
       if(requestJson.HasMember("ingredient"))
       {
-        query->ingredient = requestJson["ingredien"].GetString();
+        query->ingredient = requestJson["ingredient"].GetString();
         outInfo("received request for detection ingredient: " << query->ingredient);
       }
     }

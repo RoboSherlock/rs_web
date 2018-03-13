@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(rs_queryanswering)
 
-find_package(catkin REQUIRED rosjava_build_tools rosprolog
+find_package(catkin REQUIRED rosprolog
              designator_integration_msgs knowrob_common knowrob_actions knowrob_srdl
              tf tf_conversions knowrob_vis robosherlock rs_addons 
              roslib rospack iai_robosherlock_msgs image_transport visualization_msgs resource_retriever

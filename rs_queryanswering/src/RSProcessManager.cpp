@@ -1,9 +1,9 @@
 #include <rs_queryanswering/RSProcessManager.h>
 
 RSProcessManager::RSProcessManager(const bool useVisualizer, const bool &waitForServiceCall,
-                                   const bool useCWAssumption, ros::NodeHandle n):
+                                   ros::NodeHandle n):
   engine_(n), inspectionEngine_(n), nh_(n), waitForServiceCall_(waitForServiceCall),
-  useVisualizer_(useVisualizer), useCWAssumption_(useCWAssumption), withJsonProlog_(false), useIdentityResolution_(false),
+  useVisualizer_(useVisualizer), withJsonProlog_(false), useIdentityResolution_(false),
   pause_(true), inspectFromAR_(false), visualizer_(".")
 {
 
@@ -24,12 +24,10 @@ RSProcessManager::RSProcessManager(const bool useVisualizer, const bool &waitFor
     break;
   }
 
-  //TO DO: Designator response topic (string[])
   desig_pub_ = nh_.advertise<iai_robosherlock_msgs::PerceivedObjects>(std::string("result_advertiser"), 5);
 
   setContextService = nh_.advertiseService("set_context", &RSProcessManager::resetAECallback, this);
   jsonService = nh_.advertiseService("json_query", &RSProcessManager::jsonQueryCallback, this);
-  //  triggerKRPoseUpdate_ = nh_.serviceClient<std_srvs::Trigger>("/qr_to_knowrob/update_object_positions");
 }
 
 RSProcessManager::~RSProcessManager()
@@ -47,56 +45,29 @@ void RSProcessManager::init(std::string &xmlFile, std::string configFile)
   try
   {
     cv::FileStorage fs(cv::String(configFile), cv::FileStorage::READ);
-    cv::FileNode m = fs["cw_assumption"];
-    if(m.type() != cv::FileNode::SEQ)
-      outError("Somethings wrong with pipeline definition");
-
-    cv::FileNodeIterator it = m.begin(), it_end = m.end(); // Go through the node
-    for(; it != it_end; ++it)
-      closedWorldAssumption_.push_back(*it);
 
     if(lowLvlPipeline_.empty()) //if not set programatically, load from a config file
     {
       cv::FileNode n = fs["annotators"];
       if(n.type() != cv::FileNode::SEQ)
       {
-        outError("Somethings wrong with pipeline definition");
+        outError("Annotators missing from config file");
       }
-
       cv::FileNodeIterator it = n.begin(), it_end = n.end(); // Go through the node
       for(; it != it_end; ++it)
       {
         lowLvlPipeline_.push_back(*it);
       }
     }
-
     fs.release();
-
   }
   catch(cv::Exception &e)
   {
     outWarn("No low-level pipeline defined. Setting empty!");
   }
 
-  //  getDemoObjects();
-
-  if(inspectFromAR_)
-  {
-    outWarn("Inspection task will be performed usin AR markers");
-    ros::service::waitForService("/qr_to_knowrob/update_object_positions");
-  }
-
   engine_.init(xmlFile, lowLvlPipeline_);
 
-  outInfo("Number of objects in closed world assumption: " << closedWorldAssumption_.size());
-  if(!closedWorldAssumption_.empty() && useCWAssumption_)
-  {
-    for(auto cwa : closedWorldAssumption_)
-    {
-      outInfo(cwa);
-    }
-    engine_.setCWAssumption(closedWorldAssumption_);
-  }
   if(useVisualizer_)
   {
     visualizer_.start();
@@ -105,14 +76,12 @@ void RSProcessManager::init(std::string &xmlFile, std::string configFile)
 }
 
 
-
 void RSProcessManager::setInspectionAE(std::string inspectionAEPath)
 {
   outInfo("initializing inspection AE");
   std::vector<std::string> llvlp;
   llvlp.push_back("CollectionReader");
   inspectionEngine_.init(inspectionAEPath, llvlp);
-
 }
 
 
@@ -204,9 +173,6 @@ bool RSProcessManager::resetAE(std::string newContextName)
 bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::Request &req,
     iai_robosherlock_msgs::RSQueryService::Response &res)
 {
-  //  std::string request = req.query;
-  //  std::vector<std::string> result = res.answer;
-
   handleQuery(req.query, res.answer);
   return true;
 }
@@ -214,23 +180,19 @@ bool RSProcessManager::jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::
 bool RSProcessManager::handleQuery(std::string &request, std::vector<std::string> &result)
 {
   outInfo("JSON Reuqest: " << request);
-  rapidjson::Document doc;
-  doc.Parse(request.c_str());
   queryInterface->parseQuery(request);
   std::vector<std::string> newPipelineOrder;
   QueryInterface::QueryType queryType = queryInterface->processQuery(newPipelineOrder);
+
   processing_mutex_.lock();
   if(queryType == QueryInterface::QueryType::DETECT)
   {
-
     RSQuery *query = new RSQuery();
     //  rs::DesignatorWrapper::req_designator = req;
     //check Designator type...for some stupid reason req->type ==Designator::ACTION did not work
 
     //these are hacks,, where we need the
     query->asJson = request;
-    outInfo("Query as Json: " << query->asJson);
-
 
     //TODO maybe get rid of the RSQuery
     if(request != NULL)

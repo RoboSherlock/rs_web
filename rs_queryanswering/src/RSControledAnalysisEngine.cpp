@@ -30,7 +30,9 @@ void RSControledAnalysisEngine::init(const std::string &AEFile, const std::vecto
   outInfo("*** Number of Annotators in AnnotatorManager: " << rspm->aengine->getNbrOfAnnotators());
 
   // After all annotators have been initialized, pick the default pipeline
+  //this stores the pipeline
   rspm->setDefaultPipelineOrdering(lowLvlPipeline);
+  //this applies it
   rspm->setPipelineOrdering(lowLvlPipeline);
 
   // Get a new CAS
@@ -154,11 +156,8 @@ void RSControledAnalysisEngine::process(std::vector<std::string> &designatorResp
   }
   // Make a designator from the result
 
-  rs::DesignatorWrapper dw;
-  dw.setCAS(cas);
-
-
-
+  rs::DesignatorWrapper dw(cas);
+//  dw.setCAS(cas);
   if(useIdentityResolution_)
   {
     dw.setMode(rs::DesignatorWrapper::OBJECT);
@@ -167,8 +166,6 @@ void RSControledAnalysisEngine::process(std::vector<std::string> &designatorResp
   {
     dw.setMode(rs::DesignatorWrapper::CLUSTER);
   }
-
-
   dw.getObjectDesignators(designatorResponse);
   outInfo("processing finished");
 }

@@ -100,6 +100,11 @@ public:
     return next_pipeline_order;
   }
 
+  inline void changeLowLevelPipeline(std::vector<std::string> &pipeline)
+  {
+     rspm->setDefaultPipelineOrdering(pipeline);
+  }
+
   inline void applyNextPipeline()
   {
     if(rspm)

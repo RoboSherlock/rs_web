@@ -19,107 +19,34 @@ QueryInterface::QueryType QueryInterface::processQuery(std::vector<std::string> 
   if(query.HasMember("detect"))
   {
     handleDetect(res);
-    return DETECT;
+    return QueryType::DETECT;
   }
 
   else if(query.HasMember("inspect"))
   {
     handleInspect(res);
-    return INSPECT;
+    return QueryType::INSPECT;
   }
-  return NONE;
+
+  else if(query.HasMember("scan"))
+  {
+    handleScan(res);
+    return QueryType::SCAN;
+  }
+
+  return QueryType::NONE;
+}
+
+
+bool QueryInterface::handleScan(std::vector<std::string> &res)
+{
+  //TODO implement logic here
+  return true;
 }
 
 bool QueryInterface::handleInspect(std::vector<std::string> &res)
 {
-
-  const rapidjson::Value &val = query["inspect"];
-  std::vector<std::string> inspKeys;
-  assert(val.IsObject());
-
-  if(val.HasMember("type"))
-  {
-    outInfo("getting type: " << val["type"].GetString());
-  }
-  else
-  {
-    outError("Malformed inspection query. You need to specify which object you want to inspect using the type keypword!");
-    return false;
-  }
-
-  if(val.HasMember("for"))
-  {
-    if(!val["for"].IsArray())
-    {
-      return false;
-    }
-    for(rapidjson::SizeType i = 0; i < val["for"].Size(); i++)
-    {
-      outInfo("       inspect for: " << val["for"][i].GetString());
-      inspKeys.push_back(val["for"][i].GetString());
-    }
-  }
-
-  std::string objToInspect = "";
-  for(rapidjson::Value::ConstMemberIterator it = val.MemberBegin(); it != val.MemberEnd(); ++it)
-  {
-    if(std::strcmp(it->name.GetString(), "type") == 0)
-    {
-      objToInspect = it->value.GetString();
-    }
-  }
-
-  std::string objToQueryFor = "";
-
-  json_prolog::Prolog pl;
-  std::string plQueryString = "class_properties('" + thorinObjects_[objToInspect] +
-                              +"','http://knowrob.org/kb/knowrob_assembly.owl#canHoldObject', B)";
-  outInfo("asking query: " << plQueryString);
-  json_prolog::PrologQueryProxy bdgs = pl.query(plQueryString);
-  for(json_prolog::PrologQueryProxy::iterator it = bdgs.begin(); it != bdgs.end(); it++)
-  {
-    objToQueryFor = (*it)["B"].toString();
-    outInfo("got a result: " << objToQueryFor);
-  }
-
-  if(std::find(inspKeys.begin(), inspKeys.end(), "pose") != inspKeys.end())
-  {
-    objToQueryFor = objToInspect;
-  }
-
-
-  std_srvs::Trigger triggerSrv;
-  {
-    outWarn("******************************************");
-    std::string inspectionAnnotator = "";
-    json_prolog::Prolog pl;
-    std::string plQueryString = "class_properties('" + thorinObjects_[objToInspect] +
-                                +"','http://knowrob.org/kb/thorin_parts.owl#inspectableBy', A)";
-    outInfo("asking query: " << plQueryString);
-    json_prolog::PrologQueryProxy bdgs = pl.query(plQueryString);
-    for(json_prolog::PrologQueryProxy::iterator it = bdgs.begin(); it != bdgs.end(); it++)
-    {
-      inspectionAnnotator = (*it)["A"].toString();
-      outInfo(objToInspect << " inspectable by: " << inspectionAnnotator);
-    }
-
-    std::vector<std::string> inspectionPipeline;
-    if(inspectionAnnotator != "")
-    {
-      outInfo("Planning a pipeline for this annotator");
-      plQueryString = "build_pipeline(['" + inspectionAnnotator + "'], P ).";
-      outInfo("asking query: " << plQueryString);
-      bdgs = pl.query(plQueryString);
-
-      for(json_prolog::PrologQueryProxy::iterator it = bdgs.begin(); it != bdgs.end(); it++)
-      {
-        std::string pipeline = (*it)["P"].toString();
-        inspectionPipeline =  prologInterface->createPipelineFromPrologResult(pipeline);
-      }
-    }
-    res.insert(res.end(), inspectionPipeline.begin(), inspectionPipeline.end());
-
-  }
+  outInfo("Inspecting an object: [needs implementation]");
   return true;
 }
 
@@ -160,6 +87,7 @@ bool QueryInterface::handleDetect(std::vector<std::string> &res)
     outInfo("Can't find solution for pipeline planning");
     return false; // Indicate failure
   }
+  outInfo("New Pipeline: ");
   std::for_each(new_pipeline_order.begin(), new_pipeline_order.end(), [](std::string & p)
   {
     outInfo(p);
@@ -175,7 +103,7 @@ bool QueryInterface::handleDetect(std::vector<std::string> &res)
     }
   }
 
-  //for debugging advertise TF
+  //  for debugging advertise TF
   //  new_pipeline_order.push_back("TFBroadcaster");
 
   //whatever happens do ID res and spawn to gazebo...this is also pretty weird
@@ -219,18 +147,15 @@ bool getConfigForKey(std::string key, std::string &location, std::string &check,
 bool QueryInterface::checkSubClass(const std::string &resultValue, const std::string &queryValue)
 {
   bool ok = false;
-  if(rs_queryanswering::krNameMapping.count(queryValue) == 1)
+  try
   {
-    try
-    {
-      ok = prologInterface->q_subClassOf(resultValue, queryValue);
-    }
-    catch(std::exception &e)
-    {
-      outError("Prolog Exception: Malformed owl_subclass of. Child or superclass undefined:");
-      outError("     Child: " << resultValue);
-      outError("     Parent: " << queryValue);
-    }
+    ok = prologInterface->q_subClassOf(resultValue, queryValue);
+  }
+  catch(std::exception &e)
+  {
+    outError("Prolog Exception: Malformed owl_subclass_of. Child or superclass undefined:");
+    outError("     Child: " << resultValue);
+    outError("     Parent: " << queryValue);
   }
   return ok;
 }
@@ -286,7 +211,7 @@ void QueryInterface::filterResults(std::vector<std::string> &resultDesignators,
               designatorsToKeep[i] = false;
           }
           else
-              designatorsToKeep[i] = false;
+            designatorsToKeep[i] = false;
         }
         else if(check == "CLASS")
         {
@@ -347,7 +272,7 @@ void QueryInterface::filterResults(std::vector<std::string> &resultDesignators,
         }
       }
       else
-          designatorsToKeep[i] = false;
+        designatorsToKeep[i] = false;
     }
   }
   for(int i = 0; i < designatorsToKeep.size(); ++i)

@@ -8,7 +8,6 @@
 #include <rs_queryanswering/KRDefinitions.h>
 #include <rs_queryanswering/QueryInterface.h>
 
-#include <designator_integration_msgs/DesignatorCommunication.h>
 #include <iai_robosherlock_msgs/SetRSContext.h>
 #include <iai_robosherlock_msgs/RSQueryService.h>
 
@@ -24,7 +23,7 @@
 class RSProcessManager
 {
 
-private:
+public:
 
   RSControledAnalysisEngine engine_;
   RSControledAnalysisEngine inspectionEngine_;
@@ -36,9 +35,9 @@ private:
   ros::ServiceServer service, singleService, setContextService, jsonService;
 
 
-  const bool waitForServiceCall_;
+  bool waitForServiceCall_;
   const bool useVisualizer_;
-  const bool useCWAssumption_;
+
   bool withJsonProlog_;
   bool useIdentityResolution_;
   bool pause_;
@@ -50,13 +49,10 @@ private:
   rs::Visualizer visualizer_;
 
   std::string configFile_;
-  std::vector<std::string> closedWorldAssumption_;
   std::vector<std::string> lowLvlPipeline_;
 
-public:
-
   RSProcessManager(const bool useVisualizer, const bool &waitForServiceCall,
-                   const bool useCWAssumption, ros::NodeHandle n);
+                   ros::NodeHandle n);
 
   ~RSProcessManager();
 
@@ -73,7 +69,7 @@ public:
   bool jsonQueryCallback(iai_robosherlock_msgs::RSQueryService::Request &req,
                          iai_robosherlock_msgs::RSQueryService::Response &res);
 
-  bool handleQuery(std::string& req, std::vector<std::string>& res);
+  virtual bool handleQuery(std::string& req, std::vector<std::string>& res);
 
   //special case for offscreen rendering the beliefstate using Unreal Engine
   bool renderOffscreen(std::string object);

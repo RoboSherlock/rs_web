@@ -95,6 +95,7 @@ public:
   inline void changeLowLevelPipeline(std::vector<std::string> &pipeline)
   { 
     rspm->setDefaultPipelineOrdering(pipeline);
+    rspm->setPipelineOrdering(pipeline);
   }
 
   inline void applyNextPipeline()

@@ -19,22 +19,6 @@
 
 #include <rs_queryanswering/DesignatorWrapper.h>
 
-/*
- * struct for passing vital information from a query to individual annotators
- *e.g. the timestamp for CollectionReader, or location for the RegionFilter;
- *For now it's hacky consider changin interface to an wesom json thingy instead of
- * desig_integration, and then just push the whole query to the cas and let
- * individual annotators look it query contains something interesting for them
-*/
-struct RSQuery
-{
-  uint64_t timestamp = std::numeric_limits<uint64_t>::max();
-  std::string location = "";
-  std::string objToInspect = "";
-  std::string ingredient ="";
-  std::string asJson="";
-};
-
 class RSControledAnalysisEngine: public RSAnalysisEngine
 {
 
@@ -42,8 +26,9 @@ private:
   RSPipelineManager *rspm;
   std::string currentAEName;
   std::vector<std::string> next_pipeline_order;
-  std::vector<std::string> cwObjects_;
   boost::shared_ptr<std::mutex> process_mutex;
+
+  std::string query_;
 
   ros::NodeHandle nh_;
   ros::Publisher base64ImgPub;
@@ -59,7 +44,7 @@ private:
 public:
 
   RSControledAnalysisEngine(ros::NodeHandle nh) : RSAnalysisEngine(),
-    rspm(NULL),currentAEName(""),nh_(nh),it_(nh_),useIdentityResolution_(false),counter_(0),totalTime_(0.0),avgProcessingTime_(0.0f)
+    rspm(NULL),currentAEName(""),query_(""),nh_(nh),it_(nh_),useIdentityResolution_(false),counter_(0),totalTime_(0.0),avgProcessingTime_(0.0f)
   {
     process_mutex = boost::shared_ptr<std::mutex>(new std::mutex);
     base64ImgPub = nh_.advertise<std_msgs::String>(std::string("image_base64"), 5);
@@ -94,15 +79,22 @@ public:
   }
 
 
+  void setQuery(std::string q)
+  {
+    query_ = q;
+  }
+
   /*get the next order of AEs to be executed*/
   inline std::vector<std::string> &getNextPipeline()
   {
     return next_pipeline_order;
   }
 
+
+
   inline void changeLowLevelPipeline(std::vector<std::string> &pipeline)
-  {
-     rspm->setDefaultPipelineOrdering(pipeline);
+  { 
+    rspm->setDefaultPipelineOrdering(pipeline);
   }
 
   inline void applyNextPipeline()
@@ -135,19 +127,18 @@ public:
     return false;
   }
 
-  void init(const std::string &file,const std::vector<std::string> &lowLvLPipeline);
-
-  void setCWAssumption(const std::vector<std::string>&);
-
   inline void useIdentityResolution(const bool useIDres)
   {
       useIdentityResolution_=useIDres;
   }
 
+
+  void init(const std::string &file,const std::vector<std::string> &lowLvLPipeline);
+
   void process();
 
   void process(std::vector<std::string> &designator_response,
-               RSQuery *q = NULL);
+               std::string query);
 
   void process(bool reset_pipeline_after_process,
                std::vector<std::string> &designator_response);
@@ -162,7 +153,7 @@ public:
   void process(std::vector<std::string> annotators,
                bool reset_pipeline_after_process,
                std::vector<std::string> &designator_response,
-               RSQuery *query = NULL);
+               std::string query="");
 
   // Define a pipeline that should be executed,
   // process(reset_pipeline_after_process) everything and

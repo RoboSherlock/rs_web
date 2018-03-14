@@ -100,9 +100,7 @@ public:
       std::vector<rs::Goggles> goggles;
       std::vector<rs::Features> features;
       std::vector<rs::ClusterPart> clusterParts;
-      //std::vector<rs_demos::Volume> volume;
-      //std::vector<rs_demos::Substance> substance;
-      //std::vector<rs_demos::Pizza> pizza;
+      std::vector<rs::Classification> classification;
 
       element.annotations.filter(geometry);
       element.annotations.filter(poses);
@@ -114,9 +112,8 @@ public:
       element.annotations.filter(goggles);
       element.annotations.filter(features);
       element.annotations.filter(clusterParts);
-      //element.annotations.filter(volume);
-      //element.annotations.filter(substance);
-      //element.annotations.filter(pizza);
+      element.annotations.filter(classification);
+
 
       convertAll(geometry, &objectDesignator);
       convertAll(detections, &objectDesignator);
@@ -128,9 +125,7 @@ public:
       convertAll(goggles, &objectDesignator);
       convertAll(features, &objectDesignator);
       convertAll(clusterParts, &objectDesignator);
-//      convertAll(volume, &objectDesignator);
-//      convertAll(substance, &objectDesignator);
-//      convertAll(pizza, &objectDesignator);
+      convertAll(classification, &objectDesignator);
 
 
       iai_robosherlock_msgs::PerceivedObject object;
@@ -158,7 +153,6 @@ public:
         rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
         objectDesignator.Accept(writer);
         outInfo(buffer.GetString());
-
         objectDesignators.push_back(jsonToString(objectDesignator));
       }
     }
@@ -180,6 +174,8 @@ public:
   }
 
   void convert(rs::Detection &input, rapidjson::Document *object);
+  void convert(rs::Classification &input, rapidjson::Document *object);
+
   void convert(rs::TFLocation &input, rapidjson::Document *object);
   void convert(rs::Segment &input, rapidjson::Document *object);
   void convert(rs::Geometry &input, rapidjson::Document *object);
@@ -194,6 +190,8 @@ public:
   void convert(geometry_msgs::PoseStamped &pose, rapidjson::Document *object, rapidjson::MemoryPoolAllocator<>& alloc);
   void convert(rs::ARMarker &input, rapidjson::Document &res);
   void convert(rs::HandleAnnotation &input, rapidjson::Document &res);
+
+
 
   static void mergeJson (rapidjson::Document &destination, rapidjson::Document &source, std::string fieldName);
   static std::string jsonToString(rapidjson::Value &res);

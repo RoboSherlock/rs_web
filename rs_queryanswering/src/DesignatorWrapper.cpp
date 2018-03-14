@@ -127,6 +127,20 @@ void DesignatorWrapper::convert(rs::Detection &input, rapidjson::Document *objec
   nestedValue.AddMember("source", input.source(), object->GetAllocator());
   nestedValue.AddMember("name", input.name(), object->GetAllocator());
 
+  object->AddMember("detection", nestedValue, object->GetAllocator());
+}
+
+void DesignatorWrapper::convert(rs::Classification &input, rapidjson::Document *object)
+{
+  rapidjson::Value nestedValue;
+  nestedValue.SetObject();
+  nestedValue.AddMember("class-name", input.classname(), object->GetAllocator());
+  nestedValue.AddMember("source", input.source(), object->GetAllocator());
+  std::vector<rs::ClassConfidence> confs = input.confidences();
+  for(auto c : confs)
+    if(c.name() == input.classname())
+      nestedValue.AddMember("confidence", c.score(), object->GetAllocator());
+
   object->AddMember("class", nestedValue, object->GetAllocator());
 }
 
@@ -263,16 +277,16 @@ void DesignatorWrapper::convert(rs::PoseAnnotation &input, rapidjson::Document *
   outWarn("Time diff in poses: " << diff);
   if(diff == 0)
   {
-      if(!object->HasMember("pose"))
-      {
-        rapidjson::Pointer("/pose/0").Set(*object, nestedValue);
-      }
-      else
-      {
-        rapidjson::Value &array = (*object)["pose"];
-        std::string size = std::to_string(array.Size());
-        rapidjson::Pointer("/pose/" + size).Set(*object, nestedValue);
-      }
+    if(!object->HasMember("pose"))
+    {
+      rapidjson::Pointer("/pose/0").Set(*object, nestedValue);
+    }
+    else
+    {
+      rapidjson::Value &array = (*object)["pose"];
+      std::string size = std::to_string(array.Size());
+      rapidjson::Pointer("/pose/" + size).Set(*object, nestedValue);
+    }
     //object->AddMember("pose", nestedValue, object->GetAllocator());
   }
 }
@@ -288,7 +302,7 @@ void DesignatorWrapper::convert(rs::SemanticColor &input, rapidjson::Document *o
   for(size_t i = 0; i < colors.size(); ++i)
   {
     const float &ratio = ratios[i];
-    if(ratio>0.1)
+    if(ratio > 0.1)
     {
       rapidjson::Value v(colors[i].c_str(), object->GetAllocator());
       nestedValue.AddMember(v, ratio, object->GetAllocator());

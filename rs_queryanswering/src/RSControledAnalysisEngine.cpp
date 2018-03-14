@@ -53,19 +53,15 @@ void RSControledAnalysisEngine::init(const std::string &AEFile, const std::vecto
   currentAEName = AEFile;
 }
 
-void RSControledAnalysisEngine::setCWAssumption(const std::vector<std::string> &cwObjs)
-{
-  cwObjects_.assign(cwObjs.begin(), cwObjs.end());
-}
-
 void RSControledAnalysisEngine::process()
 {
-  std::vector<std::string> d;
-  process(d);
+  std::vector<std::string> desigResponse;
+  process(desigResponse,query_);
+  setQuery("");
 }
 
 void RSControledAnalysisEngine::process(std::vector<std::string> &designatorResponse,
-                                        RSQuery *q)
+                                        std::string queryString)
 {
   outInfo("executing analisys engine: " << name);
   cas->reset();
@@ -74,34 +70,12 @@ void RSControledAnalysisEngine::process(std::vector<std::string> &designatorResp
     UnicodeString ustrInputText;
     ustrInputText.fromUTF8(name);
     cas->setDocumentText(uima::UnicodeStringRef(ustrInputText));
-    if(q != NULL)
-    {
-      rs::SceneCas sceneCas(*cas);
-      rs::Query query = rs::create<rs::Query>(*cas);
-      query.asJson.set(q->asJson);
-      if(q->timestamp != 0)
-      {
-        query.timestamp.set(q->timestamp);
-      }
-      else
-      {
-        query.timestamp.set(0);
-      }
-      if(q->location != "")
-      {
-        query.location.set(q->location);
-      }
-      if(q->objToInspect != "")
-      {
-        query.inspect.set(q->objToInspect);
-      }
-      if(q->ingredient != "")
-      {
-        query.ingredient.set(q->ingredient);
-      }
-      outInfo("setting in CAS: ts:" << q->timestamp << " location: " << q->location);
-      sceneCas.set("QUERY", query);
-    }
+
+    rs::SceneCas sceneCas(*cas);
+    rs::Query query = rs::create<rs::Query>(*cas);
+    query.asJson.set(queryString);
+    sceneCas.set("QUERY", query);
+
     outInfo("processing CAS");
     try
     {
@@ -146,10 +120,9 @@ void RSControledAnalysisEngine::process(std::vector<std::string> &designatorResp
   {
     outError("Unknown exception!");
   }
-  // Make a designator from the result
 
+  // Make a designator from the result
   rs::DesignatorWrapper dw(cas);
-//  dw.setCAS(cas);
   if(useIdentityResolution_)
   {
     dw.setMode(rs::DesignatorWrapper::OBJECT);
@@ -174,11 +147,14 @@ void RSControledAnalysisEngine::process(bool reset_pipeline_after_process, std::
 {
   process_mutex->lock();
   outInfo(FG_CYAN << "process(bool,desig) - LOCK OBTAINED");
-  process(designatorResponse, nullptr);
+  outInfo("++++++++++++");
+  outInfo(query_);
+  process(designatorResponse, query_);
   if(reset_pipeline_after_process)
   {
     resetPipelineOrdering();  // reset pipeline to default
   }
+  setQuery("");
   process_mutex->unlock();
   outInfo(FG_CYAN << "process(bool,desig) - LOCK RELEASED");
 }
@@ -190,19 +166,15 @@ void RSControledAnalysisEngine::process(bool reset_pipeline_after_process, std::
 void RSControledAnalysisEngine::process(std::vector<std::string> annotators,
                                         bool reset_pipeline_after_process,
                                         std::vector<std::string> &designator_response,
-                                        RSQuery *query)
+                                        std::string queryString)
 {
   process_mutex->lock();
-  outInfo(FG_CYAN << "process(std::vector, bool) - LOCK OBTAINED");
   setNextPipeline(annotators);
   applyNextPipeline();
-  process(designator_response, query);
+  process(designator_response, queryString);
   if(reset_pipeline_after_process)
-  {
     resetPipelineOrdering();  // reset pipeline to default
-  }
   process_mutex->unlock();
-  outInfo(FG_CYAN << "process(std::vector, bool) - LOCK RELEASED");
 }
 
 // Define a pipeline that should be executed,
@@ -211,7 +183,7 @@ void RSControledAnalysisEngine::process(std::vector<std::string> annotators,
 void RSControledAnalysisEngine::process(std::vector<std::string> annotators, bool reset_pipeline_after_process)
 {
   std::vector<std::string> designator_response;
-  process(annotators, reset_pipeline_after_process, designator_response);
+  process(annotators, reset_pipeline_after_process, designator_response,query_);
 }
 
 template <class T>
@@ -256,10 +228,7 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
 
   for(int i = 0; i < filter.size(); ++i)
   {
-    if(!filter[i])
-    {
-      continue;
-    }
+    if(!filter[i]) continue;
 
     std::string desigString = resultDesignators[i];
     rapidjson::Document desig;

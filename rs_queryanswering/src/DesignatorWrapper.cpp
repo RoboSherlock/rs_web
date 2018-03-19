@@ -271,21 +271,21 @@ void DesignatorWrapper::convert(rs::PoseAnnotation &input, rapidjson::Document *
   rapidjson::Document poseJsonObj(&object->GetAllocator());
   poseJsonObj.SetObject();
   convert(pose_stamped_msgs, &poseJsonObj, object->GetAllocator());
-  nestedValue.AddMember("pose", poseJsonObj, object->GetAllocator());
+  nestedValue.AddMember("pose_stamped", poseJsonObj, object->GetAllocator());
 
   uint64_t diff = now - tf_stamped_pose.stamp_.toNSec();
   outWarn("Time diff in poses: " << diff);
   if(diff == 0)
   {
-    if(!object->HasMember("pose"))
+    if(!object->HasMember("poses"))
     {
-      rapidjson::Pointer("/pose/0").Set(*object, nestedValue);
+      rapidjson::Pointer("/poses/0").Set(*object, nestedValue);
     }
     else
     {
-      rapidjson::Value &array = (*object)["pose"];
+      rapidjson::Value &array = (*object)["poses"];
       std::string size = std::to_string(array.Size());
-      rapidjson::Pointer("/pose/" + size).Set(*object, nestedValue);
+      rapidjson::Pointer("/poses/" + size).Set(*object, nestedValue);
     }
     //object->AddMember("pose", nestedValue, object->GetAllocator());
   }

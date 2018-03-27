@@ -21,11 +21,9 @@
 #include <rs_queryanswering/KRDefinitions.h>
 #include <rs_queryanswering/PrologInterface.h>
 
-// OpenCV
-#if OPENCV_MAJOR_VERSION == 2
-  #include <opencv2/gpu/gpu.hpp>
-  #include <opencv2/ocl/ocl.hpp>
-#endif
+
+
+
 #include <algorithm>
 
 //#include <rs/utils/RSAnalysisEngine.h>
@@ -87,11 +85,6 @@ public:
     spatialImportance_ = 0.4f;
     normalImportance_ = 1.0f;
 
-//    std::string lowlvlAEPath;
-//    rs::common::getAEPaths("lowlvl", lowlvlAEPath);
-//    outWarn("=============A DREAM IN A DREAM==============");
-//    engine.init(lowlvlAEPath);
-//    outWarn("=============END OF A DREAM IN A DREAM==============");
     return UIMA_ERR_NONE;
   }
 
@@ -101,64 +94,6 @@ public:
     return UIMA_ERR_NONE;
   }
 
-#if OPENCV_MAJOR_VERSION == 2
-  void msColorSegmentations(const cv::Mat &img, ClusterWithParts &cwp)
-  {
-    cv::ocl::oclMat oclImgRaw, oclImgConverted;
-    oclImgRaw.upload(img);
-    cv::ocl::cvtColor(oclImgRaw, oclImgConverted, CV_BGR2BGRA);
-    cv::Mat msClusters;
-    cv::ocl::meanShiftSegmentation(oclImgConverted, msClusters, 40, 40, (img.rows * img.cols) * 0.015);
-    cv::cvtColor(msClusters, cwp.msSegmentsImage, CV_BGRA2BGR);
-
-    std::vector<int> labelCount;
-    for(int y = 0; y < cwp.msSegmentsImage.rows; ++y)
-      for(int x = 0; x < cwp.msSegmentsImage.cols; ++x)
-      {
-        if(cwp.mask.at<uint8_t>(y, x) != 0)
-        {
-          bool labelExists = false;
-          cv::Vec3b label = cwp.msSegmentsImage.at<cv::Vec3b>(cv::Point(x, y));
-          for(int l = 0; l < cwp.colorClusterLabels.size(); ++l)
-          {
-            if(label == cwp.colorClusterLabels[l])
-            {
-              labelCount[l]++;
-              labelExists = true;
-            }
-          }
-          if(!labelExists)
-          {
-            labelCount.push_back(0);
-            cwp.colorClusterLabels.push_back(label);
-          }
-        }
-      }
-
-    //now create the clusters: needed because for some reason openCVs meanShift returns clusters
-    // that have fewer points then set in the segm.method
-    for(int y = 0; y < cwp.msSegmentsImage.rows; ++y)
-      for(int x = 0; x < cwp.msSegmentsImage.cols; ++x)
-      {
-        if(cwp.mask.at<uint8_t>(y, x) != 0)
-        {
-          cv::Vec3b label = cwp.msSegmentsImage.at<cv::Vec3b>(cv::Point(x, y));
-          for(int l = 0; l < cwp.colorClusterLabels.size(); ++l)
-          {
-            if(label == cwp.colorClusterLabels[l])
-            {
-              if(labelCount[l] > (img.rows * img.cols) * 0.015)
-              {
-                cwp.colorClusters[l].push_back(cv::Point(x, y));
-              }
-            }
-          }
-        }
-      }
-    outInfo("found " << cwp.colorClusterLabels.size() << " color cluster labels");
-    outInfo("found " << cwp.colorClusters.size() << " color clusters");
-  }
-#endif
   void overSegmentAndGrow(const pcl::PointIndicesPtr &indices, ClusterWithParts &cwp)
   {
     pcl::PointCloud<PointT>::Ptr clusterCloud(new pcl::PointCloud<PointT>());
@@ -301,122 +236,42 @@ private:
     scene.identifiables.filter(clusters);
     scene.annotations.filter(planes);
 
-//    rs::Query qs = rs::create<rs::Query>(tcas);
-//    std::string objToProcess;
-//    if(cas.getFS("QUERY", qs))
-//    {
-//      objToProcess = qs.inspect();
-//    }
-//    else
-//    {
-//      return UIMA_ERR_NONE;
-//    }
+    rs::Query query = rs::create<rs::Query>(tcas);
+    std::string obj_to_inspect= "";
+    if(cas.getFS("QUERY", query))
+    {
+      std::string queryAsString = query.asJson();
+      if(queryAsString != "")
+      {
+        rapidjson::Document doc;
+        doc.Parse(queryAsString.c_str());
+        if(doc.HasMember("inspect"))
+        {
+          if(doc["inspect"].HasMember("obj"))
+          {
+            obj_to_inspect = doc["inspect"]["obj"].GetString();
+          }
+        }
+      }
+    }
 
-//    std::stringstream prologQuery;
-//    std::transform(objToProcess.begin(), objToProcess.end(), objToProcess.begin(), (int( *)(int)) std::tolower);
-
-//    outWarn("Object Queried for is: " << objToProcess);
-
-//    bool ok = prologInterface.q_classProperty(objToProcess, "rs_components:'hasVisualProperty'", "rs_objects:'ObjectPart'");
-//    if(!ok)
-//    {
-//      outInfo("Queried Object does not meet requirements of this annotator");
-//      return UIMA_ERR_NONE; // Indicate failure
-//    }
-
-    std::vector<rs::Identifiable> mergedClusters, newClusters;
+    std::vector<rs::Identifiable> mergedClusters;
 
     for(int i = 0; i < clusters.size(); ++i)
     {
       rs::Cluster &cluster = clusters[i];
-//      std::vector<rs::Detection> detections;
-//      cluster.annotations.filter(detections);
-//      if(detections.empty())
-//      {
-//        continue;
-//      }
-//      rs::Detection detection = detections[0];
 
-      //json query here?..if object has parts
-  //    if(boost::iequals(detection.name(), objToProcess))
-   //   {
         ClusterWithParts clusterAsParts;
-
-        //2D segmentation
-        //        if(cluster.rois.has())
-        //        {
-        //          rs::ImageROI imageRoi = cluster.rois.get();
-        //          rs::conversion::from(imageRoi.roi_hires(), clusterAsParts.clusterRoi);
-        //          rs::conversion::from(imageRoi.mask_hires(), clusterAsParts.mask);
-        //          cv::Mat clusterImg(dispRGB, clusterAsParts.clusterRoi);
-        //          msColorSegmentations(clusterImg, clusterAsParts);
-        //        }
 
         //3D segmentation
         pcl::PointIndicesPtr clusterIndices(new pcl::PointIndices());
         rs::conversion::from(((rs::ReferenceClusterPoints)cluster.points.get()).indices.get(), *clusterIndices);
+
         overSegmentAndGrow(clusterIndices, clusterAsParts);
         outInfo("Oversegmented: "<<clusterAsParts.partsOfClusters.size());
         clustersWithParts.push_back(clusterAsParts);
 
-        //now merge
-//        outWarn(detection.name() << " has " << clusterAsParts.colorClusters.size() << " colored parts and " << clusterAsParts.partsOfClusters.size() << " shape based parts");
-
-        //for now do it like this: if more color clusters take those if not take the others
-
-        if(clusterAsParts.colorClusters.size() >= clusterAsParts.partsOfClusters.size())
-        {
-          cv::Rect roi = clusterAsParts.clusterRoi;
-          std::map<int, std::vector<cv::Point>>::iterator mapIt = clusterAsParts.colorClusters.begin();
-
-          for(; mapIt != clusterAsParts.colorClusters.end(); ++mapIt)
-          {
-            rs::Cluster newCluster = rs::create<rs::Cluster>(tcas);
-            pcl::PointIndices newClusterIndices;
-            cv::Rect roiLowres, roiHires;
-            outInfo("");
-            roiHires = cv::boundingRect(mapIt->second);
-            roiLowres.height = roiHires.height / 2;
-            roiLowres.width = roiHires.width / 2;
-            roiLowres.x = roiHires.x / 2;
-            roiLowres.y = roiHires.y / 2;
-            outInfo("");
-            cv::Mat maskLowres = cv::Mat::zeros(roiLowres.height, roiLowres.width, CV_8U),
-                    maskHires = cv::Mat::zeros(roiHires.height, roiHires.width, CV_8U);
-            outInfo("");
-            for(unsigned int j = 0; j < mapIt->second.size(); ++j)
-            {
-              cv::Point p = mapIt->second[j];
-              maskHires.at<uint8_t>(p.y, p.x) = 255;
-              maskLowres.at<uint8_t>(p.y / 2, p.x / 2) = 255;
-              newClusterIndices.indices.push_back((p.y / 2 + roi.y / 2) * 640 + (p.x / 2 + roi.x / 2));
-            }
-            std::vector<int>::iterator it;
-            it = std::unique(newClusterIndices.indices.begin(), newClusterIndices.indices.end());
-            newClusterIndices.indices.resize(std::distance(newClusterIndices.indices.begin(), it));
-            newClusterIndices.header = cloudPtr_->header;
-            outInfo("New cluster indices size: " << newClusterIndices.indices.size());
-
-            rs::ReferenceClusterPoints rcp = rs::create<rs::ReferenceClusterPoints>(tcas);
-            rcp.indices.set(rs::conversion::to(tcas, newClusterIndices));
-
-            rs::ImageROI imageRoi = rs::create<rs::ImageROI>(tcas);
-            imageRoi.mask(rs::conversion::to(tcas, maskLowres));
-            imageRoi.mask_hires(rs::conversion::to(tcas, maskHires));
-            imageRoi.roi(rs::conversion::to(tcas, roiLowres));
-            imageRoi.roi_hires(rs::conversion::to(tcas, roiHires));
-
-//            rs::TFLocation location = rs::create<rs::TFLocation>(*engine.getCas());
-//            location.reference_desc.set("on");
-//            location.frame_id.set(objToProcess);
-
-//            newCluster.annotations.append(location);
-            newCluster.rois.set(imageRoi);
-            newCluster.points.set(rcp);
-            newClusters.push_back(newCluster);
-          }
-        }
-        else if (clusterAsParts.partsOfClusters.size() > 0)
+        if (clusterAsParts.partsOfClusters.size() > 0)
         {
           int idxBiggest = -1;
           int nrOfIndeices = 0;
@@ -430,10 +285,6 @@ private:
           }
           for(int pclClIdx = 0; pclClIdx < clusterAsParts.partsOfClusters.size(); pclClIdx++)
           {
-//            if(pclClIdx == idxBiggest)
-//            {
-//              continue;
-//            }
             rs::Cluster newCluster = rs::create<rs::Cluster>(tcas);
             rs::ReferenceClusterPoints rcp = rs::create<rs::ReferenceClusterPoints>(tcas);
             rs::PointIndices uimaIndices = rs::conversion::to(tcas, *clusterAsParts.partsOfClusters[pclClIdx]);
@@ -449,63 +300,18 @@ private:
             imageRoi.roi(rs::conversion::to(tcas, roi));
             imageRoi.roi_hires(rs::conversion::to(tcas, roiHires));
 
-//            rs::TFLocation location = rs::create<rs::TFLocation>(*engine.getCas());
-//            location.reference_desc.set("on");
-//            location.frame_id.set(objToProcess);
-
-//            newCluster.annotations.append(location);
             newCluster.rois.set(imageRoi);
             newCluster.points.set(rcp);
-
             mergedClusters.push_back(newCluster);
           }
         }
-      //}
+
         else{
             mergedClusters.push_back(cluster);
         }
     }
 
-//    outInfo("Setting new Cas and scene and etc");
-//    //now run a lowLvlPipeline on the newly found objects;
-//    rs::SceneCas newCas(*engine.getCas());
-//    newCas.set(VIEW_CLOUD, *cloudPtr_);
-//    newCas.set(VIEW_COLOR_IMAGE_HD, rgbHD);
-//    newCas.set(VIEW_NORMALS, *normalPtr_);
-//    newCas.set(VIEW_DEPTH_IMAGE_HD, depthHD);
-//    newCas.set(VIEW_DEPTH_IMAGE, depth);
-//    newCas.set(VIEW_COLOR_IMAGE, rgb);
-
-//    rs::Scene newScene = newCas.getScene();
-
-//    tf::StampedTransform head_to_map;
-//    rs::conversion::from(scene.viewPoint.get(), head_to_map);
-
-//    rs::StampedTransform vp(rs::conversion::to(*engine.getCas(), head_to_map));
-//    newScene.viewPoint.set(vp);
-//    rs::Plane newPlane = rs::create<rs::Plane>(*engine.getCas());
-//    newPlane.id.set(planes[0].id());
-//    newPlane.model.set(planes[0].model());
-
-//    newScene.annotations.append(newPlane);
-//    newScene.identifiables.set(newClusters);
-//    engine.process();
-//    std::vector<rs::Cluster>  newClustersAnnotated;
-//    newScene.identifiables.filter(newClustersAnnotated);
-//    for(rs::Cluster c : newClustersAnnotated)
-//    {
-//      outInfo("Cluster has: " << c.annotations.size() << "annotations");
-//      mongo::BSONObj bson = rs::conversion::fromFeatureStructure(c, mongo::OID());
-//      mergedClusters.push_back(rs::conversion::toFeatureStructure(tcas, bson));
-//      std::vector<rs::TFLocation> locations;
-//      c.annotations.filter(locations);
-//      if(!locations.empty())
-//      {
-//        outInfo(locations[0].reference_desc() << " " << locations[0].frame_id());
-//      }
-//    }
     scene.identifiables.set(mergedClusters);
-//    engine.resetCas();
     return UIMA_ERR_NONE;
   }
 

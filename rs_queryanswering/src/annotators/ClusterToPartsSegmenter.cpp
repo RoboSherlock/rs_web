@@ -28,7 +28,7 @@
 #endif
 #include <algorithm>
 
-#include <rs/utils/RSAnalysisEngine.h>
+//#include <rs/utils/RSAnalysisEngine.h>
 
 using namespace uima;
 
@@ -41,8 +41,8 @@ private:
   pcl::PointCloud<PointT>::Ptr dispCloudPtr;
   pcl::PointCloud<pcl::Normal>::Ptr normalPtr_;
 
-  RSAnalysisEngine engine;
-  PrologInterface prologInterface;
+//  RSAnalysisEngine engine;
+//  PrologInterface prologInterface;
   struct ClusterWithParts
   {
     std::vector<pcl::PointIndicesPtr> partsOfClusters;
@@ -73,10 +73,10 @@ private:
 
 public:
 
-  ClusterToPartsSegmenter(): DrawingAnnotator(__func__), dispCloudPtr(new pcl::PointCloud<PointT>),prologInterface(), pointSize(2), voxel_resolution(0.008f),
+  ClusterToPartsSegmenter(): DrawingAnnotator(__func__), dispCloudPtr(new pcl::PointCloud<PointT>), pointSize(2), voxel_resolution(0.008f),
     seed_resolution(0.1f)
   {
-
+    outInfo("");
   }
 
 
@@ -87,11 +87,11 @@ public:
     spatialImportance_ = 0.4f;
     normalImportance_ = 1.0f;
 
-    std::string lowlvlAEPath;
-    rs::common::getAEPaths("lowlvl", lowlvlAEPath);
-    outWarn("=============A DREAM IN A DREAM==============");
-    engine.init(lowlvlAEPath);
-    outWarn("=============END OF A DREAM IN A DREAM==============");
+//    std::string lowlvlAEPath;
+//    rs::common::getAEPaths("lowlvl", lowlvlAEPath);
+//    outWarn("=============A DREAM IN A DREAM==============");
+//    engine.init(lowlvlAEPath);
+//    outWarn("=============END OF A DREAM IN A DREAM==============");
     return UIMA_ERR_NONE;
   }
 
@@ -100,6 +100,7 @@ public:
     outInfo("Destroy");
     return UIMA_ERR_NONE;
   }
+
 #if OPENCV_MAJOR_VERSION == 2
   void msColorSegmentations(const cv::Mat &img, ClusterWithParts &cwp)
   {
@@ -167,21 +168,21 @@ public:
     ei.filter(*clusterCloud);
 
     std::map <uint32_t, pcl::Supervoxel<PointT>::Ptr > supervoxelClusters;
-    pcl::SupervoxelClustering<PointT> super(voxel_resolution, seed_resolution, false);
-    super.setInputCloud(clusterCloud);
-    super.setColorImportance(colorImportance_);
-    super.setSpatialImportance(spatialImportance_);
-    super.setNormalImportance(normalImportance_);
-    super.extract(supervoxelClusters);
+    pcl::SupervoxelClustering<PointT> superVoxClust(voxel_resolution, seed_resolution, false);
+    superVoxClust.setInputCloud(clusterCloud);
+    superVoxClust.setColorImportance(colorImportance_);
+    superVoxClust.setSpatialImportance(spatialImportance_);
+    superVoxClust.setNormalImportance(normalImportance_);
+    superVoxClust.extract(supervoxelClusters);
 
-    cwp.svNormalCloud = super.makeSupervoxelNormalCloud(supervoxelClusters);
+    cwp.svNormalCloud = superVoxClust.makeSupervoxelNormalCloud(supervoxelClusters);
 
     outInfo("Cluster split into: " << supervoxelClusters.size() << " supervoxels");
 
     //group voxels based on their surface normal in two groups...a bit hacky atm. will make it nicer eventually
     std::multimap<uint32_t, uint32_t> supervoxel_adjacency;
 
-    super.getSupervoxelAdjacency(supervoxel_adjacency);
+    superVoxClust.getSupervoxelAdjacency(supervoxel_adjacency);
     std::multimap<uint32_t, uint32_t>::iterator labelItr = supervoxel_adjacency.begin();
     std::vector<bool> processed(supervoxelClusters.size(), false);
 
@@ -203,12 +204,9 @@ public:
         Eigen::Map< Eigen::Vector3f> point_a_normal(svNormal.normal);
         Eigen::Map< Eigen::Vector3f> point_b_normal(svNeighbourNormal.normal);
 
-//        point_a_normal[0]= svNormal.normal_x;point_a_normal[1]= svNormal.normal_y;point_a_normal[2]= svNormal.normal_z;
-//        point_b_normal[0]= svNeighbourNormal.normal_x;point_b_normal[2]= svNeighbourNormal.normal_y;point_b_normal[2]= svNeighbourNormal.normal_z;
-
         //outInfo("Angle between svl:" << supervoxel_label << " and svl:" << adjacent_itr->second << " is: " << fabs(point_a_normal.dot(point_b_normal)));
         Eigen::Vector3f dist(svNormal.x - svNeighbourNormal.x, svNormal.y - svNeighbourNormal.y, svNormal.z - svNeighbourNormal.z);
-        if(std::abs(point_a_normal.dot(point_b_normal)) > 0.87 && !processed[(int)adjacent_itr->second - 1])
+        if(std::abs(point_a_normal.dot(point_b_normal)) > 0.9 && !processed[(int)adjacent_itr->second - 1])
         {
           processed[(int)adjacent_itr->second - 1] = true;
         }
@@ -217,8 +215,7 @@ public:
       labelItr = supervoxel_adjacency.upper_bound(supervoxel_label);
     }
 
-    pcl::PointCloud<pcl::PointXYZL>::Ptr labeledCloud = super.getLabeledCloud();
-
+    pcl::PointCloud<pcl::PointXYZL>::Ptr labeledCloud = superVoxClust.getLabeledCloud();
     for(unsigned int i =  0; i < labeledCloud->points.size(); ++i)
     {
       pcl::PointXYZL &p = labeledCloud->points[i];
@@ -231,8 +228,12 @@ public:
         partTwoIndices->indices.push_back(indices->indices.at(i));
       }
     }
-    cwp.partsOfClusters.push_back(partOneIndices);
-    cwp.partsOfClusters.push_back(partTwoIndices);
+    outInfo(partOneIndices->indices.size());
+    outInfo(partTwoIndices->indices.size());
+    if(partOneIndices->indices.size()>0)
+        cwp.partsOfClusters.push_back(partOneIndices);
+    if(partTwoIndices->indices.size()>0)
+        cwp.partsOfClusters.push_back(partTwoIndices);
   }
 
 
@@ -251,9 +252,6 @@ public:
     int max_y = -1;
 
     cv::Mat mask_full = cv::Mat::zeros(height, width, CV_8U);
-
-    // get min / max extents (rectangular bounding box in image (pixel) coordinates)
-    //#pragma omp parallel for
     for(size_t i = 0; i < indices->indices.size(); ++i)
     {
       const int idx = indices->indices[i];
@@ -303,52 +301,45 @@ private:
     scene.identifiables.filter(clusters);
     scene.annotations.filter(planes);
 
-    rs::Query qs = rs::create<rs::Query>(tcas);
-    std::string objToProcess;
-    if(cas.getFS("QUERY", qs))
-    {
-      objToProcess = qs.inspect();
-    }
-    else
-    {
-      return UIMA_ERR_NONE;
-    }
-    //todo if there is time...check if object can hold other objects
+//    rs::Query qs = rs::create<rs::Query>(tcas);
+//    std::string objToProcess;
+//    if(cas.getFS("QUERY", qs))
+//    {
+//      objToProcess = qs.inspect();
+//    }
+//    else
+//    {
+//      return UIMA_ERR_NONE;
+//    }
 
-    std::stringstream prologQuery;
+//    std::stringstream prologQuery;
+//    std::transform(objToProcess.begin(), objToProcess.end(), objToProcess.begin(), (int( *)(int)) std::tolower);
 
-    std::transform(objToProcess.begin(), objToProcess.end(), objToProcess.begin(), (int( *)(int)) std::tolower);
-    //    if(!objToProcess.empty())
-    //    {
-    //      objToProcess[0] = std::toupper(objToProcess[0]);
-    //    }
-    outWarn("Object Queried for is: " << objToProcess);
+//    outWarn("Object Queried for is: " << objToProcess);
 
-    bool ok = prologInterface.q_classProperty(objToProcess, "rs_components:'hasVisualProperty'", "rs_objects:'ObjectPart'");
-    if(!ok)
-    {
-      outInfo("Queried Object does not meet requirements of this annotator");
-      return UIMA_ERR_NONE; // Indicate failure
-    }
+//    bool ok = prologInterface.q_classProperty(objToProcess, "rs_components:'hasVisualProperty'", "rs_objects:'ObjectPart'");
+//    if(!ok)
+//    {
+//      outInfo("Queried Object does not meet requirements of this annotator");
+//      return UIMA_ERR_NONE; // Indicate failure
+//    }
 
     std::vector<rs::Identifiable> mergedClusters, newClusters;
 
     for(int i = 0; i < clusters.size(); ++i)
     {
       rs::Cluster &cluster = clusters[i];
-      mergedClusters.push_back(cluster);
-      std::vector<rs::Detection> detections;
-      cluster.annotations.filter(detections);
-      if(detections.empty())
-      {
-        continue;
-      }
-      rs::Detection detection = detections[0];
+//      std::vector<rs::Detection> detections;
+//      cluster.annotations.filter(detections);
+//      if(detections.empty())
+//      {
+//        continue;
+//      }
+//      rs::Detection detection = detections[0];
 
       //json query here?..if object has parts
-
-      if(boost::iequals(detection.name(), objToProcess))
-      {
+  //    if(boost::iequals(detection.name(), objToProcess))
+   //   {
         ClusterWithParts clusterAsParts;
 
         //2D segmentation
@@ -365,11 +356,11 @@ private:
         pcl::PointIndicesPtr clusterIndices(new pcl::PointIndices());
         rs::conversion::from(((rs::ReferenceClusterPoints)cluster.points.get()).indices.get(), *clusterIndices);
         overSegmentAndGrow(clusterIndices, clusterAsParts);
-
+        outInfo("Oversegmented: "<<clusterAsParts.partsOfClusters.size());
         clustersWithParts.push_back(clusterAsParts);
 
         //now merge
-        outWarn(detection.name() << " has " << clusterAsParts.colorClusters.size() << " colored parts and " << clusterAsParts.partsOfClusters.size() << " shape based parts");
+//        outWarn(detection.name() << " has " << clusterAsParts.colorClusters.size() << " colored parts and " << clusterAsParts.partsOfClusters.size() << " shape based parts");
 
         //for now do it like this: if more color clusters take those if not take the others
 
@@ -380,7 +371,7 @@ private:
 
           for(; mapIt != clusterAsParts.colorClusters.end(); ++mapIt)
           {
-            rs::Cluster newCluster = rs::create<rs::Cluster>(*engine.getCas());
+            rs::Cluster newCluster = rs::create<rs::Cluster>(tcas);
             pcl::PointIndices newClusterIndices;
             cv::Rect roiLowres, roiHires;
             outInfo("");
@@ -406,26 +397,26 @@ private:
             newClusterIndices.header = cloudPtr_->header;
             outInfo("New cluster indices size: " << newClusterIndices.indices.size());
 
-            rs::ReferenceClusterPoints rcp = rs::create<rs::ReferenceClusterPoints>(*engine.getCas());
-            rcp.indices.set(rs::conversion::to(*engine.getCas(), newClusterIndices));
+            rs::ReferenceClusterPoints rcp = rs::create<rs::ReferenceClusterPoints>(tcas);
+            rcp.indices.set(rs::conversion::to(tcas, newClusterIndices));
 
-            rs::ImageROI imageRoi = rs::create<rs::ImageROI>(*engine.getCas());
-            imageRoi.mask(rs::conversion::to(*engine.getCas(), maskLowres));
-            imageRoi.mask_hires(rs::conversion::to(*engine.getCas(), maskHires));
-            imageRoi.roi(rs::conversion::to(*engine.getCas(), roiLowres));
-            imageRoi.roi_hires(rs::conversion::to(*engine.getCas(), roiHires));
+            rs::ImageROI imageRoi = rs::create<rs::ImageROI>(tcas);
+            imageRoi.mask(rs::conversion::to(tcas, maskLowres));
+            imageRoi.mask_hires(rs::conversion::to(tcas, maskHires));
+            imageRoi.roi(rs::conversion::to(tcas, roiLowres));
+            imageRoi.roi_hires(rs::conversion::to(tcas, roiHires));
 
-            rs::TFLocation location = rs::create<rs::TFLocation>(*engine.getCas());
-            location.reference_desc.set("on");
-            location.frame_id.set(objToProcess);
+//            rs::TFLocation location = rs::create<rs::TFLocation>(*engine.getCas());
+//            location.reference_desc.set("on");
+//            location.frame_id.set(objToProcess);
 
-            newCluster.annotations.append(location);
+//            newCluster.annotations.append(location);
             newCluster.rois.set(imageRoi);
             newCluster.points.set(rcp);
             newClusters.push_back(newCluster);
           }
         }
-        else
+        else if (clusterAsParts.partsOfClusters.size() > 0)
         {
           int idxBiggest = -1;
           int nrOfIndeices = 0;
@@ -439,79 +430,82 @@ private:
           }
           for(int pclClIdx = 0; pclClIdx < clusterAsParts.partsOfClusters.size(); pclClIdx++)
           {
-            if(pclClIdx == idxBiggest)
-            {
-              continue;
-            }
-            rs::Cluster newCluster = rs::create<rs::Cluster>(*engine.getCas());
-            rs::ReferenceClusterPoints rcp = rs::create<rs::ReferenceClusterPoints>(*engine.getCas());
-            rs::PointIndices uimaIndices = rs::conversion::to(*engine.getCas(), *clusterAsParts.partsOfClusters[pclClIdx]);
+//            if(pclClIdx == idxBiggest)
+//            {
+//              continue;
+//            }
+            rs::Cluster newCluster = rs::create<rs::Cluster>(tcas);
+            rs::ReferenceClusterPoints rcp = rs::create<rs::ReferenceClusterPoints>(tcas);
+            rs::PointIndices uimaIndices = rs::conversion::to(tcas, *clusterAsParts.partsOfClusters[pclClIdx]);
             rcp.indices.set(uimaIndices);
 
             cv::Rect roi, roiHires;
             cv::Mat mask, maskHires;
             createImageRoi(clusterAsParts.partsOfClusters[pclClIdx], roi, roiHires, mask, maskHires);
 
-            rs::ImageROI imageRoi = rs::create<rs::ImageROI>(*engine.getCas());
-            imageRoi.mask(rs::conversion::to(*engine.getCas(), mask));
-            imageRoi.mask_hires(rs::conversion::to(*engine.getCas(), maskHires));
-            imageRoi.roi(rs::conversion::to(*engine.getCas(), roi));
-            imageRoi.roi_hires(rs::conversion::to(*engine.getCas(), roiHires));
+            rs::ImageROI imageRoi = rs::create<rs::ImageROI>(tcas);
+            imageRoi.mask(rs::conversion::to(tcas, mask));
+            imageRoi.mask_hires(rs::conversion::to(tcas, maskHires));
+            imageRoi.roi(rs::conversion::to(tcas, roi));
+            imageRoi.roi_hires(rs::conversion::to(tcas, roiHires));
 
-            rs::TFLocation location = rs::create<rs::TFLocation>(*engine.getCas());
-            location.reference_desc.set("on");
-            location.frame_id.set(objToProcess);
+//            rs::TFLocation location = rs::create<rs::TFLocation>(*engine.getCas());
+//            location.reference_desc.set("on");
+//            location.frame_id.set(objToProcess);
 
-            newCluster.annotations.append(location);
+//            newCluster.annotations.append(location);
             newCluster.rois.set(imageRoi);
             newCluster.points.set(rcp);
 
-            newClusters.push_back(newCluster);
+            mergedClusters.push_back(newCluster);
           }
         }
-      }
+      //}
+        else{
+            mergedClusters.push_back(cluster);
+        }
     }
 
-    outInfo("Setting new Cas and scene and etc");
-    //now run a lowLvlPipeline on the newly found objects;
-    rs::SceneCas newCas(*engine.getCas());
-    newCas.set(VIEW_CLOUD, *cloudPtr_);
-    newCas.set(VIEW_COLOR_IMAGE_HD, rgbHD);
-    newCas.set(VIEW_NORMALS, *normalPtr_);
-    newCas.set(VIEW_DEPTH_IMAGE_HD, depthHD);
-    newCas.set(VIEW_DEPTH_IMAGE, depth);
-    newCas.set(VIEW_COLOR_IMAGE, rgb);
+//    outInfo("Setting new Cas and scene and etc");
+//    //now run a lowLvlPipeline on the newly found objects;
+//    rs::SceneCas newCas(*engine.getCas());
+//    newCas.set(VIEW_CLOUD, *cloudPtr_);
+//    newCas.set(VIEW_COLOR_IMAGE_HD, rgbHD);
+//    newCas.set(VIEW_NORMALS, *normalPtr_);
+//    newCas.set(VIEW_DEPTH_IMAGE_HD, depthHD);
+//    newCas.set(VIEW_DEPTH_IMAGE, depth);
+//    newCas.set(VIEW_COLOR_IMAGE, rgb);
 
-    rs::Scene newScene = newCas.getScene();
+//    rs::Scene newScene = newCas.getScene();
 
-    tf::StampedTransform head_to_map;
-    rs::conversion::from(scene.viewPoint.get(), head_to_map);
+//    tf::StampedTransform head_to_map;
+//    rs::conversion::from(scene.viewPoint.get(), head_to_map);
 
-    rs::StampedTransform vp(rs::conversion::to(*engine.getCas(), head_to_map));
-    newScene.viewPoint.set(vp);
-    rs::Plane newPlane = rs::create<rs::Plane>(*engine.getCas());
-    newPlane.id.set(planes[0].id());
-    newPlane.model.set(planes[0].model());
+//    rs::StampedTransform vp(rs::conversion::to(*engine.getCas(), head_to_map));
+//    newScene.viewPoint.set(vp);
+//    rs::Plane newPlane = rs::create<rs::Plane>(*engine.getCas());
+//    newPlane.id.set(planes[0].id());
+//    newPlane.model.set(planes[0].model());
 
-    newScene.annotations.append(newPlane);
-    newScene.identifiables.set(newClusters);
-    engine.process();
-    std::vector<rs::Cluster>  newClustersAnnotated;
-    newScene.identifiables.filter(newClustersAnnotated);
-    for(rs::Cluster c : newClustersAnnotated)
-    {
-      outInfo("Cluster has: " << c.annotations.size() << "annotations");
-      mongo::BSONObj bson = rs::conversion::fromFeatureStructure(c, mongo::OID());
-      mergedClusters.push_back(rs::conversion::toFeatureStructure(tcas, bson));
-      std::vector<rs::TFLocation> locations;
-      c.annotations.filter(locations);
-      if(!locations.empty())
-      {
-        outInfo(locations[0].reference_desc() << " " << locations[0].frame_id());
-      }
-    }
+//    newScene.annotations.append(newPlane);
+//    newScene.identifiables.set(newClusters);
+//    engine.process();
+//    std::vector<rs::Cluster>  newClustersAnnotated;
+//    newScene.identifiables.filter(newClustersAnnotated);
+//    for(rs::Cluster c : newClustersAnnotated)
+//    {
+//      outInfo("Cluster has: " << c.annotations.size() << "annotations");
+//      mongo::BSONObj bson = rs::conversion::fromFeatureStructure(c, mongo::OID());
+//      mergedClusters.push_back(rs::conversion::toFeatureStructure(tcas, bson));
+//      std::vector<rs::TFLocation> locations;
+//      c.annotations.filter(locations);
+//      if(!locations.empty())
+//      {
+//        outInfo(locations[0].reference_desc() << " " << locations[0].frame_id());
+//      }
+//    }
     scene.identifiables.set(mergedClusters);
-    engine.resetCas();
+//    engine.resetCas();
     return UIMA_ERR_NONE;
   }
 

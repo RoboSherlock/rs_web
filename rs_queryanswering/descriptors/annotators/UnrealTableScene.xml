@@ -35,7 +35,7 @@
         <nameValuePair>
             <name>withStorage</name>
             <value>
-                <boolean>true</boolean>
+                <boolean>false</boolean>
             </value>
         </nameValuePair>
 

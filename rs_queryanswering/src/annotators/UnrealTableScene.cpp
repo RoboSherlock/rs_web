@@ -90,51 +90,51 @@ private:
   //vector of floats is the pose: x,y,z,qx,qy,qz,qw
   std::map < std::string, std::map<std::string, std::vector<float> > > sceneConfigs_ =
   {
-    {
-      "Scene01", {
-        {"SM_obj_01", {0.0, -0.08, 0.46, 0.0, 0.0, 0.25, 1.0}},
-        {"SM_obj_02", {0.0, 0.02, 0.46, 0.0, 0.0, 0.33, 1.0}},
-        {"SM_obj_03", {0.0, 0.1, 0.46, 0.0, 0.0, 0.1, 1.0}},
-        {"SM_obj_04", { -0.13, -0.01, 0.46, 0.0, 0.0, 0.7, 1.0}},
-        {"SM_obj_05", { -0.11, 0.11, 0.46, 0.0, 0.0, 0.45, 1.0}}
-      }
-    },
-    {
-      "Scene02", {
-        {"SM_obj_06", {0.0, -0.08, 0.46, 0.0, 0.0, 0.25, 1.0}},
-        {"SM_obj_07", {0.0, 0.02, 0.46, 0.0, 0.0, 0.33, 1.0}},
-        {"SM_obj_08", {0.0, 0.1, 0.46, 0.0, 0.0, 0.1, 1.0}},
-        {"SM_obj_09", { -0.13, -0.01, 0.46, 0.0, 0.0, 0.7, 1.0}},
-        {"SM_obj_01", { -0.11, 0.11, 0.46, 0.0, 0.0, 0.45, 1.0}}
-      }
-    },
-    {
-      "Scene03", {
-        {"SM_obj_02", {0.0, -0.08, 0.46, 0.0, 0.0, 0.25, 1.0}},
-        {"SM_obj_04", {0.0, 0.02, 0.46, 0.0, 0.0, 0.33, 1.0}},
-        {"SM_obj_06", {0.0, 0.1, 0.46, 0.0, 0.0, 0.1, 1.0}},
-        {"SM_obj_08", { -0.13, -0.01, 0.46, 0.0, 0.0, 0.7, 1.0}},
-        {"SM_obj_09", { -0.11, 0.11, 0.46, 0.0, 0.0, 0.45, 1.0}}
-      }
-    },
-    {
-      "Scene04", {
-        {"SM_obj_01", {0.0, -0.08, 0.46, 0.0, 0.0, 0.25, 1.0}},
-        {"SM_obj_03", {0.0, 0.02, 0.46, 0.0, 0.0, 0.33, 1.0}},
-        {"SM_obj_05", {0.0, 0.1, 0.46, 0.0, 0.0, 0.1, 1.0}},
-        {"SM_obj_07", { -0.13, -0.01, 0.46, 0.0, 0.0, 0.7, 1.0}},
-        {"SM_obj_09", { -0.11, 0.11, 0.46, 0.0, 0.0, 0.45, 1.0}}
-      }
-    },
-    {
-      "Scene05", {
-        {"SM_obj_01", {0.0, -0.08, 0.46, 0.0, 0.0, 0.25, 1.0}},
-        {"SM_obj_04", {0.0, 0.02, 0.46, 0.0, 0.0, 0.33, 1.0}},
-        {"SM_obj_07", {0.0, 0.1, 0.46, 0.0, 0.0, 0.1, 1.0}},
-        {"SM_obj_08", { -0.13, -0.01, 0.46, 0.0, 0.0, 0.7, 1.0}},
-        {"SM_obj_06", { -0.11, 0.11, 0.46, 0.0, 0.0, 0.45, 1.0}}
-      }
-    },
+//    {
+//      "Scene01", {
+//        {"SM_obj_01", {0.0, -0.08, 0.46, 0.0, 0.0, 0.25, 1.0}},
+//        {"SM_obj_02", {0.0, 0.02, 0.46, 0.0, 0.0, 0.33, 1.0}},
+//        {"SM_obj_03", {0.0, 0.1, 0.46, 0.0, 0.0, 0.1, 1.0}},
+//        {"SM_obj_04", { -0.13, -0.01, 0.46, 0.0, 0.0, 0.7, 1.0}},
+//        {"SM_obj_05", { -0.11, 0.11, 0.46, 0.0, 0.0, 0.45, 1.0}}
+//      }
+//    },
+//    {
+//      "Scene02", {
+//        {"SM_obj_06", {0.0, -0.08, 0.46, 0.0, 0.0, 0.25, 1.0}},
+//        {"SM_obj_07", {0.0, 0.02, 0.46, 0.0, 0.0, 0.33, 1.0}},
+//        {"SM_obj_08", {0.0, 0.1, 0.46, 0.0, 0.0, 0.1, 1.0}},
+//        {"SM_obj_09", { -0.13, -0.01, 0.46, 0.0, 0.0, 0.7, 1.0}},
+//        {"SM_obj_01", { -0.11, 0.11, 0.46, 0.0, 0.0, 0.45, 1.0}}
+//      }
+//    },
+//    {
+//      "Scene03", {
+//        {"SM_obj_02", {0.0, -0.08, 0.46, 0.0, 0.0, 0.25, 1.0}},
+//        {"SM_obj_04", {0.0, 0.02, 0.46, 0.0, 0.0, 0.33, 1.0}},
+//        {"SM_obj_06", {0.0, 0.1, 0.46, 0.0, 0.0, 0.1, 1.0}},
+//        {"SM_obj_08", { -0.13, -0.01, 0.46, 0.0, 0.0, 0.7, 1.0}},
+//        {"SM_obj_09", { -0.11, 0.11, 0.46, 0.0, 0.0, 0.45, 1.0}}
+//      }
+//    },
+//    {
+//      "Scene04", {
+//        {"SM_obj_01", {0.0, -0.08, 0.46, 0.0, 0.0, 0.25, 1.0}},
+//        {"SM_obj_03", {0.0, 0.02, 0.46, 0.0, 0.0, 0.33, 1.0}},
+//        {"SM_obj_05", {0.0, 0.1, 0.46, 0.0, 0.0, 0.1, 1.0}},
+//        {"SM_obj_07", { -0.13, -0.01, 0.46, 0.0, 0.0, 0.7, 1.0}},
+//        {"SM_obj_09", { -0.11, 0.11, 0.46, 0.0, 0.0, 0.45, 1.0}}
+//      }
+//    },
+//    {
+//      "Scene05", {
+//        {"SM_obj_01", {0.0, -0.08, 0.46, 0.0, 0.0, 0.25, 1.0}},
+//        {"SM_obj_04", {0.0, 0.02, 0.46, 0.0, 0.0, 0.33, 1.0}},
+//        {"SM_obj_07", {0.0, 0.1, 0.46, 0.0, 0.0, 0.1, 1.0}},
+//        {"SM_obj_08", { -0.13, -0.01, 0.46, 0.0, 0.0, 0.7, 1.0}},
+//        {"SM_obj_06", { -0.11, 0.11, 0.46, 0.0, 0.0, 0.45, 1.0}}
+//      }
+//    },
     {
       "Scene06", {
         {"SM_obj_02", {0.0, -0.011, 0.46, 0.0, 0.0, 0.0, 1.0}},
@@ -274,7 +274,7 @@ public:
   {
     for(float u = 0; u < 1; u += 0.1)
     {
-      for(float theta = 0; theta < 2 * M_PI; theta += M_PI / 18)
+      for(float theta = 0; theta < 6.28; theta += M_PI / 18)
       {
         pcl::PointXYZ p;
         p.x = radius * (sqrt(1 - u * u) * cos(theta)) + centroid[0];
@@ -453,14 +453,14 @@ public:
   {
     outInfo("process start");
     MEASURE_TIME;
-
+    sphereCloud_->clear();
     //    rs::StopWatch clock;
     rs::SceneCas cas(tcas);
     rs::Scene scene = cas.getScene();
 
     tf::Vector3 centroid(0, 0, 0.46);
     generateViewPoints(sphereCloud_, centroid, 0.6);
-    int counter = 0;
+    int counter;
     outInfo("Generated " << sphereCloud_->points.size() << "view points");
 
     for(auto sceneConfig : sceneConfigs_)
@@ -471,6 +471,7 @@ public:
       {
         boost::filesystem::create_directory(sceneConfig.first);
       }
+      counter = 0;
       for(auto point : sphereCloud_->points)
       {
         std::vector<double> rots = {0.0, M_PI_4, M_PI_2,
@@ -479,7 +480,6 @@ public:
                                     M_PI + M_PI_2 + M_PI_4
                                    };
         //        std::vector<double> rots = {0.0, M_PI_2, M_PI, M_PI + M_PI_2};
-
         for(auto rot : rots)
         {
           //if we don't reset here it fills the memory
@@ -487,13 +487,14 @@ public:
           cas.setText("variations");
           spawnCameraInUnreal(centroid, point, rot);
           outInfo("Waiting for Unreal");
-          sleep(5);
+          sleep(1);
           while(!unrealBridge_->newData())//&& count < 5)
           {
             usleep(100);
           }
           outInfo("Setting data from unreal");
           unrealBridge_->setData(tcas);
+          
           outInfo("Data form Unreal successfully set to CAS");
           cas.get(VIEW_OBJECT_IMAGE_HD, object_);
           cas.get(VIEW_COLOR_IMAGE_HD, rgb_);
@@ -502,9 +503,9 @@ public:
           cas.get(VIEW_COLOR_IMAGE, rgbLowRes);
           std::stringstream imgFileName;
 
-
           imgFileName << sceneConfig.first << "/unreal_color_" << std::setfill('0') << std::setw(3) <<
                       counter << "_" <<     setprecision(3) << rot << "_" << scene.timestamp();
+          outWarn(imgFileName.str());
           cv::imwrite(imgFileName.str() + ".png", rgb_);
           imageListFile_ << imgFileName.str() << ".png" << std::endl;
           std::map<std::string, cv::Vec3b> objectMap;
@@ -522,7 +523,7 @@ public:
                 std::vector<cv::Point> points;
                 countObjInliers(o.second, points);
                 outError("Found: " << o.first << ":" << points.size());
-                if(points.size() > 0)
+                if(points.size() > 100)
                 {
                   rs::Cluster uimaCluster = rs::create<rs::Cluster>(tcas);
                   rs::ReferenceClusterPoints rcp = rs::create<rs::ReferenceClusterPoints>(tcas);
@@ -543,7 +544,17 @@ public:
                                           roiHires.width >> 1, roiHires.height >> 1);
                   cv::Mat mask, maskHires;
                   mask_full(roiHires).copyTo(maskHires);
-                  cv::resize(maskHires, mask, cv::Size(0, 0), 0.5, 0.5, cv::INTER_NEAREST);
+                  //apparently it can happen the that cluster is way too small to downscale it like this
+		  try
+		  {
+		    cv::resize(maskHires, mask, cv::Size(0, 0), 0.5, 0.5, cv::INTER_NEAREST);
+                  }
+                  catch( cv::Exception& e )
+                  {
+                     const char* err_msg = e.what();
+    		     outError( "exception caught: " << err_msg );
+		     continue;
+                  }
 
                   rs::ImageROI imageRoi = rs::create<rs::ImageROI>(tcas);
                   imageRoi.mask(rs::conversion::to(tcas, mask));
@@ -553,7 +564,7 @@ public:
 
                   uimaCluster.points.set(rcp);
                   uimaCluster.rois.set(imageRoi);
-                  uimaCluster.source.set("EuclideanClustering");
+                  uimaCluster.source.set("UnrealTableSceneGeneration");
 
                   rs::GroundTruth gt = rs::create<rs::GroundTruth>(tcas);
                   rs::Classification classification = rs::create<rs::Classification>(tcas);
@@ -578,7 +589,7 @@ public:
             scene.id.set(::mongo::OID::gen().toString());
             storage.storeScene(*tcas.getBaseCas(), (uint64_t)scene.timestamp());
           }
-          gtFileYolo.close();
+          //gtFileYolo.close();
         }
         counter++;
         //      if(++counter > 2)

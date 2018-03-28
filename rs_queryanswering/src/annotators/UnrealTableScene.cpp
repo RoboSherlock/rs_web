@@ -90,51 +90,51 @@ private:
   //vector of floats is the pose: x,y,z,qx,qy,qz,qw
   std::map < std::string, std::map<std::string, std::vector<float> > > sceneConfigs_ =
   {
-//    {
-//      "Scene01", {
-//        {"SM_obj_01", {0.0, -0.08, 0.46, 0.0, 0.0, 0.25, 1.0}},
-//        {"SM_obj_02", {0.0, 0.02, 0.46, 0.0, 0.0, 0.33, 1.0}},
-//        {"SM_obj_03", {0.0, 0.1, 0.46, 0.0, 0.0, 0.1, 1.0}},
-//        {"SM_obj_04", { -0.13, -0.01, 0.46, 0.0, 0.0, 0.7, 1.0}},
-//        {"SM_obj_05", { -0.11, 0.11, 0.46, 0.0, 0.0, 0.45, 1.0}}
-//      }
-//    },
-//    {
-//      "Scene02", {
-//        {"SM_obj_06", {0.0, -0.08, 0.46, 0.0, 0.0, 0.25, 1.0}},
-//        {"SM_obj_07", {0.0, 0.02, 0.46, 0.0, 0.0, 0.33, 1.0}},
-//        {"SM_obj_08", {0.0, 0.1, 0.46, 0.0, 0.0, 0.1, 1.0}},
-//        {"SM_obj_09", { -0.13, -0.01, 0.46, 0.0, 0.0, 0.7, 1.0}},
-//        {"SM_obj_01", { -0.11, 0.11, 0.46, 0.0, 0.0, 0.45, 1.0}}
-//      }
-//    },
-//    {
-//      "Scene03", {
-//        {"SM_obj_02", {0.0, -0.08, 0.46, 0.0, 0.0, 0.25, 1.0}},
-//        {"SM_obj_04", {0.0, 0.02, 0.46, 0.0, 0.0, 0.33, 1.0}},
-//        {"SM_obj_06", {0.0, 0.1, 0.46, 0.0, 0.0, 0.1, 1.0}},
-//        {"SM_obj_08", { -0.13, -0.01, 0.46, 0.0, 0.0, 0.7, 1.0}},
-//        {"SM_obj_09", { -0.11, 0.11, 0.46, 0.0, 0.0, 0.45, 1.0}}
-//      }
-//    },
-//    {
-//      "Scene04", {
-//        {"SM_obj_01", {0.0, -0.08, 0.46, 0.0, 0.0, 0.25, 1.0}},
-//        {"SM_obj_03", {0.0, 0.02, 0.46, 0.0, 0.0, 0.33, 1.0}},
-//        {"SM_obj_05", {0.0, 0.1, 0.46, 0.0, 0.0, 0.1, 1.0}},
-//        {"SM_obj_07", { -0.13, -0.01, 0.46, 0.0, 0.0, 0.7, 1.0}},
-//        {"SM_obj_09", { -0.11, 0.11, 0.46, 0.0, 0.0, 0.45, 1.0}}
-//      }
-//    },
-//    {
-//      "Scene05", {
-//        {"SM_obj_01", {0.0, -0.08, 0.46, 0.0, 0.0, 0.25, 1.0}},
-//        {"SM_obj_04", {0.0, 0.02, 0.46, 0.0, 0.0, 0.33, 1.0}},
-//        {"SM_obj_07", {0.0, 0.1, 0.46, 0.0, 0.0, 0.1, 1.0}},
-//        {"SM_obj_08", { -0.13, -0.01, 0.46, 0.0, 0.0, 0.7, 1.0}},
-//        {"SM_obj_06", { -0.11, 0.11, 0.46, 0.0, 0.0, 0.45, 1.0}}
-//      }
-//    },
+    {
+      "Scene01", {
+        {"SM_obj_01", {0.0, -0.08, 0.46, 0.0, 0.0, 0.25, 1.0}},
+        {"SM_obj_02", {0.0, 0.02, 0.46, 0.0, 0.0, 0.33, 1.0}},
+        {"SM_obj_03", {0.0, 0.1, 0.46, 0.0, 0.0, 0.1, 1.0}},
+        {"SM_obj_04", { -0.13, -0.01, 0.46, 0.0, 0.0, 0.7, 1.0}},
+        {"SM_obj_05", { -0.11, 0.11, 0.46, 0.0, 0.0, 0.45, 1.0}}
+      }
+    },
+    {
+      "Scene02", {
+        {"SM_obj_06", {0.0, -0.08, 0.46, 0.0, 0.0, 0.25, 1.0}},
+        {"SM_obj_07", {0.0, 0.02, 0.46, 0.0, 0.0, 0.33, 1.0}},
+        {"SM_obj_08", {0.0, 0.1, 0.46, 0.0, 0.0, 0.1, 1.0}},
+        {"SM_obj_09", { -0.13, -0.01, 0.46, 0.0, 0.0, 0.7, 1.0}},
+        {"SM_obj_01", { -0.11, 0.11, 0.46, 0.0, 0.0, 0.45, 1.0}}
+      }
+    },
+    {
+      "Scene03", {
+        {"SM_obj_02", {0.0, -0.08, 0.46, 0.0, 0.0, 0.25, 1.0}},
+        {"SM_obj_04", {0.0, 0.02, 0.46, 0.0, 0.0, 0.33, 1.0}},
+        {"SM_obj_06", {0.0, 0.1, 0.46, 0.0, 0.0, 0.1, 1.0}},
+        {"SM_obj_08", { -0.13, -0.01, 0.46, 0.0, 0.0, 0.7, 1.0}},
+        {"SM_obj_09", { -0.11, 0.11, 0.46, 0.0, 0.0, 0.45, 1.0}}
+      }
+    },
+    {
+      "Scene04", {
+        {"SM_obj_01", {0.0, -0.08, 0.46, 0.0, 0.0, 0.25, 1.0}},
+        {"SM_obj_03", {0.0, 0.02, 0.46, 0.0, 0.0, 0.33, 1.0}},
+        {"SM_obj_05", {0.0, 0.1, 0.46, 0.0, 0.0, 0.1, 1.0}},
+        {"SM_obj_07", { -0.13, -0.01, 0.46, 0.0, 0.0, 0.7, 1.0}},
+        {"SM_obj_09", { -0.11, 0.11, 0.46, 0.0, 0.0, 0.45, 1.0}}
+      }
+    },
+    {
+      "Scene05", {
+        {"SM_obj_01", {0.0, -0.08, 0.46, 0.0, 0.0, 0.25, 1.0}},
+        {"SM_obj_04", {0.0, 0.02, 0.46, 0.0, 0.0, 0.33, 1.0}},
+        {"SM_obj_07", {0.0, 0.1, 0.46, 0.0, 0.0, 0.1, 1.0}},
+        {"SM_obj_08", { -0.13, -0.01, 0.46, 0.0, 0.0, 0.7, 1.0}},
+        {"SM_obj_06", { -0.11, 0.11, 0.46, 0.0, 0.0, 0.45, 1.0}}
+      }
+    },
     {
       "Scene06", {
         {"SM_obj_02", {0.0, -0.011, 0.46, 0.0, 0.0, 0.0, 1.0}},
@@ -409,7 +409,6 @@ public:
     }
   }
 
-
   void publishObjects(const std::map<std::string , std::vector<float>> &objects)
   {
     visualization_msgs::MarkerArray markers;
@@ -494,7 +493,7 @@ public:
           }
           outInfo("Setting data from unreal");
           unrealBridge_->setData(tcas);
-          
+
           outInfo("Data form Unreal successfully set to CAS");
           cas.get(VIEW_OBJECT_IMAGE_HD, object_);
           cas.get(VIEW_COLOR_IMAGE_HD, rgb_);
@@ -545,15 +544,15 @@ public:
                   cv::Mat mask, maskHires;
                   mask_full(roiHires).copyTo(maskHires);
                   //apparently it can happen the that cluster is way too small to downscale it like this
-		  try
-		  {
-		    cv::resize(maskHires, mask, cv::Size(0, 0), 0.5, 0.5, cv::INTER_NEAREST);
-                  }
-                  catch( cv::Exception& e )
+                  try
                   {
-                     const char* err_msg = e.what();
-    		     outError( "exception caught: " << err_msg );
-		     continue;
+                    cv::resize(maskHires, mask, cv::Size(0, 0), 0.5, 0.5, cv::INTER_NEAREST);
+                  }
+                  catch(cv::Exception &e)
+                  {
+                    const char *err_msg = e.what();
+                    outError("exception caught: " << err_msg);
+                    continue;
                   }
 
                   rs::ImageROI imageRoi = rs::create<rs::ImageROI>(tcas);
@@ -584,21 +583,20 @@ public:
               }
             }
           }
+          gtFileYolo.close();
           if(withStorage)
           {
             scene.id.set(::mongo::OID::gen().toString());
             storage.storeScene(*tcas.getBaseCas(), (uint64_t)scene.timestamp());
           }
-          //gtFileYolo.close();
+
         }
         counter++;
-        //      if(++counter > 2)
-        //        break;
-        //scene.identifiables.se
 
       }
     }
-    //    first = false;
+
+    exit(0);
     return UIMA_ERR_NONE;
   }
   void drawImageWithLock(cv::Mat &disp)

@@ -78,10 +78,9 @@ private:
 public:
 
   ClusterToPartsSegmenter(): DrawingAnnotator(__func__), dispCloudPtr(new pcl::PointCloud<PointT>), pointSize(2),
-      voxel_resolution(0.01f),
-    seed_resolution(0.1f)
+    voxel_resolution(0.01f),
+    seed_resolution(0.05f)
   {
-    outInfo("");
   }
 
 
@@ -89,7 +88,7 @@ public:
   {
     outInfo("Initialize");
     colorImportance_ = 0.0f;
-    spatialImportance_ = 0.0f;
+    spatialImportance_ = 1.0f;
     normalImportance_ = 1.0f;
 
     return UIMA_ERR_NONE;
@@ -123,8 +122,18 @@ public:
     // Reconstruct
     mls.process(*mls_points);
 
+    pcl::NormalEstimation<PointT, pcl::Normal> ne;
+    ne.setInputCloud(mls_points);
+    ne.setSearchMethod(tree);
+
+    // Output datasets
+    pcl::PointCloud<pcl::Normal>::Ptr cloud_normals(new pcl::PointCloud<pcl::Normal>);
+    ne.setRadiusSearch(0.03);
+    ne.compute(*cloud_normals);
+
     pcl::SupervoxelClustering<PointT> superVoxClust(voxel_resolution, seed_resolution);
     superVoxClust.setInputCloud(mls_points);
+    superVoxClust.setNormalCloud(cloud_normals);
     superVoxClust.setUseSingleCameraTransform(false);
     superVoxClust.setColorImportance(colorImportance_);
     superVoxClust.setSpatialImportance(spatialImportance_);

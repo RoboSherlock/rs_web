@@ -79,7 +79,7 @@ public:
 
   ClusterToPartsSegmenter(): DrawingAnnotator(__func__), dispCloudPtr(new pcl::PointCloud<PointT>), pointSize(2),
     voxel_resolution(0.01f),
-    seed_resolution(0.05f)
+    seed_resolution(0.07f)
   {
   }
 
@@ -295,7 +295,12 @@ private:
       //3D segmentation
       pcl::PointIndicesPtr clusterIndices(new pcl::PointIndices());
       rs::conversion::from(((rs::ReferenceClusterPoints)cluster.points.get()).indices.get(), *clusterIndices);
-
+      if(cluster.source() == "TransparentSegmentation" ||
+              cluster.source() == "ImageSegmentation")
+      {
+        mergedClusters.push_back(cluster);
+        continue;
+      }
       overSegmentAndGrow(clusterIndices, clusterAsParts);
       outInfo("Oversegmented: " << clusterAsParts.partsOfClusters.size());
       clustersWithParts.push_back(clusterAsParts);

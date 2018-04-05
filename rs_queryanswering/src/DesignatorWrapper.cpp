@@ -61,22 +61,25 @@ bool DesignatorWrapper::getObjectDesignators(std::vector<std::string> &objectDes
   rs::Scene scene = cas.getScene();
 
   now = scene.timestamp();
-  rapidjson::Document res;
-  res.SetObject();
+
 
   std::vector<rs::HandleAnnotation> handles;
   std::vector<rs::ARMarker> arMarkers;
   scene.annotations.filter(handles);
   scene.annotations.filter(arMarkers);
-  for(int i = 0; i < handles.size(); i++, res.Clear())
+  for(int i = 0; i < handles.size(); i++)
   {
-    convert(handles[i], res);
-    objectDesignators.push_back(jsonToString(res));
+    rapidjson::Document objDesig;
+    objDesig.SetObject();
+    convert(handles[i], objDesig);
+    objectDesignators.push_back(jsonToString(objDesig));
   }
-  for(int i = 0; i < arMarkers.size(); i++, res.Clear())
+  for(int i = 0; i < arMarkers.size(); i++)
   {
-    convert(arMarkers[i], res);
-    objectDesignators.push_back(jsonToString(res));
+    rapidjson::Document objDesig;
+    objDesig.SetObject();
+    convert(arMarkers[i], objDesig);
+    objectDesignators.push_back(jsonToString(objDesig));
   }
 
   if(mode == CLUSTER)
@@ -448,7 +451,7 @@ void DesignatorWrapper::convert(rs::HandleAnnotation &input,
   rs::conversion::from(input.pose(), tf_stamped_pose);
   tf::poseStampedTFToMsg(tf_stamped_pose, pose);
 
-  char *poseJson = NULL;
+  char poseJson [300];
   std::sprintf(poseJson, "{\"header\":{\"seq\":%d,\"stamp\":{\"sec\":%d,\"nsec\":%d},\"frame_id\":\"%s\"},\"pose\":{\"position\":{\"x\":%f,\"y\":%f,\"z\":%f},\"orientation\":{\"x\":%f,\"y\":%f,\"z\":%f,\"w\":%f}}}",
                pose.header.seq, pose.header.stamp.sec, pose.header.stamp.nsec, pose.header.frame_id.c_str(),
                pose.pose.position.x, pose.pose.position.y, pose.pose.position.z, pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z, pose.pose.orientation.w);

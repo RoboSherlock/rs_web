@@ -88,7 +88,7 @@ public:
   {
     outInfo("Initialize");
     colorImportance_ = 0.0f;
-    spatialImportance_ = 1.0f;
+    spatialImportance_ = 0.5f;
     normalImportance_ = 1.0f;
 
     return UIMA_ERR_NONE;
@@ -171,7 +171,7 @@ public:
 
         //outInfo("Angle between svl:" << supervoxel_label << " and svl:" << adjacent_itr->second << " is: " << fabs(point_a_normal.dot(point_b_normal)));
         Eigen::Vector3f dist(svNormal.x - svNeighbourNormal.x, svNormal.y - svNeighbourNormal.y, svNormal.z - svNeighbourNormal.z);
-        if(std::abs(point_a_normal.dot(point_b_normal)) > 0.9 && !processed[(int)adjacent_itr->second - 1])
+        if(std::abs(point_a_normal.dot(point_b_normal)) > 0.8 && !processed[(int)adjacent_itr->second - 1])
         {
           processed[(int)adjacent_itr->second - 1] = true;
         }

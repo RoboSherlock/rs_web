@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
   ros::NodeHandle nh("~");
 
   std::string analysisEnginesName, analysisEngineFile;
-  bool useVisualizer, waitForServiceCall, useObjIDRes=true,
+  bool useVisualizer, waitForServiceCall, useObjIDRes=false,
        withJsonProlog;
 
   nh.param("ae", analysisEnginesName, std::string(""));

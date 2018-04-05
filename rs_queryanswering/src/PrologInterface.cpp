@@ -50,6 +50,7 @@ bool PrologInterface::extractQueryKeysFromDesignator(std::string *desig,
 
   rapidjson::Document json;
   json.Parse(desig->c_str());
+
   //add the ones that are interpretable to the queriedKeys;
   for (rapidjson::Value::ConstMemberIterator iter = json.MemberBegin(); iter != json.MemberEnd(); ++iter)
   {
@@ -65,6 +66,15 @@ bool PrologInterface::extractQueryKeysFromDesignator(std::string *desig,
     if(det == "PANCAKE" || det == "pancake")
     {
       keys.push_back("pancakedetector");
+    }
+  }
+  if(json.HasMember("obj-part"))
+  {
+    std::string det = json["obj-part"].GetString();
+    if(det.find(det)!=std::string::npos)
+    {
+      keys.clear();
+      keys.push_back("handle");
     }
   }
   if(json.HasMember("class"))

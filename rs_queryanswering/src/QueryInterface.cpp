@@ -128,6 +128,8 @@ bool getConfigForKey(std::string key, std::string &location, std::string &check,
   try
   {
     boost::property_tree::ini_parser::read_ini(configFile, pt);
+    if(pt.find(key)== pt.not_found())
+        return false;
 
     location = pt.get<std::string>(key + ".location", "/" + key);
     check = pt.get<std::string>(key + ".check", "EQUAL");
@@ -192,8 +194,9 @@ void QueryInterface::filterResults(std::vector<std::string> &resultDesignators,
     std::string key = queryIt->name.GetString();
     double thresh;
     bool keepLower;
-    getConfigForKey(key, location, check, thresh, keepLower);
+    if(!getConfigForKey(key, location, check, thresh, keepLower)) continue;
     const std::string queryValue = queryIt->value.GetString();
+
 
     outInfo("No. of resulting Object Designators: " << resultDesignators.size());
     for(size_t i = 0; i < resultDesignators.size(); ++i)

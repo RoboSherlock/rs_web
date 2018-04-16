@@ -171,7 +171,7 @@ public:
 
         //outInfo("Angle between svl:" << supervoxel_label << " and svl:" << adjacent_itr->second << " is: " << fabs(point_a_normal.dot(point_b_normal)));
         Eigen::Vector3f dist(svNormal.x - svNeighbourNormal.x, svNormal.y - svNeighbourNormal.y, svNormal.z - svNeighbourNormal.z);
-        if(std::abs(point_a_normal.dot(point_b_normal)) > 0.8 && !processed[(int)adjacent_itr->second - 1])
+        if(std::abs(point_a_normal.dot(point_b_normal)) > 0.96 && !processed[(int)adjacent_itr->second - 1])
         {
           processed[(int)adjacent_itr->second - 1] = true;
         }
@@ -195,9 +195,9 @@ public:
     }
     outInfo(partOneIndices->indices.size());
     outInfo(partTwoIndices->indices.size());
-    if(partOneIndices->indices.size() > 0)
+    if(partOneIndices->indices.size() > indices->indices.size() / 3)
       cwp.partsOfClusters.push_back(partOneIndices);
-    if(partTwoIndices->indices.size() > 0)
+    if(partTwoIndices->indices.size() > indices->indices.size() / 3)
       cwp.partsOfClusters.push_back(partTwoIndices);
   }
 
@@ -253,13 +253,12 @@ private:
     cloudPtr_.reset(new pcl::PointCloud<PointT>);
     normalPtr_.reset(new pcl::PointCloud<pcl::Normal>);
 
-    cv::Mat depthHD, depth, rgb, rgbHD;
+    cv::Mat rgbHD;
     cas.get(VIEW_CLOUD, *cloudPtr_);
     cas.get(VIEW_NORMALS, *normalPtr_);
-    cas.get(VIEW_COLOR_IMAGE_HD, rgbHD);
-    cas.get(VIEW_DEPTH_IMAGE_HD, depthHD);
-    cas.get(VIEW_DEPTH_IMAGE, depth);
-    cas.get(VIEW_COLOR_IMAGE, rgb);
+    cas.get(VIEW_COLOR_IMAGE, rgbHD);
+
+
 
     dispRGB = rgbHD.clone();
 
@@ -305,7 +304,7 @@ private:
       outInfo("Oversegmented: " << clusterAsParts.partsOfClusters.size());
       clustersWithParts.push_back(clusterAsParts);
 
-      if(clusterAsParts.partsOfClusters.size() > 0)
+      if(clusterAsParts.partsOfClusters.size() > 1)
       {
         int idxBiggest = -1;
         int nrOfIndeices = 0;
@@ -368,7 +367,37 @@ private:
   void drawImageWithLock(cv::Mat &disp)
   {
     disp = dispRGB.clone();
+
+    int colorIdx = 0;
+    for(unsigned int i = 0; i < clustersWithParts.size(); ++i)
+    {
+      if(clustersWithParts[i].partsOfClusters.size() > 1)
+      {
+        for(unsigned int j = 0; j < clustersWithParts[i].partsOfClusters.size(); ++j)
+        {
+          pcl::PointIndicesPtr &indices = clustersWithParts[i].partsOfClusters[j];
+          for(unsigned int k = 0; k < indices->indices.size(); ++k)
+          {
+            int index = indices->indices[k];
+            disp.at<cv::Vec3b>(index) = rs::common::cvVec3bColors[colorIdx];
+          }
+          colorIdx++;
+        }
+      }
+      else
+      {
+        pcl::PointIndicesPtr &indices = clustersWithParts[i].partsOfClusters[0];
+        for(unsigned int k = 0; k < indices->indices.size(); ++k)
+        {
+          int index = indices->indices[k];
+          disp.at<cv::Vec3b>(index) = rs::common::cvVec3bColors[colorIdx];
+        }
+        colorIdx++;
+      }
+    }
   }
+
+
 
   void fillVisualizerWithLock(pcl::visualization::PCLVisualizer &visualizer, const bool firstRun)
   {
@@ -378,13 +407,16 @@ private:
       {
         for(unsigned int i = 0; i < clustersWithParts.size(); ++i)
         {
-          for(unsigned int j = 0; j < clustersWithParts[i].partsOfClusters.size(); ++j)
+          if(clustersWithParts[i].partsOfClusters.size() > 1)
           {
-            pcl::PointIndicesPtr &indices = clustersWithParts[i].partsOfClusters[j];
-            for(unsigned int k = 0; k < indices->indices.size(); ++k)
+            for(unsigned int j = 0; j < clustersWithParts[i].partsOfClusters.size(); ++j)
             {
-              int index = indices->indices[k];
-              cloudPtr_->points[index].rgba = rs::common::colors[j % rs::common::numberOfColors];
+              pcl::PointIndicesPtr &indices = clustersWithParts[i].partsOfClusters[j];
+              for(unsigned int k = 0; k < indices->indices.size(); ++k)
+              {
+                int index = indices->indices[k];
+                cloudPtr_->points[index].rgba = rs::common::colors[j % rs::common::numberOfColors];
+              }
             }
           }
         }

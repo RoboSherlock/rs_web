@@ -67,13 +67,21 @@ std::thread thread;
 
 //what ever happens to all these pointers? This smells like a huge memory leak
 
+PREDICATE(cpp_make_designator, 2)
+{
+    std::string *desig = new std::string((char *) A1);
+
+    outInfo("Sending back: "<<*desig);
+    return A2 = static_cast<void *>(desig);
+}
+
 PREDICATE(cpp_add_designator, 2)
 {
 
   std::string desigType((char *)A1);
   outInfo("Desigtype: "<<desigType);
 
-  std::string *desig = new std::string("{\"detect\":\"\"}");
+  std::string *desig = new std::string("{\"detect\":{}}");
 
   outInfo("Sending back: "<<*desig);
   return A2 = static_cast<void *>(desig);
@@ -86,7 +94,6 @@ PREDICATE(cpp_init_kvp, 3)
   void *obj = A1;
   std::string type((char *)A2);
   outInfo("Type: "<<type);
-  std::transform(type.begin(), type.end(), type.begin(), ::toupper);
   std::string *desig = (std::string*)(obj);
   outInfo("Type: "<<*desig);
   return A3 = static_cast<void *>(desig);
@@ -95,7 +102,6 @@ PREDICATE(cpp_init_kvp, 3)
 PREDICATE(cpp_add_kvp, 3)
 {
   std::string key = (std::string)A1;
-  std::transform(key.begin(), key.end(), key.begin(), ::toupper);
   std::string value = (std::string)A2;
   void *obj = A3;
   std::string *desig = (std::string*)(obj);
@@ -105,8 +111,9 @@ PREDICATE(cpp_add_kvp, 3)
     outInfo("Adding Kvp: ("<<key<<" : "<<value);
     rapidjson::Document json;
     json.Parse(desig->c_str());
+    rapidjson::Value &detectJson = json["detect"];
     rapidjson::Value v(key,json.GetAllocator());
-    json.AddMember(v,value,json.GetAllocator());
+    detectJson.AddMember(v,value,json.GetAllocator());
 
     *desig = rs::DesignatorWrapper::jsonToString(json);
     return TRUE;
@@ -170,8 +177,11 @@ PREDICATE(cpp_init_rs, 2)
     ros::init(ros::M_string(), std::string("/RoboSherlock"));
     ros::NodeHandle nh("~");
     dlopen("libpython2.7.so", RTLD_LAZY | RTLD_GLOBAL);
+    outInfo((char *) A1);
     std::string pipelineName((char *)A1);
+
     std::string pipelinePath;
+    outInfo(pipelineName);
     rs::common::getAEPaths(pipelineName, pipelinePath);
     std::vector<std::string> lowLvlPipeline;
     lowLvlPipeline.push_back("CollectionReader");
@@ -281,17 +291,20 @@ PREDICATE(change_context, 1)
  */
 PREDICATE(cpp_process_once, 1)
 {
-  outInfo("Cpp_proces_once");
+  outInfo("Cpp_process_once");
   if(pm)
   {
+    outInfo((char *) A1);
     void *myobj = A1;
     std::string *desig  = (std::string *)myobj;
     std::vector<std::string> resp;
     pm->handleQuery(*desig, resp);
+    outInfo("handled query");
     return TRUE;
   }
   else
   {
+    outInfo("No process manager.");
     return FALSE;
   }
 }

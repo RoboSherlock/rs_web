@@ -6,65 +6,16 @@
   rs_stop/1,
   execute_pipeline/1,
   scene_clusters_count/3,
+  detect_json/1,
   detect/1,
-  detect/2,
-  set_context/1,
   query_result/5,
   get_list_of_predicates/2, 
   parse_description/2
 ]).
 
-%%%%%%%%%%%%%%%% BEGIN: Java Client calls %%%%%%%%%%%%%%%%%%%%
-
-client_interface :-
-    client_interface(_).
-
-:- assert(rs_java_interface(fail)).
-
-client_interface(Client) :-
-    rs_java_interface(fail),
-    jpl_new('org.knowrob.robosherlock.client.RSClient',[],Client),
-    retract(rs_java_interface(fail)),
-    jpl_list_to_array(['org.knowrob.robosherlock.client.RSClient'], Arr),
-    jpl_call('org.knowrob.utils.ros.RosUtilities',runRosjavaNode,[Client,Arr],_),
-    assert(rs_java_interface(Client)),!.
-       
-client_interface(Client) :-
-    rs_java_interface(Client).
-
-context_client_interface :-
-    context_client_interface(_).
-
-:- assert(rs_context_interface(fail)).
-
-context_client_interface(Client) :-
-    rs_context_interface(fail),
-    jpl_new('org.knowrob.robosherlock.client.ContextClient',[],Client),
-    retract(rs_context_interface(fail)),
-    jpl_list_to_array(['org.knowrob.robosherlock.client.ContextClient'], Arr),  
-    jpl_call('org.knowrob.utils.ros.RosUtilities',runRosjavaNode,[Client,Arr],_),
-    assert(rs_context_interface(Client)),!.       
-
-context_client_interface(Client) :-
-    rs_context_interface(Client).
-
-detect(Query,FrameID):-
-    client_interface(Cl),
-    jpl_list_to_array(Query,QueryArray),
-    jpl_call(Cl,'callService',[QueryArray,FrameID],_),!.
-    
-set_context(CName):-
-    client_interface(Cl),
-    jpl_call(Cl,'changeDB',[CName],_),
-    context_client_interface(C),	
-    jpl_call(C,'callSetContextService',[CName],_).
-
-%%%%%%%%%%%%%%%% END: Java Client calls %%%%%%%%%%%%%%%%%%%%    
-
-
 %%%%%%%%%%%%%%%% BEGIN: C++ Interface %%%%%%%%%%%%%%%%%%%%
 %%Queries written using this interface need a sanity check
-%%e,g,. spatial relations don't make sense inside a color determiner 
+%%e,g,. spatial relations do not make sense inside a color determiner 
 rs_interface :-
    rs_interface(_).
 
@@ -72,7 +23,7 @@ rs_interface :-
 
 rs_interface(Client,Ae) :-
    rs_interf(fail),
-   cpp_init_rs(Ae,Client),
+   cpp_init_rs(Client,Ae),
    retract(rs_interf(fail)),
    assert(rs_interf(Client)),!.
     
@@ -82,7 +33,7 @@ rs_interface(Cl):-
 
 execute_pipeline(_):-
    rs_interface(Cl),
-   process_once(Cl).
+   cpp_process_once(Cl).
 
 rs_pause(A):-
    cpp_rs_pause(A).
@@ -188,6 +139,11 @@ detect(List):-
     cpp_print_desig(D),
     cpp_process_once(D),
     cpp_delete_desig(D).
+
+detect_json(Json):-
+    rs_interface(A),
+    cpp_make_designator(Json,Desig),
+    cpp_process_once(Desig).
 
 
 %%%%%%%%%%%%%%%% END: C++ Interface %%%%%%%%%%%%%%%%%%%%    

@@ -20,44 +20,8 @@
 std::string *req_desig = NULL;
 
 static RSProcessManager *pm;
-
+static RSControledAnalysisEngine *ae;
 uima::ResourceManager &resourceManager = uima::ResourceManager::createInstance("RoboSherlock");
-
-
-//class RSPMProxy
-//{
-//  ros::NodeHandle *nh_;
-//  ros::ServiceClient client_;
-//  RSProcessManager *pm_;
-//  std::mutex lock_;
-//  std::string ae_;
-//  RSPMProxy(std::string ae):ae_(ae)
-//  {
-//    ros::init(ros::M_string(), std::string("RoboSherlock"));
-//    nh_ = new ros::NodeHandle("~");
-//    pm_ = new RSProcessManager(false, ".", true, false, nh_);
-//  }
-
-//  void run()
-//  {
-
-//  }
-
-//  void queryRoboSherlock(Designator d)
-//  {
-//    designator_integration_msgs::DesignatorCommunication srv;
-//    srv.request.request.designator = d.serializeToMessage();
-//    {
-//      if(client_.call(srv))
-//      {
-//          m->setUseIdentityResolution(false);
-//          pm->init(pipelinePath, "cml");
-//      }
-
-//    }
-//  }
-//};
-
 std::thread thread;
 
 /***************************************************************************
@@ -69,33 +33,31 @@ std::thread thread;
 
 PREDICATE(cpp_make_designator, 2)
 {
-    std::string *desig = new std::string((char *) A1);
+  std::string *desig = new std::string((char *) A1);
 
-    outInfo("Sending back: "<<*desig);
-    return A2 = static_cast<void *>(desig);
+  outInfo("Sending back: " << *desig);
+  return A2 = static_cast<void *>(desig);
 }
 
 PREDICATE(cpp_add_designator, 2)
 {
 
   std::string desigType((char *)A1);
-  outInfo("Desigtype: "<<desigType);
+  outInfo("Desigtype: " << desigType);
 
   std::string *desig = new std::string("{\"detect\":{}}");
 
-  outInfo("Sending back: "<<*desig);
+  outInfo("Sending back: " << *desig);
   return A2 = static_cast<void *>(desig);
 }
 
-
-//string,Designator,Kvp
 PREDICATE(cpp_init_kvp, 3)
 {
   void *obj = A1;
   std::string type((char *)A2);
-  outInfo("Type: "<<type);
-  std::string *desig = (std::string*)(obj);
-  outInfo("Type: "<<*desig);
+  outInfo("Type: " << type);
+  std::string *desig = (std::string *)(obj);
+  outInfo("Type: " << *desig);
   return A3 = static_cast<void *>(desig);
 }
 
@@ -104,16 +66,16 @@ PREDICATE(cpp_add_kvp, 3)
   std::string key = (std::string)A1;
   std::string value = (std::string)A2;
   void *obj = A3;
-  std::string *desig = (std::string*)(obj);
-  outInfo("Desig now: "<<*desig);
+  std::string *desig = (std::string *)(obj);
+  outInfo("Desig now: " << *desig);
   if(desig)
   {
-    outInfo("Adding Kvp: ("<<key<<" : "<<value);
+    outInfo("Adding Kvp: (" << key << " : " << value);
     rapidjson::Document json;
     json.Parse(desig->c_str());
     rapidjson::Value &detectJson = json["detect"];
-    rapidjson::Value v(key,json.GetAllocator());
-    detectJson.AddMember(v,value,json.GetAllocator());
+    rapidjson::Value v(key, json.GetAllocator());
+    detectJson.AddMember(v, value, json.GetAllocator());
 
     *desig = rs::DesignatorWrapper::jsonToString(json);
     return TRUE;
@@ -127,10 +89,10 @@ PREDICATE(cpp_add_kvp, 3)
 PREDICATE(cpp_print_desig, 1)
 {
   void *obj = A1;
-  std::string *desig = (std::string*)(obj);
+  std::string *desig = (std::string *)(obj);
   if(desig)
   {
-    std::cout<<*desig<<std::endl;
+    std::cout << *desig << std::endl;
     return TRUE;
   }
   else
@@ -186,15 +148,15 @@ PREDICATE(cpp_init_rs, 2)
     std::vector<std::string> lowLvlPipeline;
     lowLvlPipeline.push_back("CollectionReader");
     std::string configPath =
-        ros::package::getPath("rs_queryanswering").append(std::string("/config/config.yaml"));
+      ros::package::getPath("rs_queryanswering").append(std::string("/config/config.yaml"));
 
-    std::cerr<<"Path to config file: "<<configPath<<std::endl;
+    std::cerr << "Path to config file: " << configPath << std::endl;
 
     if(!pipelinePath.empty())
     {
       bool waitForService = false;
-      pm = new RSProcessManager(false, waitForService,nh);
-//      pm->setLowLvlPipeline(lowLvlPipeline);
+      pm = new RSProcessManager(false, waitForService, nh);
+      //      pm->setLowLvlPipeline(lowLvlPipeline);
       pm->setUseIdentityResolution(false);
       pm->setUseJsonPrologInterface(true);
       pm->init(pipelinePath, configPath);
@@ -205,11 +167,80 @@ PREDICATE(cpp_init_rs, 2)
   return FALSE;
 }
 
+PREDICATE(cpp_init_ae, 2)
+{
+  if(!ae)
+  {
+    ros::init(ros::M_string(), std::string("/RoboSherlock"));
+    ros::NodeHandle nh("~");
+    dlopen("libpython2.7.so", RTLD_LAZY | RTLD_GLOBAL);
+    outInfo((char *) A1);
+    std::string pipelineName((char *)A1);
+
+    std::string pathToAE;
+    outInfo(pipelineName);
+    rs::common::getAEPaths(pipelineName, pathToAE);
+    std::vector<std::string> lowLvlPipeline;
+    lowLvlPipeline.push_back("CollectionReader");
+
+    if(!pathToAE.empty())
+    {
+      ae = new RSControledAnalysisEngine(nh);
+      ae->init(pathToAE, lowLvlPipeline);
+      return A2 = (void *)ae;
+    }
+  }
+  return FALSE;
+}
+
+/**
+ * @brief run one iteration of the pipeline
+ * in: A1: a list of AEs that should analize the image
+ */
+PREDICATE(cpp_rs_run_pipeline, 1)
+{
+  PlTail tail(A1);
+  PlTerm e;
+  std::vector<std::string> pipeline;
+  while(tail.next(e))
+  {
+    std::string pipelineElement((char *)e);
+    std::size_t pos = pipelineElement.find("owl#");
+    if(pos != std::string::npos)
+      pipeline.push_back(pipelineElement.substr(pos + 4, pipelineElement.length() - pos - 1));
+  }
+  for(auto e : pipeline)
+    std::cerr << e << std::endl;
+  if(ae)
+  {
+    ae->setNextPipeline(pipeline);
+    ae->applyNextPipeline();
+    ae->process();
+  }
+  else
+    return FALSE;
+  return TRUE;
+}
+
 PREDICATE(cpp_rs_pause, 1)
 {
   if(pm)
   {
     pm->pause();
+    return TRUE;
+  }
+  else
+  {
+    return FALSE;
+  }
+}
+
+PREDICATE(cpp_remove_ae, 1)
+{
+  if(ae)
+  {
+    delete ae;
+    ae = NULL;
     return TRUE;
   }
   else
@@ -291,7 +322,7 @@ PREDICATE(change_context, 1)
  */
 PREDICATE(cpp_process_once, 1)
 {
-  outInfo("Cpp_process_once");
+  outInfo("cpp_process_once");
   if(pm)
   {
     outInfo((char *) A1);
@@ -334,6 +365,5 @@ PREDICATE(write_list, 1)
   {
     std::cout << (char *)e << std::endl;
   }
-
   return TRUE;
 }

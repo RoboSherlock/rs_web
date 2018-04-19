@@ -8,7 +8,8 @@
   detect_json/1,
   detect/1,
   get_list_of_predicates/2, 
-  parse_description/2
+  parse_description/2,
+  detect_new/2
 ]).
 
 %%%%%%%%%%%%%%%% BEGIN: C++ Interface %%%%%%%%%%%%%%%%%%%%
@@ -21,7 +22,7 @@ rs_interface :-
 
 rs_interface(Client,Ae) :-
    rs_interf(fail),
-   cpp_init_rs(Client,Ae),
+   cpp_init_ae(Client,Ae),
    retract(rs_interf(fail)),
    assert(rs_interf(Client)),!.
     
@@ -36,15 +37,20 @@ execute_pipeline(_):-
 rs_pause(A):-
    cpp_rs_pause(A).
 
-rs_stop(A):-
+rs_stop:-
    rs_interf(Cl),
-   cpp_stop_rs(A),
+   cpp_stop_rs(Cl),
+   assert(rs_interf(fail)).
+
+rs_clear_ae:-
+   rs_interf(Ae),
+   cpp_remove_ae(Ae),
    assert(rs_interf(fail)).
 
 %defs for syntax checks
 designator_type([an,object],'object').
 designator_type([an,obj],'object').
-designator_type([the,object],'object').
+sesignator_type([the,object],'object').
 designator_type([a,location],'location').
 
 %defs for designator types
@@ -121,7 +127,7 @@ parse_nested_description([A,B|Tail],D):-
     cpp_init_kvp(D,T,KVP),
     add_kvp(Tail,KVP).
 
-% parse the designator given by detect
+% pars the designator given by detect
 parse_description([ A,B | Tail],D):-
     designator_type([A,B],T),
     cpp_add_designator(T,D), 
@@ -144,6 +150,23 @@ detect_json(Json):-
     cpp_make_designator(Json,Desig),
     cpp_process_once(Desig).
 
+%%%%%%%%%%%%%%%%%%%%% NEW %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+get_keys([],[]).
+get_keys([H|T],L1):-
+        rs_query_keyword(H),L1=[H|T1],get_keys(T,T1);
+        get_keys(T,L1).
+
+
+rs_pipeline_from_query(Q,P):-
+    get_keys(Q,Keys),
+    build_single_pipeline_from_predicates(Keys,P),!.
+
+detect_new(List,Pipeline):-
+    flatten(List,Lf),
+    rs_pipeline_from_query(Lf,Pipeline).
+
+%%%%%%%%%%%%%%%%%%%%% %%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%% END: C++ Interface %%%%%%%%%%%%%%%%%%%%    
 

@@ -1,27 +1,30 @@
 #ifndef JSONPROLOGINTERFACE_H
 #define JSONPROLOGINTERFACE_H
 
+
 //boost
 #include <boost/algorithm/string.hpp>
 
 //ros
 #include <ros/package.h>
 
-//ros packages
-#include <designators/Designator.h>
-
 //robosherlock
 #include <rs/utils/output.h>
 #include <rs_queryanswering/KRDefinitions.h>
 
-//SWI Prolog
-#include <SWI-cpp.h>
 
 //json_prolog interface
 #include <json_prolog/prolog.h>
 
+
+//SWI Prolog
+#include <SWI-cpp.h>
+
 //STD
 #include <memory>
+
+//json
+#include <rapidjson/document.h>
 
 //wrapper class for Prolog Engine based on SWI-C++
 class PrologInterface
@@ -30,6 +33,8 @@ class PrologInterface
   typedef std::shared_ptr<PlEngine> PlEnginePtr;
   PlEnginePtr engine;
   bool useJsonProlog;
+
+  std::vector<std::string> krNamespaces;
 
 public:
   PrologInterface(bool json_prolog = false);
@@ -126,18 +131,45 @@ public:
     else
     {
       std::stringstream prologQuery;
-      prologQuery << "owl_subclass_of(" << rs_queryanswering::krNameMapping[child] << "," << rs_queryanswering::krNameMapping[parent] << ").";
-      outInfo("Asking Query: " << prologQuery.str());
       json_prolog::Prolog pl;
-      json_prolog::PrologQueryProxy bdgs = pl.query(prologQuery.str());
 
-      if(bdgs.begin() != bdgs.end())
+      if(addNamespace(child) && addNamespace(parent))
       {
-        outInfo(rs_queryanswering::krNameMapping[child] << " IS " << rs_queryanswering::krNameMapping[parent]);
-        return true;
+        prologQuery << "owl_subclass_of(" << child << "," << parent << ").";
+        outInfo("Asking Query: " << prologQuery.str());
+        json_prolog::PrologQueryProxy bdgs = pl.query(prologQuery.str());
+        if(bdgs.begin() != bdgs.end())
+        {
+          outInfo(child << " IS " << parent);
+          return true;
+        }
+      }
+      else
+      {
+        outError("Child or parent are not defined in the ontology under any of the known namespaces");
+        outError(" Child : "<<child);
+        outError(" Parent: "<<parent);
+        return false;
       }
       return false;
     }
+  }
+
+  bool addNamespace(std::string &entry)
+  {
+    json_prolog::Prolog pl;
+    for(auto ns : rs_queryanswering::krNamespaces)
+    {
+      std::stringstream prologQuery;
+      prologQuery << "rdf_has(" << ns << ":'" << entry << "',rdf:type, owl:'Class').";
+      json_prolog::PrologQueryProxy bdgs = pl.query(prologQuery.str());
+      if(bdgs.begin() != bdgs.end())
+      {
+        entry = ns + ":'" + entry + "'";
+        return true;
+      }
+    }
+    return false;
   }
 
   /*brief
@@ -178,15 +210,12 @@ public:
     return false;
   }
 
-
-  std::string buildPrologQueryFromKeys(const std::vector<std::string> &keys);
-
   /*brief
    *extract the keys that serve as input for pipeline planning
    * in query as a designator
    * out vector of keys
    * */
-  bool extractQueryKeysFromDesignator(designator_integration::Designator *desig,
+  bool extractQueryKeysFromDesignator(std::string *desig,
                                       std::vector<std::string> &keys);
 
   /*brief
@@ -194,8 +223,10 @@ public:
    * out prologQuery: the Prolog Query as a string
    * returns true or false /success or fail
    * */
-  bool buildPrologQueryFromDesignator(designator_integration::Designator *desig,
+  bool buildPrologQueryFromDesignator(std::string *desig,
                                       std::string &prologQuery);
+
+  std::string buildPrologQueryFromKeys(const std::vector<std::string> &keys);
 
   /*brief
    * Create a vector of Annotator Names from the result of the knowrob_rs library.
@@ -206,4 +237,3 @@ public:
 };
 
 #endif //JSONPROLOGINTERFACE_H
-

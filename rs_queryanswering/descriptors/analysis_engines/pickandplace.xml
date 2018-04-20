@@ -167,7 +167,7 @@
         <multiValued>false</multiValued>
         <mandatory>true</mandatory>
         <overrides>
-          <parameter>MLNInferencer/wordnetGrounded</parameter>
+          <parameter>MLNAtomsGenerator/wordnetGrounded</parameter>
         </overrides>
       </configurationParameter>
 
@@ -178,7 +178,7 @@
         <multiValued>false</multiValued>
         <mandatory>true</mandatory>
         <overrides>
-          <parameter>MLNInferencer/query_mln</parameter>
+          <parameter>MLNAtomsGenerator/query_mln</parameter>
         </overrides>
       </configurationParameter>
 
@@ -399,21 +399,21 @@
    <nameValuePair>
       <name>DeCafH5File</name>
       <value>
-        <string>/caffe/extracted_feats/kbreasoning_exp/CNN_kbreasoning_exp.hdf5</string>
+        <string>/caffe/extracted_feats/rh_kitchen_bvlc_fc7/CNN_robohow_2016_all.hdf5</string>
       </value>
     </nameValuePair>
 
     <nameValuePair>
       <name>DeCafListFile</name>
       <value>
-        <string>/caffe/extracted_feats/kbreasoning_exp/CNN_kbreasoning_exp.list</string>
+        <string>/caffe/extracted_feats/rh_kitchen_bvlc_fc7/CNN_robohow_2016_all.list</string>
       </value>
     </nameValuePair>
 
     <nameValuePair>
       <name>DeCafKDTreeIndices</name>
       <value>
-        <string>/caffe/extracted_feats/kbreasoning_exp/CNN_kbreasoning_exp.idx</string>
+        <string>/caffe/extracted_feats/rh_kitchen_bvlc_fc7/CNN_kdtree_robohow_2016_all.idx</string>
       </value>
     </nameValuePair>
 
@@ -448,7 +448,8 @@
         <name>camera_config_files</name>
         <value>
           <array>
-            <string>config_mongodb_qa.ini</string>
+<!--            <string>config_mongodb_qa.ini</string>-->
+            <string>config_kinect_robot.ini</string>
           </array>
         </value>
       </nameValuePair>
@@ -461,7 +462,7 @@
       <nameValuePair>
         <name>storagedb</name>
         <value>
-          <string>TempResults</string>
+          <string>Scenes_annotated</string>
         </value>
       </nameValuePair>
 
@@ -534,6 +535,7 @@
       <node>DeCafClassifier</node>
       <node>TFBroadcaster</node>
       <node>ObjectIdentityResolution</node>
+<!--      <node>GazeboInterface</node>-->
       <node>StorageWriter</node>
     </fixedFlow>
     </flowConstraints>

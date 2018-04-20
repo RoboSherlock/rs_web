@@ -2,7 +2,6 @@
 #define RSOBJDESCRIPTIONREFINER_H
 
 #include <rs_queryanswering/RSControledAnalysisEngine.h>
-#include <designators/Designator.h>
 
 class RSObjectsRefiner
 {

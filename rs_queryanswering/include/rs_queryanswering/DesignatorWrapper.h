@@ -9,8 +9,6 @@
 #include <rs/utils/output.h>
 
 #include <rs/types/all_types.h>
-
-#include <designators/Designator.h>
 #include <designator_integration_msgs/DesignatorCommunication.h>
 
 #include <boost/bind.hpp>
@@ -18,6 +16,12 @@
 #include <map>
 
 #include <iai_robosherlock_msgs/PerceivedObjects.h>
+
+#include <rapidjson/document.h>
+#include <rapidjson/writer.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/allocators.h>
+#include <rapidjson/prettywriter.h>
 
 namespace rs
 {
@@ -34,10 +38,10 @@ public:
 
   DesignatorProcessMode mode;
   // Pointer to the one persistent object
-  static designator_integration::Designator *req_designator;
-  static designator_integration::Designator *res_designator;
+  static rapidjson::Document *req_designator;
+  static rapidjson::Document *res_designator;
 
-  designator_integration_msgs::DesignatorResponse res;
+  //designator_integration_msgs::DesignatorResponse res;
   iai_robosherlock_msgs::PerceivedObjects objects_;
 
   uint64_t now;
@@ -52,18 +56,18 @@ public:
 
   virtual ~DesignatorWrapper();
 
-  void filterClusters(const std::vector<rs::Cluster> input, const designator_integration::Designator *out) const;
+  void filterClusters(const std::vector<rs::Cluster> input, const rapidjson::Document *out) const;
   void updateDesignator();
 
   //  void notifyObserversDesignatorAdded(Designator d);
 
-  designator_integration_msgs::DesignatorResponse getDesignatorResponseMsg();
+  //designator_integration_msgs::DesignatorResponse getDesignatorResponseMsg();
   iai_robosherlock_msgs::PerceivedObjects getObjectsMsgs();
 
-  bool getObjectDesignators(std::vector<designator_integration::Designator> &);
+  bool getObjectDesignators(std::vector<std::string> &);
 
   template<class T>
-  void process(std::vector<T> &elements, std::vector<designator_integration::Designator> &objectDesignators)
+  void process(std::vector<T> &elements, std::vector<std::string> &objectDesignators)
   {
     objects_.objects.clear();
     for(size_t i = 0; i < elements.size(); ++i)
@@ -71,7 +75,8 @@ public:
       outDebug("reading object: " << i);
 
       T &element = elements[i];
-      designator_integration::Designator objectDesignator;
+      rapidjson::Document objectDesignator;
+      objectDesignator.SetObject();
 
       double seconds = now / 1000000000;
       double nsec = (now % 1000000000) / 1000000000.0;
@@ -81,7 +86,7 @@ public:
       double time = seconds + nsec;
 
       outDebug("time: " << std::setprecision(20) << time);
-      objectDesignator.setValue("timestamp", time);
+      objectDesignator.AddMember("timestamp",time,objectDesignator.GetAllocator());
 
       convert(element, i, &objectDesignator);
 
@@ -95,9 +100,7 @@ public:
       std::vector<rs::Goggles> goggles;
       std::vector<rs::Features> features;
       std::vector<rs::ClusterPart> clusterParts;
-      //std::vector<rs_demos::Volume> volume;
-      //std::vector<rs_demos::Substance> substance;
-      //std::vector<rs_demos::Pizza> pizza;
+      std::vector<rs::Classification> classification;
 
       element.annotations.filter(geometry);
       element.annotations.filter(poses);
@@ -109,9 +112,8 @@ public:
       element.annotations.filter(goggles);
       element.annotations.filter(features);
       element.annotations.filter(clusterParts);
-      //element.annotations.filter(volume);
-      //element.annotations.filter(substance);
-      //element.annotations.filter(pizza);
+      element.annotations.filter(classification);
+
 
       convertAll(geometry, &objectDesignator);
       convertAll(detections, &objectDesignator);
@@ -123,9 +125,7 @@ public:
       convertAll(goggles, &objectDesignator);
       convertAll(features, &objectDesignator);
       convertAll(clusterParts, &objectDesignator);
-//      convertAll(volume, &objectDesignator);
-//      convertAll(substance, &objectDesignator);
-//      convertAll(pizza, &objectDesignator);
+      convertAll(classification, &objectDesignator);
 
 
       iai_robosherlock_msgs::PerceivedObject object;
@@ -143,22 +143,29 @@ public:
         objects_.objects.push_back(object);
       }
 
-      outDebug("no. of children: " << objectDesignator.children().size());
-      if(objectDesignator.children().size() > 0)
+      outDebug("no. of children: " << objectDesignator.MemberCount());
+
+      if(objectDesignator.MemberCount() > 0)
       {
-        objectDesignators.push_back(objectDesignator);
+        outInfo("Object as json:");
+
+        rapidjson::StringBuffer buffer;
+        rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+        objectDesignator.Accept(writer);
+        outInfo(buffer.GetString());
+        objectDesignators.push_back(jsonToString(objectDesignator));
       }
     }
   }
 
   // Converter methods to take scene annotations and map them to Designator Keywords
-  void convert(rs::Cluster &input, const size_t id, designator_integration::KeyValuePair *object);
-  void convert(rs::Object &input, const size_t id, designator_integration::KeyValuePair *object);
+  void convert(rs::Cluster &input, const size_t id, rapidjson::Document *object);
+  void convert(rs::Object &input, const size_t id, rapidjson::Document *object);
 
   // TODO How can i define this in the cpp file?
   // If i do it naively, i get a runtime error that the method can't be found + the mangeled method name
   template<class T>
-  void convertAll(std::vector<T> &all, designator_integration::KeyValuePair *object)
+  void convertAll(std::vector<T> &all, rapidjson::Document *object)
   {
     for(T input : all)
     {
@@ -166,24 +173,28 @@ public:
     }
   }
 
-  void convert(rs::Detection &input, designator_integration::KeyValuePair *object);
-  void convert(rs::TFLocation &input, designator_integration::KeyValuePair *object);
-  void convert(rs::Segment &input, designator_integration::KeyValuePair *object);
-  void convert(rs::Geometry &input, designator_integration::KeyValuePair *object);
-  void convert(rs::Shape &input, designator_integration::KeyValuePair *object);
-  void convert(rs::PoseAnnotation &input, designator_integration::KeyValuePair *object);
-  void convert(rs::SemanticColor &input, designator_integration::KeyValuePair *object);
-  void convert(rs::MLNAtoms &input, designator_integration::KeyValuePair *object);
-  void convert(rs::NamedLink &input, designator_integration::KeyValuePair *object);
-  void convert(rs::Goggles &input, designator_integration::KeyValuePair *object);
-  void convert(rs::Features &input, designator_integration::KeyValuePair *object);
-  void convert(rs::ClusterPart &input, designator_integration::KeyValuePair *object);
-//  void convert(rs_demos::Volume &input, designator_integration::KeyValuePair *object);
-//  void convert(rs_demos::Substance &input, designator_integration::KeyValuePair *object);
+  void convert(rs::Detection &input, rapidjson::Document *object);
+  void convert(rs::Classification &input, rapidjson::Document *object);
 
-  void convert(rs::ARMarker &input, designator_integration::Designator &res);
-  void convert(rs::HandleAnnotation &input, designator_integration::Designator &res);
-//  void convert(rs_demos::Pizza &input, designator_integration::KeyValuePair *object);
+  void convert(rs::TFLocation &input, rapidjson::Document *object);
+  void convert(rs::Segment &input, rapidjson::Document *object);
+  void convert(rs::Geometry &input, rapidjson::Document *object);
+  void convert(rs::Shape &input, rapidjson::Document *object);
+  void convert(rs::PoseAnnotation &input, rapidjson::Document *object);
+  void convert(rs::SemanticColor &input, rapidjson::Document *object);
+  void convert(rs::MLNAtoms &input, rapidjson::Document *object);
+  void convert(rs::NamedLink &input, rapidjson::Document *object);
+  void convert(rs::Goggles &input, rapidjson::Document *object);
+  void convert(rs::Features &input, rapidjson::Document *object);
+  void convert(rs::ClusterPart &input, rapidjson::Document *object);
+  void convert(geometry_msgs::PoseStamped &pose, rapidjson::Document *object, rapidjson::MemoryPoolAllocator<>& alloc);
+  void convert(rs::ARMarker &input, rapidjson::Document &res);
+  void convert(rs::HandleAnnotation &input, rapidjson::Document &res);
+
+
+
+  static void mergeJson (rapidjson::Document &destination, rapidjson::Document &source, std::string fieldName);
+  static std::string jsonToString(rapidjson::Value &res);
 
 };
 

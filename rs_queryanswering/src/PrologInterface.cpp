@@ -39,41 +39,48 @@ void PrologInterface::init()
   }
 }
 
-bool PrologInterface::extractQueryKeysFromDesignator(designator_integration::Designator *desig,
-    std::vector<std::string> &keys)
+bool PrologInterface::extractQueryKeysFromDesignator(std::string *desig,
+                                    std::vector<std::string> &keys)
 {
   if(!desig)
   {
     outError("NULL POINTER PASSED TO buildPrologQueryFromDesignator");
     return false;
   }
-  // Fetch the keys from the Designator
-  std::list<std::string> allKeys = desig->keys();
-  //add the ones that are interpretable to the queriedKeys;
-  for(const auto key : allKeys)
-  {
-    if(std::find(rs_queryanswering::rsQueryTerms.begin(), rs_queryanswering::rsQueryTerms.end(), boost::to_lower_copy(key)) != std::end(rs_queryanswering::rsQueryTerms))
-    {
-      keys.push_back(boost::to_lower_copy(key));
-    }
-    else
-    {
-      outWarn(key << " is not a valid query-language term");
-    }
-  }
-  if(desig->childForKey("type"))
-  {
-     designator_integration::KeyValuePair *kvp = desig->childForKey("type");
-      if(kvp->stringValue() == "FoodOrDrinkOrIngredient")
-      {
-        keys.push_back("pancakedetector");
-      }
 
-  }
-  if(desig->childForKey("class"))
+  rapidjson::Document json;
+  json.Parse(desig->c_str());
+
+  //add the ones that are interpretable to the queriedKeys;
+  for (rapidjson::Value::ConstMemberIterator iter = json.MemberBegin(); iter != json.MemberEnd(); ++iter)
   {
-    designator_integration::KeyValuePair *kvp = desig->childForKey("class");
-    if(kvp->stringValue() == "PANCAKE" || kvp->stringValue() == "pancake")
+    if(std::find(rs_queryanswering::rsQueryTerms.begin(), rs_queryanswering::rsQueryTerms.end(),
+                 iter->name.GetString()) != std::end(rs_queryanswering::rsQueryTerms))
+      keys.push_back(iter->name.GetString());
+    else
+      outWarn(iter->name.GetString() << " is not a valid query-language term");
+  }
+  if(json.HasMember("type"))
+  {
+    std::string det = json["type"].GetString();
+    if(det == "PANCAKE" || det == "pancake")
+    {
+      keys.push_back("pancakedetector");
+    }
+  }
+  if(json.HasMember("obj-part"))
+  {
+    std::string det = json["obj-part"].GetString();
+    if(det.find(det)!=std::string::npos)
+    {
+      keys.clear();
+      keys.push_back("handle");
+    }
+  }
+  if(json.HasMember("class"))
+  {
+    std::string det = json["class"].GetString();
+    if(det == "FoodOrDrinkOrIngredient")
     {
       keys.push_back("pancakedetector");
     }
@@ -82,32 +89,37 @@ bool PrologInterface::extractQueryKeysFromDesignator(designator_integration::Des
 }
 
 
-bool PrologInterface::buildPrologQueryFromDesignator(designator_integration::Designator *desig,
+bool PrologInterface::buildPrologQueryFromDesignator(std::string *desig,
     std::string &prologQuery)
 {
-  std::vector<std::string> queriedKeys;
-  extractQueryKeysFromDesignator(desig, queriedKeys);
-  prologQuery = buildPrologQueryFromKeys(queriedKeys);
-  return true;
+    prologQuery = "build_single_pipeline_from_predicates([";
+    std::vector<std::string> queriedKeys;
+    extractQueryKeysFromDesignator(desig,queriedKeys);
+    for(int i = 0; i < queriedKeys.size(); i++)
+    {
+      prologQuery += queriedKeys.at(i);
+      if(i < queriedKeys.size() - 1)
+      {
+        prologQuery += ",";
+      }
+    }
+    prologQuery += "], A)";
+    return true;
 }
 
 
 std::string PrologInterface::buildPrologQueryFromKeys(const std::vector<std::string> &keys)
 {
-
   std::string prologQuery = "build_single_pipeline_from_predicates([";
   for(int i = 0; i < keys.size(); i++)
   {
     prologQuery += keys.at(i);
     if(i < keys.size() - 1)
-    {
       prologQuery += ",";
-    }
   }
   prologQuery += "], A)";
   return prologQuery;
 }
-
 
 std::vector< std::string > PrologInterface::createPipelineFromPrologResult(std::string queryResult)
 {

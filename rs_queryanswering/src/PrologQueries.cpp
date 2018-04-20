@@ -1,9 +1,10 @@
-#include <designators/Designator.h>
+#include <rapidjson/document.h>
 #include <designator_integration_msgs/Designator.h>
 #include <designator_integration_msgs/DesignatorCommunication.h>
 
 #include <rs_queryanswering/RSControledAnalysisEngine.h>
 #include <rs_queryanswering/RSProcessManager.h>
+#include <rs_queryanswering/DesignatorWrapper.h>
 
 #include <ros/package.h>
 
@@ -16,49 +17,11 @@
 #include <string>
 #include <memory>
 
-using namespace designator_integration;
-
-Designator *req_desig = NULL;
+std::string *req_desig = NULL;
 
 static RSProcessManager *pm;
-
+static RSControledAnalysisEngine *ae;
 uima::ResourceManager &resourceManager = uima::ResourceManager::createInstance("RoboSherlock");
-
-
-//class RSPMProxy
-//{
-//  ros::NodeHandle *nh_;
-//  ros::ServiceClient client_;
-//  RSProcessManager *pm_;
-//  std::mutex lock_;
-//  std::string ae_;
-//  RSPMProxy(std::string ae):ae_(ae)
-//  {
-//    ros::init(ros::M_string(), std::string("RoboSherlock"));
-//    nh_ = new ros::NodeHandle("~");
-//    pm_ = new RSProcessManager(false, ".", true, false, nh_);
-//  }
-
-//  void run()
-//  {
-
-//  }
-
-//  void queryRoboSherlock(Designator d)
-//  {
-//    designator_integration_msgs::DesignatorCommunication srv;
-//    srv.request.request.designator = d.serializeToMessage();
-//    {
-//      if(client_.call(srv))
-//      {
-//          m->setUseIdentityResolution(false);
-//          pm->init(pipelinePath, "cml");
-//      }
-
-//    }
-//  }
-//};
-
 std::thread thread;
 
 /***************************************************************************
@@ -66,48 +29,55 @@ std::thread thread;
  * *************************************************************************/
 
 
-PREDICATE(install_rs_prologrulescpp,0)
+//what ever happens to all these pointers? This smells like a huge memory leak
+
+PREDICATE(cpp_make_designator, 2)
 {
-  return true;
+  std::string *desig = new std::string((char *) A1);
+
+  outInfo("Sending back: " << *desig);
+  return A2 = static_cast<void *>(desig);
 }
 
 PREDICATE(cpp_add_designator, 2)
 {
+
   std::string desigType((char *)A1);
-  Designator *desig = new Designator();
-  if(desigType == "object")
-  {
-    desig->setType(Designator::ACTION);
-  }
-  std::cerr << "designator type: " << desig->type() << "\n";
+  outInfo("Desigtype: " << desigType);
+
+  std::string *desig = new std::string("{\"detect\":{}}");
+
+  outInfo("Sending back: " << *desig);
   return A2 = static_cast<void *>(desig);
 }
 
-
-//string,Designator,Kvp
 PREDICATE(cpp_init_kvp, 3)
 {
   void *obj = A1;
   std::string type((char *)A2);
-//  std::transform(type.begin(), type.end(), type.begin(), ::toupper);
-  Designator *desig = (Designator *)obj;
-  KeyValuePair *kvp = desig->addChild(type);
-  return A3 = static_cast<void *>(kvp);
+  outInfo("Type: " << type);
+  std::string *desig = (std::string *)(obj);
+  outInfo("Type: " << *desig);
+  return A3 = static_cast<void *>(desig);
 }
 
 PREDICATE(cpp_add_kvp, 3)
 {
   std::string key = (std::string)A1;
-//  std::transform(key.begin(), key.end(), key.begin(), ::toupper);
   std::string value = (std::string)A2;
   void *obj = A3;
-  Designator *desig = (Designator *)obj;
-  KeyValuePair *kvp = new KeyValuePair(key, value);
-
+  std::string *desig = (std::string *)(obj);
+  outInfo("Desig now: " << *desig);
   if(desig)
   {
-    //std::cerr<<"Adding Kvp: ("<<key<<" : "<<value<<")\n";
-    desig->addChild(kvp);
+    outInfo("Adding Kvp: (" << key << " : " << value);
+    rapidjson::Document json;
+    json.Parse(desig->c_str());
+    rapidjson::Value &detectJson = json["detect"];
+    rapidjson::Value v(key, json.GetAllocator());
+    detectJson.AddMember(v, value, json.GetAllocator());
+
+    *desig = rs::DesignatorWrapper::jsonToString(json);
     return TRUE;
   }
   else
@@ -119,10 +89,10 @@ PREDICATE(cpp_add_kvp, 3)
 PREDICATE(cpp_print_desig, 1)
 {
   void *obj = A1;
-  Designator *desig = (Designator *)obj;
+  std::string *desig = (std::string *)(obj);
   if(desig)
   {
-    desig->printDesignator();
+    std::cout << *desig << std::endl;
     return TRUE;
   }
   else
@@ -137,11 +107,7 @@ PREDICATE(cpp_init_desig, 1)
   if(!req_desig)
   {
     std::cerr << "Initializing designator: " << std::endl;
-    req_desig = new designator_integration::Designator();
-    designator_integration::KeyValuePair *some_shit =  new designator_integration::KeyValuePair("location", "on table");
-    designator_integration::KeyValuePair *links = new designator_integration::KeyValuePair("location");
-    links->addChild(some_shit);
-    req_desig->addChild(links);
+    req_desig =  new std::string("{\"location\":{\"location\":\"on table\"}}");
     return A1 = (void *)req_desig;
   }
   else
@@ -154,7 +120,7 @@ PREDICATE(cpp_init_desig, 1)
 PREDICATE(cpp_delete_desig, 1)
 {
   void *obj = A1;
-  Designator *desig = (Designator *)obj;
+  std::string *desig = (std::string *)obj;
   delete desig;
   return TRUE;
 }
@@ -170,24 +136,27 @@ PREDICATE(cpp_init_rs, 2)
 {
   if(!pm)
   {
-    ros::init(ros::M_string(), std::string("RoboSherlock"));
+    ros::init(ros::M_string(), std::string("/RoboSherlock"));
     ros::NodeHandle nh("~");
     dlopen("libpython2.7.so", RTLD_LAZY | RTLD_GLOBAL);
+    outInfo((char *) A1);
     std::string pipelineName((char *)A1);
+
     std::string pipelinePath;
+    outInfo(pipelineName);
     rs::common::getAEPaths(pipelineName, pipelinePath);
     std::vector<std::string> lowLvlPipeline;
     lowLvlPipeline.push_back("CollectionReader");
     std::string configPath =
-        ros::package::getPath("rs_queryanswering").append(std::string("/config/config.yaml"));
+      ros::package::getPath("rs_queryanswering").append(std::string("/config/config.yaml"));
 
-    std::cerr<<"Path to config file: "<<configPath<<std::endl;
+    std::cerr << "Path to config file: " << configPath << std::endl;
 
     if(!pipelinePath.empty())
     {
       bool waitForService = false;
-      pm = new RSProcessManager(false, waitForService, false, nh);
-//      pm->setLowLvlPipeline(lowLvlPipeline);
+      pm = new RSProcessManager(false, waitForService, nh);
+      //      pm->setLowLvlPipeline(lowLvlPipeline);
       pm->setUseIdentityResolution(false);
       pm->setUseJsonPrologInterface(true);
       pm->init(pipelinePath, configPath);
@@ -198,11 +167,80 @@ PREDICATE(cpp_init_rs, 2)
   return FALSE;
 }
 
+PREDICATE(cpp_init_ae, 2)
+{
+  if(!ae)
+  {
+    ros::init(ros::M_string(), std::string("/RoboSherlock"));
+    ros::NodeHandle nh("~");
+    dlopen("libpython2.7.so", RTLD_LAZY | RTLD_GLOBAL);
+    outInfo((char *) A1);
+    std::string pipelineName((char *)A1);
+
+    std::string pathToAE;
+    outInfo(pipelineName);
+    rs::common::getAEPaths(pipelineName, pathToAE);
+    std::vector<std::string> lowLvlPipeline;
+    lowLvlPipeline.push_back("CollectionReader");
+
+    if(!pathToAE.empty())
+    {
+      ae = new RSControledAnalysisEngine(nh);
+      ae->init(pathToAE, lowLvlPipeline);
+      return A2 = (void *)ae;
+    }
+  }
+  return FALSE;
+}
+
+/**
+ * @brief run one iteration of the pipeline
+ * in: A1: a list of AEs that should analize the image
+ */
+PREDICATE(cpp_rs_run_pipeline, 1)
+{
+  PlTail tail(A1);
+  PlTerm e;
+  std::vector<std::string> pipeline;
+  while(tail.next(e))
+  {
+    std::string pipelineElement((char *)e);
+    std::size_t pos = pipelineElement.find("owl#");
+    if(pos != std::string::npos)
+      pipeline.push_back(pipelineElement.substr(pos + 4, pipelineElement.length() - pos - 1));
+  }
+  for(auto e : pipeline)
+    std::cerr << e << std::endl;
+  if(ae)
+  {
+    ae->setNextPipeline(pipeline);
+    ae->applyNextPipeline();
+    ae->process();
+  }
+  else
+    return FALSE;
+  return TRUE;
+}
+
 PREDICATE(cpp_rs_pause, 1)
 {
   if(pm)
   {
     pm->pause();
+    return TRUE;
+  }
+  else
+  {
+    return FALSE;
+  }
+}
+
+PREDICATE(cpp_remove_ae, 1)
+{
+  if(ae)
+  {
+    delete ae;
+    ae = NULL;
     return TRUE;
   }
   else
@@ -284,16 +322,20 @@ PREDICATE(change_context, 1)
  */
 PREDICATE(cpp_process_once, 1)
 {
+  outInfo("cpp_process_once");
   if(pm)
   {
+    outInfo((char *) A1);
     void *myobj = A1;
-    Designator *desig  = (Designator *)myobj;
-    std::vector<designator_integration::Designator> resp;
-    pm->handleQuery(desig, resp);
+    std::string *desig  = (std::string *)myobj;
+    std::vector<std::string> resp;
+    pm->handleQuery(*desig, resp);
+    outInfo("handled query");
     return TRUE;
   }
   else
   {
+    outInfo("No process manager.");
     return FALSE;
   }
 }
@@ -323,6 +365,5 @@ PREDICATE(write_list, 1)
   {
     std::cout << (char *)e << std::endl;
   }
-
   return TRUE;
 }

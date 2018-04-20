@@ -14,6 +14,12 @@
 namespace rs_queryanswering
 {
 
+static std::vector<std::string> krNamespaces =
+{
+  "knowrob",
+  "kitchen"
+};
+
 static std::map<std::string, std::string> krNameMapping =
 {
   //superclasses
@@ -131,7 +137,7 @@ static std::vector<std::string> rsQueryTerms =
 {
   "shape", "volume", "contains", "color", "size","class",
   "location", "logo", "text", "product", "obj-part",
-  "detection", "type", "handle", "ingredient", "cad-model", "inspect"
+  "detection", "type", "handle", "ingredient", "cad-model"
 };
 
 

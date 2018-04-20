@@ -14,7 +14,7 @@ void RSControledAnalysisEngine::init(const std::string &AEFile, const std::vecto
     outError("createAnalysisEngine failed." << errorInfo.asString());
     throw uima::Exception(errorInfo);
   }
-  // RSPipelineManager rspm(engine);
+
   rspm = new RSPipelineManager(engine);
   std::vector<icu::UnicodeString> &non_const_nodes = rspm->getFlowConstraintNodes();
 
@@ -30,9 +30,11 @@ void RSControledAnalysisEngine::init(const std::string &AEFile, const std::vecto
   outInfo("*** Number of Annotators in AnnotatorManager: " << rspm->aengine->getNbrOfAnnotators());
 
   // After all annotators have been initialized, pick the default pipeline
-
+  //this stores the pipeline
   rspm->setDefaultPipelineOrdering(lowLvlPipeline);
+  //this applies it
   rspm->setPipelineOrdering(lowLvlPipeline);
+
   // Get a new CAS
   outInfo("Creating a new CAS");
   cas = engine->newCAS();
@@ -51,20 +53,15 @@ void RSControledAnalysisEngine::init(const std::string &AEFile, const std::vecto
   currentAEName = AEFile;
 }
 
-void RSControledAnalysisEngine::setCWAssumption(const std::vector<std::string> &cwObjs)
-{
-  cwObjects_.assign(cwObjs.begin(), cwObjs.end());
-}
-
 void RSControledAnalysisEngine::process()
 {
-  std::vector<designator_integration::Designator> d;
-  process(d);
+  std::vector<std::string> desigResponse;
+  process(desigResponse,query_);
+  setQuery("");
 }
 
-void RSControledAnalysisEngine::process(
-  std::vector<designator_integration::Designator> &designatorResponse,
-  RSQuery *q)
+void RSControledAnalysisEngine::process(std::vector<std::string> &designatorResponse,
+                                        std::string queryString)
 {
   outInfo("executing analisys engine: " << name);
   cas->reset();
@@ -73,42 +70,12 @@ void RSControledAnalysisEngine::process(
     UnicodeString ustrInputText;
     ustrInputText.fromUTF8(name);
     cas->setDocumentText(uima::UnicodeStringRef(ustrInputText));
-    if(q != NULL)
-    {
-      rs::SceneCas sceneCas(*cas);
-      rs::Query query = rs::create<rs::Query>(*cas);
-      query.asJson.set(q->asJson);
-      if(q->timestamp != 0)
-      {
-        query.timestamp.set(q->timestamp);
-      }
-      else
-      {
-        query.timestamp.set(0);
-      }
-      if(q->location != "")
-      {
-        query.location.set(q->location);
-      }
-      if(q->objToInspect != "")
-      {
-        query.inspect.set(q->objToInspect);
-      }
-      if(q->ingredient != "")
-      {
-        query.ingredient.set(q->ingredient);
-      }
-      outInfo("setting in CAS: ts:" << q->timestamp << " location: " << q->location);
-      sceneCas.set("QUERY", query);
-    }
-    if(!cwObjects_.empty())
-    {
-      outInfo("setting list of objects for closed world assumption in the CAS");
-      rs::SceneCas sceneCas(*cas);
-      rs::CWAssumption cwAssump = rs::create<rs::CWAssumption>(*cas);
-      cwAssump.cwObjects(cwObjects_);
-      sceneCas.set("CWA", cwAssump);
-    }
+
+    rs::SceneCas sceneCas(*cas);
+    rs::Query query = rs::create<rs::Query>(*cas);
+    query.asJson.set(queryString);
+    sceneCas.set("QUERY", query);
+
     outInfo("processing CAS");
     try
     {
@@ -153,9 +120,9 @@ void RSControledAnalysisEngine::process(
   {
     outError("Unknown exception!");
   }
+
   // Make a designator from the result
-  rs::DesignatorWrapper dw;
-  dw.setCAS(cas);
+  rs::DesignatorWrapper dw(cas);
   if(useIdentityResolution_)
   {
     dw.setMode(rs::DesignatorWrapper::OBJECT);
@@ -171,20 +138,23 @@ void RSControledAnalysisEngine::process(
 // Call process() and decide if the pipeline should be reset or not
 void RSControledAnalysisEngine::process(bool reset_pipeline_after_process)
 {
-  std::vector<designator_integration::Designator> d;
-  process(reset_pipeline_after_process, d);
+  std::vector<std::string> designator_results;
+  process(reset_pipeline_after_process, designator_results);
 }
 
 // Call process() and decide if the pipeline should be reset or not
-void RSControledAnalysisEngine::process(bool reset_pipeline_after_process, std::vector<designator_integration::Designator> &designatorResponse)
+void RSControledAnalysisEngine::process(bool reset_pipeline_after_process, std::vector<std::string> &designatorResponse)
 {
   process_mutex->lock();
   outInfo(FG_CYAN << "process(bool,desig) - LOCK OBTAINED");
-  process(designatorResponse, 0);
+  outInfo("++++++++++++");
+  outInfo(query_);
+  process(designatorResponse, query_);
   if(reset_pipeline_after_process)
   {
     resetPipelineOrdering();  // reset pipeline to default
   }
+  setQuery("");
   process_mutex->unlock();
   outInfo(FG_CYAN << "process(bool,desig) - LOCK RELEASED");
 }
@@ -195,20 +165,16 @@ void RSControledAnalysisEngine::process(bool reset_pipeline_after_process, std::
 // decide if the pipeline should be reset or not
 void RSControledAnalysisEngine::process(std::vector<std::string> annotators,
                                         bool reset_pipeline_after_process,
-                                        std::vector<designator_integration::Designator> &designator_response,
-                                        RSQuery *query)
+                                        std::vector<std::string> &designator_response,
+                                        std::string queryString)
 {
   process_mutex->lock();
-  outInfo(FG_CYAN << "process(std::vector, bool) - LOCK OBTAINED");
   setNextPipeline(annotators);
   applyNextPipeline();
-  process(designator_response, query);
+  process(designator_response, queryString);
   if(reset_pipeline_after_process)
-  {
     resetPipelineOrdering();  // reset pipeline to default
-  }
   process_mutex->unlock();
-  outInfo(FG_CYAN << "process(std::vector, bool) - LOCK RELEASED");
 }
 
 // Define a pipeline that should be executed,
@@ -216,14 +182,14 @@ void RSControledAnalysisEngine::process(std::vector<std::string> annotators,
 // decide if the pipeline should be reset or not
 void RSControledAnalysisEngine::process(std::vector<std::string> annotators, bool reset_pipeline_after_process)
 {
-  std::vector<designator_integration::Designator> d;
-  process(annotators, reset_pipeline_after_process, d);
+  std::vector<std::string> designator_response;
+  process(annotators, reset_pipeline_after_process, designator_response,query_);
 }
 
 template <class T>
 void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filter,
-    const std::vector<designator_integration::Designator> &resultDesignators,
-    designator_integration::Designator &requestDesignator)
+    const std::vector<std::string> &resultDesignators,
+    std::string &requestJson)
 {
   rs::SceneCas sceneCas(*cas);
   rs::Scene scene = sceneCas.getScene();
@@ -235,9 +201,6 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
   sceneCas.get(VIEW_COLOR_IMAGE, rgb);
   sceneCas.get(VIEW_CAMERA_INFO, cam_info);
   sceneCas.get(VIEW_CLOUD, *dispCloud);
-
-
-
 
   uint64_t now = sceneCas.getScene().timestamp();
   std::vector<T> clusters;
@@ -265,33 +228,30 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
 
   for(int i = 0; i < filter.size(); ++i)
   {
-    if(!filter[i])
-    {
-      continue;
-    }
+    if(!filter[i]) continue;
 
-    designator_integration::Designator desig = resultDesignators[i];
-    desig.printDesignator();
-    designator_integration::KeyValuePair *clusterId = desig.childForKey("ID");
-    if(clusterId != NULL)
+    std::string desigString = resultDesignators[i];
+    rapidjson::Document desig;
+    desig.Parse(desigString.c_str());
+    if(desig.HasMember("id"))
     {
-      //very uglyu quick hack for now just so it does not crash
-      int idx = atoi(clusterId->stringValue().c_str());
+      std::string cID(desig["id"].GetString());
+      int clusterId = std::atoi(cID.c_str());
 
       //Draw cluster on image
-      rs::ImageROI roi = clusters[idx].rois();
+      rs::ImageROI roi = clusters[clusterId].rois();
       cv::Rect cvRoi;
       rs::conversion::from(roi.roi(), cvRoi);
-      cv::rectangle(rgb, cvRoi, rs::common::cvScalarColors[idx % rs::common::numberOfColors], 1.5);
+      cv::rectangle(rgb, cvRoi, rs::common::cvScalarColors[clusterId % rs::common::numberOfColors], 1.5);
       std::stringstream clusterName;
-      clusterName << "cID_" << idx;
-      cv::putText(rgb, clusterName.str(), cv::Point(cvRoi.x + 10, cvRoi.y - 10), cv::FONT_HERSHEY_COMPLEX, 0.7, rs::common::cvScalarColors[idx % rs::common::numberOfColors]);
+      clusterName << "cID_" << clusterId;
+      cv::putText(rgb, clusterName.str(), cv::Point(cvRoi.x + 10, cvRoi.y - 10), cv::FONT_HERSHEY_COMPLEX, 0.7, rs::common::cvScalarColors[clusterId % rs::common::numberOfColors]);
 
       //Color points in Point Cloud
       pcl::PointIndicesPtr inliers(new pcl::PointIndices());
-      if(clusters[idx].points.has())
+      if(clusters[clusterId].points.has())
       {
-        rs::conversion::from(((rs::ReferenceClusterPoints)clusters[idx].points()).indices(), *inliers);
+        rs::conversion::from(((rs::ReferenceClusterPoints)clusters[clusterId].points()).indices(), *inliers);
         for(unsigned int idx = 0; idx < inliers->indices.size(); ++idx)
         {
           dispCloud->points[inliers->indices[idx]].rgba = rs::common::colors[colorIdx % rs::common::numberOfColors];
@@ -300,39 +260,45 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
       }
       colorIdx++;
     }
-    designator_integration::KeyValuePair *handleKvp = desig.childForKey("HANDLE");
-    if(handleKvp != NULL)
+    if(desig.HasMember("handle"))
     {
-      //color the pixels of the handle
-      std::vector<rs::HandleAnnotation> handles;
-      scene.annotations.filter(handles);
-      for(int i = 0; i < handles.size(); ++i)
-      {
-        outInfo("Actual name: " << handles[i].name());
-        outInfo("Queried name: " << handleKvp->stringValue());
-        if(handles[i].name() == handleKvp->stringValue())
-        {
-          pcl::PointIndices indices;
-          rs::conversion::from(handles[i].indices(), indices);
-          outInfo("Number of inliers in handle " << i << ": " << indices.indices.size());
-          for(int j = 0; j < indices.indices.size(); ++j)
-          {
-            int idx = indices.indices[j];
-            cv::Vec3b new_color;
-            new_color[0] = 0;
-            new_color[0] = 0;
-            new_color[0] = 255;
-            rgb.at<cv::Vec3b>(cv::Point(idx % 640, idx / 640)) = new_color;
+      std::string handleKvp = desig["handle"].GetString();
 
-            dispCloud->points[indices.indices[j]].rgba = rs::common::colors[i % rs::common::numberOfColors];
-            dispCloud->points[indices.indices[j]].a = 255;
+      if(handleKvp != NULL)
+      {
+        //color the pixels of the handle
+        std::vector<rs::HandleAnnotation> handles;
+        scene.annotations.filter(handles);
+        for(int i = 0; i < handles.size(); ++i)
+        {
+          outInfo("Actual name: " << handles[i].name());
+          outInfo("Queried name: " << handleKvp);
+          if(handles[i].name() == handleKvp)
+          {
+            pcl::PointIndices indices;
+            rs::conversion::from(handles[i].indices(), indices);
+            outInfo("Number of inliers in handle " << i << ": " << indices.indices.size());
+            for(int j = 0; j < indices.indices.size(); ++j)
+            {
+              int idx = indices.indices[j];
+              cv::Vec3b new_color;
+              new_color[0] = 0;
+              new_color[0] = 0;
+              new_color[0] = 255;
+              rgb.at<cv::Vec3b>(cv::Point(idx % 640, idx / 640)) = new_color;
+
+              dispCloud->points[indices.indices[j]].rgba = rs::common::colors[i % rs::common::numberOfColors];
+              dispCloud->points[indices.indices[j]].a = 255;
+            }
           }
         }
       }
     }
   }
 
-  if(requestDesignator.childForKey("OBJ-PART"))
+  rapidjson::Document request;
+  request.Parse(requestJson.c_str());
+  if(request.HasMember("obj-part"))
   {
     for(int i = 0; i < clusters.size(); ++i)
     {
@@ -342,7 +308,7 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
       for(int pIdx = 0; pIdx < parts.size(); ++pIdx)
       {
         rs::ClusterPart &part = parts[pIdx];
-        if(strcasecmp(part.name().c_str(), requestDesignator.childForKey("OBJ-PART")->stringValue().c_str()) == 0 || requestDesignator.childForKey("OBJ-PART")->stringValue() == "")
+        if(part.name() == request["obj-part"] || request["obj-part"] == "")
         {
           pcl::PointIndices indices;
           rs::conversion::from(part.indices(), indices);
@@ -358,7 +324,7 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
       }
     }
   }
-  if(requestDesignator.childForKey("INGREDIENT") || requestDesignator.childForKey("CAD-MODEL"))
+  if(request.HasMember("ingredient") || request.HasMember("cad-model"))
   {
     if(sceneCas.has("VIEW_DISPLAY_IMAGE"))
     {
@@ -416,9 +382,9 @@ void RSControledAnalysisEngine::drawResulstOnImage(const std::vector<bool> &filt
 }
 
 template void RSControledAnalysisEngine::drawResulstOnImage<rs::Object>(const std::vector<bool> &filter,
-    const std::vector<designator_integration::Designator> &resultDesignators,
-    designator_integration::Designator &requestDesignator);
+    const std::vector<std::string> &resultDesignators,
+    std::string &requestJson);
 
 template void RSControledAnalysisEngine::drawResulstOnImage<rs::Cluster>(const std::vector<bool> &filter,
-    const std::vector<designator_integration::Designator> &resultDesignators,
-    designator_integration::Designator &requestDesignator);
+    const std::vector<std::string> &resultDesignators,
+    std::string &requestJson);

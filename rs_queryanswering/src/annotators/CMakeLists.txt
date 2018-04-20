@@ -35,3 +35,8 @@ rs_add_library(rs_offScreenSceneVariation
 	OffScreenSceneVariation.cpp)
 target_link_libraries(rs_offScreenSceneVariation 
 	${catkin_LIBRARIES})
+
+rs_add_library(rs_unrealTableScene
+        UnrealTableScene.cpp)
+target_link_libraries(rs_unrealTableScene
+        ${catkin_LIBRARIES})

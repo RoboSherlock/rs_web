@@ -1,20 +1,21 @@
 #include <rs_queryanswering/DesignatorWrapper.h>
+#include "rapidjson/pointer.h"
 
 namespace rs
 {
 
-designator_integration::Designator *DesignatorWrapper::req_designator = NULL;
-designator_integration::Designator *DesignatorWrapper::res_designator = NULL;
+rapidjson::Document *DesignatorWrapper::req_designator = NULL;
+rapidjson::Document *DesignatorWrapper::res_designator = NULL;
 
 DesignatorWrapper::DesignatorWrapper()
 {
   if(!req_designator)
   {
-    req_designator = new designator_integration::Designator();
+    req_designator = new rapidjson::Document();
   }
   if(!res_designator)
   {
-    res_designator = new designator_integration::Designator();
+    res_designator = new rapidjson::Document();
   }
   tcas = NULL;
 }
@@ -28,11 +29,11 @@ DesignatorWrapper::DesignatorWrapper(uima::CAS *cas) : tcas(cas)
 {
   if(!req_designator)
   {
-    req_designator = new designator_integration::Designator();
+    req_designator = new rapidjson::Document();
   }
   if(!res_designator)
   {
-    res_designator = new designator_integration::Designator();
+    res_designator = new rapidjson::Document();
   }
   mode = CLUSTER;
 }
@@ -48,28 +49,11 @@ void DesignatorWrapper::setMode(DesignatorProcessMode m)
   mode = m;
 }
 
-designator_integration_msgs::DesignatorResponse DesignatorWrapper::getDesignatorResponseMsg()
-{
-  std::vector<designator_integration::Designator> objDesignators;
-  getObjectDesignators(objDesignators);
-  designator_integration_msgs::DesignatorResponse designatorResponseMsg;
-  for(size_t i = 0; i < objDesignators.size(); ++i)
-  {
-    if(objDesignators[i].children().size() > 0)
-    {
-      designatorResponseMsg.designators.push_back(objDesignators[i].serializeToMessage());
-    }
-  }
-  outInfo("designatorResponseMsg.designators.size= " << designatorResponseMsg.designators.size());
-  return designatorResponseMsg;
-}
-
-bool DesignatorWrapper::getObjectDesignators(std::vector<designator_integration::Designator> &objectDesignators)
+bool DesignatorWrapper::getObjectDesignators(std::vector<std::string> &objectDesignators)
 {
   if(!tcas)
   {
     std::cout << "NULL Pointer in DesignatorWrapper::getDesignatorResponse. tcas is not set! Use DesignatorWrapper::setCAS before calling this method" << std::endl;
-    designator_integration::Designator d;
     return false;
   }
 
@@ -78,7 +62,6 @@ bool DesignatorWrapper::getObjectDesignators(std::vector<designator_integration:
 
   now = scene.timestamp();
 
-  designator_integration::Designator res;
 
   std::vector<rs::HandleAnnotation> handles;
   std::vector<rs::ARMarker> arMarkers;
@@ -86,15 +69,17 @@ bool DesignatorWrapper::getObjectDesignators(std::vector<designator_integration:
   scene.annotations.filter(arMarkers);
   for(int i = 0; i < handles.size(); i++)
   {
-    convert(handles[i], res);
-    objectDesignators.push_back(res);
-    res.clear();
+    rapidjson::Document objDesig;
+    objDesig.SetObject();
+    convert(handles[i], objDesig);
+    objectDesignators.push_back(jsonToString(objDesig));
   }
   for(int i = 0; i < arMarkers.size(); i++)
   {
-    convert(arMarkers[i], res);
-    objectDesignators.push_back(res);
-    res.clear();
+    rapidjson::Document objDesig;
+    objDesig.SetObject();
+    convert(arMarkers[i], objDesig);
+    objectDesignators.push_back(jsonToString(objDesig));
   }
 
   if(mode == CLUSTER)
@@ -122,166 +107,264 @@ bool DesignatorWrapper::getObjectDesignators(std::vector<designator_integration:
   return true;
 }
 
-void DesignatorWrapper::convert(rs::Cluster &input, const size_t id, designator_integration::KeyValuePair *object)
+void DesignatorWrapper::convert(rs::Cluster &input, const size_t id, rapidjson::Document *object)
 {
-  object->setValue("id", std::to_string(id));
+  object->AddMember("id", std::to_string(id), object->GetAllocator());
 }
 
-void DesignatorWrapper::convert(rs::Object &input, const size_t id, designator_integration::KeyValuePair *object)
+void DesignatorWrapper::convert(rs::Object &input, const size_t id, rapidjson::Document *object)
 {
-  //  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("RESOLUTION");
+  //  rapidjson::Document *valuePair = new rapidjson::Document("RESOLUTION");
   //  valuePair->setValue("ID", id);
   //  valuePair->setValue("LASTSEEN", now - input.lastSeen());
   //  object->addChild(valuePair);
-  object->setValue("id", std::to_string(id));
-  object->setValue("uid", input.uid());
+  object->AddMember("id", std::to_string(id), object->GetAllocator());
+  object->AddMember("uid", input.uid(), object->GetAllocator());
 }
 
-void DesignatorWrapper::convert(rs::Detection &input, designator_integration::KeyValuePair *object)
+void DesignatorWrapper::convert(rs::Detection &input, rapidjson::Document *object)
 {
-  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("class");
-  valuePair->setValue("confidence", input.confidence());
-  valuePair->setValue("source", input.source());
-  valuePair->setValue("name", input.name());
-  object->addChild(valuePair);
+  rapidjson::Value nestedValue;
+  nestedValue.SetObject();
+  nestedValue.AddMember("confidence", input.confidence(), object->GetAllocator());
+  nestedValue.AddMember("source", input.source(), object->GetAllocator());
+  nestedValue.AddMember("name", input.name(), object->GetAllocator());
+
+  object->AddMember("detection", nestedValue, object->GetAllocator());
 }
 
-void DesignatorWrapper::convert(rs::TFLocation &input, designator_integration::KeyValuePair *object)
+void DesignatorWrapper::convert(rs::Classification &input, rapidjson::Document *object)
 {
-  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("location");
-  valuePair->setValue("relation", input.reference_desc());
-  valuePair->setValue("frame", input.frame_id());
-  object->addChild(valuePair);
+  rapidjson::Value nestedValue;
+  nestedValue.SetObject();
+  nestedValue.AddMember("class-name", input.classname(), object->GetAllocator());
+  nestedValue.AddMember("source", input.source(), object->GetAllocator());
+  std::vector<rs::ClassConfidence> confs = input.confidences();
+  for(auto c : confs)
+    if(c.name() == input.classname())
+      nestedValue.AddMember("confidence", c.score(), object->GetAllocator());
+
+  object->AddMember("class", nestedValue, object->GetAllocator());
 }
 
-void DesignatorWrapper::convert(rs::Segment &input, designator_integration::KeyValuePair *object)
+void DesignatorWrapper::convert(rs::TFLocation &input, rapidjson::Document *object)
 {
-  designator_integration::KeyValuePair *dimensions = new designator_integration::KeyValuePair("dimensions-2D");
-  dimensions->setValue("width", input.lengthX());
-  dimensions->setValue("height", input.lengthY());
+  rapidjson::Value nestedValue;
+  nestedValue.SetObject();
+  nestedValue.AddMember("relation", input.reference_desc(), object->GetAllocator());
+  nestedValue.AddMember("frame", input.frame_id(), object->GetAllocator());
 
-  designator_integration::KeyValuePair *seg = new designator_integration::KeyValuePair("segment");
-  //seg->setValue("POSE", pose_stamped_msgs);
-  seg->addChild(dimensions);
-
-  object->addChild(seg);
+  object->AddMember("location", nestedValue, object->GetAllocator());
 }
 
-void DesignatorWrapper::convert(rs::Geometry &input, designator_integration::KeyValuePair *object)
+void DesignatorWrapper::convert(rs::Segment &input, rapidjson::Document *object)
+{
+  rapidjson::Value nestedValue, segment;
+  nestedValue.SetObject();
+  nestedValue.AddMember("width", input.lengthX(), object->GetAllocator());
+  nestedValue.AddMember("height", input.lengthY(), object->GetAllocator());
+
+  segment.SetObject();
+  segment.AddMember("dimensions-2D", nestedValue, object->GetAllocator());
+
+  object->AddMember("segment", segment, object->GetAllocator());
+}
+
+void DesignatorWrapper::convert(geometry_msgs::PoseStamped &pose, rapidjson::Document *object, rapidjson::MemoryPoolAllocator<> &alloc)
+{
+
+  rapidjson::Value headerKey("header", alloc);
+  rapidjson::Value headerVal(rapidjson::kObjectType);
+  headerVal.AddMember("seq", pose.header.seq, alloc);
+
+  rapidjson::Value stampKey("stamp", alloc);
+  rapidjson::Value stampVal(rapidjson::kObjectType);
+  stampVal.AddMember("sec", pose.header.stamp.sec, alloc);
+  stampVal.AddMember("nsec", pose.header.stamp.nsec, alloc);
+
+  headerVal.AddMember(stampKey, stampVal, alloc);
+  headerVal.AddMember("frame_id", pose.header.frame_id, alloc);
+
+  rapidjson::Value poseKey("pose", alloc);
+  rapidjson::Value poseVal(rapidjson::kObjectType);
+
+  rapidjson::Value positionKey("position", alloc);
+  rapidjson::Value positionVal(rapidjson::kObjectType);
+
+  positionVal.AddMember("x", pose.pose.position.x, alloc);
+  positionVal.AddMember("y", pose.pose.position.y, alloc);
+  positionVal.AddMember("z", pose.pose.position.z, alloc);
+
+  poseVal.AddMember(positionKey, positionVal, alloc);
+
+  rapidjson::Value orientationKey("orientation", alloc);
+  rapidjson::Value orientationVal(rapidjson::kObjectType);
+  orientationVal.AddMember("x", pose.pose.orientation.x, alloc);
+  orientationVal.AddMember("y", pose.pose.orientation.y, alloc);
+  orientationVal.AddMember("z", pose.pose.orientation.z, alloc);
+  orientationVal.AddMember("w", pose.pose.orientation.w, alloc);
+
+  poseVal.AddMember(orientationKey, orientationVal, alloc);
+
+
+  object->AddMember(headerKey, headerVal, alloc);
+  object->AddMember(poseKey, poseVal, alloc);
+}
+
+void DesignatorWrapper::convert(rs::Geometry &input, rapidjson::Document *object)
 {
   rs::BoundingBox3D bb = input.boundingBox();
 
   tf::Stamped<tf::Pose> tf_stamped_pose;
-  geometry_msgs::PoseStamped pose_stamped_msgs;
+  geometry_msgs::PoseStamped pose;
   rs::conversion::from(input.camera(), tf_stamped_pose);
-  tf::poseStampedTFToMsg(tf_stamped_pose, pose_stamped_msgs);
+  tf::poseStampedTFToMsg(tf_stamped_pose, pose);
 
-  designator_integration::KeyValuePair *dimensions = new designator_integration::KeyValuePair("dimensions-3D");
-  dimensions->setValue("width", bb.width());
-  dimensions->setValue("height", bb.height());
-  dimensions->setValue("depth", bb.depth());
+  rapidjson::Value nestedValue;
+  rapidjson::Document boundingBox;
+  boundingBox.SetObject();
+  nestedValue.SetObject();
+  nestedValue.AddMember("width", bb.width(), object->GetAllocator());
+  nestedValue.AddMember("height", bb.height(), object->GetAllocator());
+  nestedValue.AddMember("depth", bb.depth(), object->GetAllocator());
 
-  designator_integration::KeyValuePair *box = new designator_integration::KeyValuePair("boundingbox");
-  box->setValue("pose", pose_stamped_msgs);
-  box->setValue("size", input.size());
-  box->setValue("dist-to-plane", input.distanceToPlane());
-  box->addChild(dimensions);
+  boundingBox.AddMember("dimensions-3D", nestedValue, object->GetAllocator());
+  boundingBox.AddMember("size", input.size(), object->GetAllocator());
+  boundingBox.AddMember("dist-to-plane", input.distanceToPlane(), object->GetAllocator());
 
-  object->addChild(box);
+  rapidjson::Document jsonPose;
+  jsonPose.SetObject();
+  convert(pose, &jsonPose, object->GetAllocator());
+  rapidjson::Value poseKey("pose", object->GetAllocator());
+  boundingBox.AddMember(poseKey, jsonPose, object->GetAllocator());
+
+  rapidjson::Value boundingKey("boundingbox", object->GetAllocator());
+  object->AddMember(boundingKey, boundingBox, object->GetAllocator());
+
 }
 
-void DesignatorWrapper::convert(rs::Shape &input, designator_integration::KeyValuePair *object)
+void DesignatorWrapper::convert(rs::Shape &input, rapidjson::Document *object)
 {
-  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("shape");
-  valuePair->setValue(input.shape());
-  object->addChild(valuePair);
+  if(!object->HasMember("shape"))
+  {
+    rapidjson::Pointer("/shape/0").Set(*object, input.shape());
+  }
+  else
+  {
+    rapidjson::Value &array = (*object)["shape"];
+    std::string size = std::to_string(array.Size());
+    outInfo(size);
+    rapidjson::Pointer("/shape/" + size).Set(*object, input.shape());
+  }
+  //object->AddMember("shape",input.shape(),object->GetAllocator());
 }
 
-void DesignatorWrapper::convert(rs::PoseAnnotation &input, designator_integration::KeyValuePair *object)
+void DesignatorWrapper::convert(rs::PoseAnnotation &input, rapidjson::Document *object)
 {
-  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("pose");
-
   tf::Stamped<tf::Pose> tf_stamped_pose;
   geometry_msgs::PoseStamped pose_stamped_msgs;
   rs::conversion::from(input.camera(), tf_stamped_pose);
 
-  //  tf::StampedTransform transf(tf::Transform(tf_stamped_pose.getRotation(),tf_stamped_pose.getOrigin()),tf_stamped_pose.stamp_,tf_stamped_pose.frame_id_,"");
-  //  transf.child_frame_id_ = "";
-  //  geometry_msgs::TransformStamped transf_stamped_msg;
-
-
   tf::poseStampedTFToMsg(tf_stamped_pose, pose_stamped_msgs);
-  //  tf::transformStampedTFToMsg(transf,transf_stamped_msg);
 
-  //  valuePair->setValue("transform", transf_stamped_msg);
+  rapidjson::Document nestedValue(&object->GetAllocator());
+  nestedValue.SetObject();
+  nestedValue.AddMember("source", input.source(), object->GetAllocator());
 
-  valuePair->setValue("pose", pose_stamped_msgs);
-  valuePair->setValue("source", input.source());
-  uint64_t diff= now - tf_stamped_pose.stamp_.toNSec();
-  outWarn("Time diff in poses: "<<diff);
+  rapidjson::Document poseJsonObj(&object->GetAllocator());
+  poseJsonObj.SetObject();
+  convert(pose_stamped_msgs, &poseJsonObj, object->GetAllocator());
+  nestedValue.AddMember("pose_stamped", poseJsonObj, object->GetAllocator());
+
+  uint64_t diff = now - tf_stamped_pose.stamp_.toNSec();
+  outWarn("Time diff in poses: " << diff);
   if(diff == 0)
   {
-    object->addChild(valuePair);
+    if(!object->HasMember("poses"))
+    {
+      rapidjson::Pointer("/poses/0").Set(*object, nestedValue);
+    }
+    else
+    {
+      rapidjson::Value &array = (*object)["poses"];
+      std::string size = std::to_string(array.Size());
+      rapidjson::Pointer("/poses/" + size).Set(*object, nestedValue);
+    }
+    //object->AddMember("pose", nestedValue, object->GetAllocator());
   }
 }
 
-void DesignatorWrapper::convert(rs::SemanticColor &input, designator_integration::KeyValuePair *object)
+void DesignatorWrapper::convert(rs::SemanticColor &input, rapidjson::Document *object)
 {
   const std::vector<std::string> &colors = input.color();
   const std::vector<float> &ratios = input.ratio();
-  designator_integration::KeyValuePair *valuePairs = new designator_integration::KeyValuePair("color");
+
+  rapidjson::Value nestedValue;
+  nestedValue.SetObject();
+
   for(size_t i = 0; i < colors.size(); ++i)
   {
-    const std::string &color = colors[i];
     const float &ratio = ratios[i];
-    valuePairs->setValue(color, ratio);
+    if(ratio > 0.1)
+    {
+      rapidjson::Value v(colors[i].c_str(), object->GetAllocator());
+      nestedValue.AddMember(v, ratio, object->GetAllocator());
+    }
   }
-  object->addChild(valuePairs);
+  object->AddMember("color", nestedValue, object->GetAllocator());
 }
 
-void DesignatorWrapper::convert(rs::MLNAtoms &input, designator_integration::KeyValuePair *object)
+void DesignatorWrapper::convert(rs::MLNAtoms &input, rapidjson::Document *object)
 {
   const std::vector<std::string> &atoms = input.atoms();
-  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("mln-atoms");
+
+  rapidjson::Document *nestedValue = new rapidjson::Document();
+
+  rapidjson::Value atomArray;
+  atomArray.SetArray();
 
   for(size_t i = 0; i < atoms.size(); ++i)
   {
-    designator_integration::KeyValuePair *temp = new designator_integration::KeyValuePair("atom");
     std::stringstream id;
+    rapidjson::Value atom;
+    atom.SetObject();
     id << "atom_ " << i;
-    temp->setValue(id.str(), atoms[i]);
-    valuePair->addChild(temp);
+    rapidjson::Value v(id.str().c_str(), nestedValue->GetAllocator());
+    rapidjson::Value value(atoms[i], nestedValue->GetAllocator());
+    atom.AddMember(v, value, nestedValue->GetAllocator());
+    atomArray.PushBack(atom, nestedValue->GetAllocator());
   }
-  object->addChild(valuePair);
+  nestedValue->AddMember("atom", atomArray, nestedValue->GetAllocator());
+  mergeJson(*object, *nestedValue, "mln-atoms");
 }
 
-void DesignatorWrapper::convert(rs::NamedLink &input, designator_integration::KeyValuePair *object)
+void DesignatorWrapper::convert(rs::NamedLink &input, rapidjson::Document *object)
 {
-  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("namedlink");
-  valuePair->setValue("name", input.name());
-  valuePair->setValue("url", input.url());
-  object->addChild(valuePair);
+  rapidjson::Value nestedValue;
+  nestedValue.SetObject();
+  nestedValue.AddMember("name", input.name(), object->GetAllocator());
+  nestedValue.AddMember("url", input.url(), object->GetAllocator());
+  object->AddMember("namedlink", nestedValue, object->GetAllocator());
 }
 
-void DesignatorWrapper::convert(rs::Goggles &input, designator_integration::KeyValuePair *object)
+void DesignatorWrapper::convert(rs::Goggles &input, rapidjson::Document *object)
 {
-  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("goggles");
-  valuePair->setValue("category", input.category());
-  valuePair->setValue("title", input.title());
-  valuePair->setValue("preview-link", input.preview_link());
+  rapidjson::Document nestedValue;
+  nestedValue.SetObject();
+  nestedValue.AddMember("category", input.category(), nestedValue.GetAllocator());
+  nestedValue.AddMember("title", input.title(), nestedValue.GetAllocator());
+  nestedValue.AddMember("preview-link", input.preview_link(), nestedValue.GetAllocator());
 
   std::vector<rs::NamedLink> namedlinks = input.links();
-  designator_integration::KeyValuePair *links = new designator_integration::KeyValuePair("namedlinks");
+  rapidjson::Document *links = new rapidjson::Document();
   convertAll(namedlinks, links);
-  valuePair->addChild(links);
 
-  object->addChild(valuePair);
+  mergeJson(nestedValue, *links, "namedlinks");
+  mergeJson(*object, nestedValue, "goggles");
 }
 
-void DesignatorWrapper::convert(rs::Features &input, designator_integration::KeyValuePair *object)
+void DesignatorWrapper::convert(rs::Features &input, rapidjson::Document *object)
 {
-  designator_integration::KeyValuePair *valuePair = new designator_integration::KeyValuePair("response");
-
   std::vector<rs::Response> resps = input.response();
   if(resps.empty())
   {
@@ -297,36 +380,41 @@ void DesignatorWrapper::convert(rs::Features &input, designator_integration::Key
     return;
   }
 
-  valuePair->setValue(classes[(size_t)respM.at<float>(0)]);
-  object->addChild(valuePair);
+  object->AddMember("response", classes[(size_t)respM.at<float>(0)], object->GetAllocator());
 }
 
-void DesignatorWrapper::convert(rs::ClusterPart &input, designator_integration::KeyValuePair *object)
+void DesignatorWrapper::convert(rs::ClusterPart &input, rapidjson::Document *object)
 {
-  designator_integration::KeyValuePair *part = new designator_integration::KeyValuePair(std::to_string(input.clID()));
+  rapidjson::Document nestedValue;
+  nestedValue.SetObject();
 
   tf::Stamped<tf::Pose> tf_stamped_pose;
-  geometry_msgs::PoseStamped pose_stamped_msgs;
+  geometry_msgs::PoseStamped pose;
   rs::conversion::from(input.pose(), tf_stamped_pose);
-  tf::poseStampedTFToMsg(tf_stamped_pose, pose_stamped_msgs);
-  part->setValue("name", input.name());
-  part->setValue("pose", pose_stamped_msgs);
-  object->addChild(part);
+  tf::poseStampedTFToMsg(tf_stamped_pose, pose);
+  nestedValue.AddMember("name", input.name(), nestedValue.GetAllocator());
 
+  char poseJson [300];
+  std::sprintf(poseJson, "{\"header\":{\"seq\":%d,\"stamp\":{\"sec\":%d,\"nsec\":%d},\"frame_id\":\"%s\"},\"pose\":{\"position\":{\"x\":%f,\"y\":%f,\"z\":%f},\"orientation\":{\"x\":%f,\"y\":%f,\"z\":%f,\"w\":%f}}}",
+               pose.header.seq, pose.header.stamp.sec, pose.header.stamp.nsec, pose.header.frame_id.c_str(),
+               pose.pose.position.x, pose.pose.position.y, pose.pose.position.z, pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z, pose.pose.orientation.w);
+  rapidjson::Document poseJsonObj;
+  poseJsonObj.Parse(poseJson);
+  mergeJson(nestedValue, poseJsonObj, "pose");
+  mergeJson(*object, nestedValue, std::to_string(input.clID()));
 }
 
-/*void DesignatorWrapper::convert(rs_demos::Volume &input, designator_integration::KeyValuePair *object)
+/*void DesignatorWrapper::convert(rs_demos::Volume &input, rapidjson::Document *object)
 {
-  designator_integration::KeyValuePair *volume = new designator_integration::KeyValuePair("volume");
-  volume->setValue(input.volume());
-  object->addChild(volume);
+  object->AddMember("volume",input.volume(),object->GetAllocator());
 }*/
 
-/*void DesignatorWrapper::convert(rs_demos::Substance &input, designator_integration::KeyValuePair *object)
+/*void DesignatorWrapper::convert(rs_demos::Substance &input, rapidjson::Document *object)
 {
-  designator_integration::KeyValuePair *substance = new designator_integration::KeyValuePair("contains");
-  substance->setValue("substance", input.substanceName());
-  object->addChild(substance);
+  rapidjson::Value substance;
+  substance.SetObject();
+  substance.AddMember("substance",input.substanceName(),object->GetAllocator());
+  object->AddMember("contains",substance,object->GetAllocator());
 }*/
 
 iai_robosherlock_msgs::PerceivedObjects DesignatorWrapper::getObjectsMsgs()
@@ -334,91 +422,70 @@ iai_robosherlock_msgs::PerceivedObjects DesignatorWrapper::getObjectsMsgs()
   return objects_;
 }
 
-void DesignatorWrapper::convert(rs::ARMarker &input, designator_integration::Designator &arDesignator)
+
+void DesignatorWrapper::convert(rs::ARMarker &input, rapidjson::Document &arDesignator)
 {
-  arDesignator.setValue("type", "armarker");
-  arDesignator.setValue("id", input.name());
+  arDesignator.AddMember("type", "armarker", arDesignator.GetAllocator());
+  arDesignator.AddMember("id", input.name(), arDesignator.GetAllocator());
 
   tf::Stamped<tf::Pose> tf_stamped_pose;
-  geometry_msgs::PoseStamped pose_stamped_msgs;
+  geometry_msgs::PoseStamped pose;
   rs::conversion::from(input.pose(), tf_stamped_pose);
-  tf::poseStampedTFToMsg(tf_stamped_pose, pose_stamped_msgs);
-  arDesignator.setValue("pose", pose_stamped_msgs);
-  //  res.designators.push_back(arDesignator.serializeToMessage());
+  tf::poseStampedTFToMsg(tf_stamped_pose, pose);
 
+  char *poseJson = NULL;
+  std::sprintf(poseJson, "{\"header\":{\"seq\":%d,\"stamp\":{\"sec\":%d,\"nsec\":%d},\"frame_id\":\"%s\"},\"pose\":{\"position\":{\"x\":%f,\"y\":%f,\"z\":%f},\"orientation\":{\"x\":%f,\"y\":%f,\"z\":%f,\"w\":%f}}}",
+               pose.header.seq, pose.header.stamp.sec, pose.header.stamp.nsec, pose.header.frame_id.c_str(),
+               pose.pose.position.x, pose.pose.position.y, pose.pose.position.z, pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z, pose.pose.orientation.w);
+  rapidjson::Document poseJsonObj;
+  poseJsonObj.Parse(poseJson);
+  mergeJson(arDesignator, poseJsonObj, "pose");
 }
 
 void DesignatorWrapper::convert(rs::HandleAnnotation &input,
-                                designator_integration::Designator &handleDesignator)
+                                rapidjson::Document &handleDesignator)
 {
-  handleDesignator.setValue("handle", input.name());
+  handleDesignator.AddMember("handle", input.name(), handleDesignator.GetAllocator());
   tf::Stamped<tf::Pose> tf_stamped_pose;
-  geometry_msgs::PoseStamped pose_stamped_msgs;
+  geometry_msgs::PoseStamped pose;
   rs::conversion::from(input.pose(), tf_stamped_pose);
-  tf::poseStampedTFToMsg(tf_stamped_pose, pose_stamped_msgs);
-  handleDesignator.setValue("pose", pose_stamped_msgs);
+  tf::poseStampedTFToMsg(tf_stamped_pose, pose);
+
+  char poseJson [300];
+  std::sprintf(poseJson, "{\"header\":{\"seq\":%d,\"stamp\":{\"sec\":%d,\"nsec\":%d},\"frame_id\":\"%s\"},\"pose\":{\"position\":{\"x\":%f,\"y\":%f,\"z\":%f},\"orientation\":{\"x\":%f,\"y\":%f,\"z\":%f,\"w\":%f}}}",
+               pose.header.seq, pose.header.stamp.sec, pose.header.stamp.nsec, pose.header.frame_id.c_str(),
+               pose.pose.position.x, pose.pose.position.y, pose.pose.position.z, pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z, pose.pose.orientation.w);
+  rapidjson::Document poseJsonObj;
+  poseJsonObj.Parse(poseJson);
+  mergeJson(handleDesignator, poseJsonObj, "pose");
 }
 
-/*void DesignatorWrapper::convert(rs_demos::Pizza &input, designator_integration::KeyValuePair *object)
-{
-  designator_integration::KeyValuePair *pizza = new designator_integration::KeyValuePair("pizza");
-
-  rs::PoseAnnotation pose = input.pose();
-  convert(pose, pizza);
-
-  designator_integration::KeyValuePair *size = new designator_integration::KeyValuePair("size");
-  size->setValue("width", input.size().width());
-  size->setValue("height", input.size().height());
-  pizza->addChild(size);
-
-  designator_integration::KeyValuePair *gridSize = new designator_integration::KeyValuePair("dimensions");
-  gridSize->setValue("width", input.dimensions().width());
-  gridSize->setValue("height", input.dimensions().height());
-  pizza->addChild(gridSize);
-
-  designator_integration::KeyValuePair *fieldSize = new designator_integration::KeyValuePair("field-size");
-  fieldSize->setValue("width", input.fieldSize().width());
-  fieldSize->setValue("height", input.fieldSize().height());
-  pizza->addChild(fieldSize);
-
-  designator_integration::KeyValuePair *fields = new designator_integration::KeyValuePair("fields");
-  std::vector<rs_demos::PizzaField> fieldsVec = input.fields();
-  for(size_t i = 0; i < fieldsVec.size(); ++i)
-  {
-    rs_demos::PizzaField &inputF = fieldsVec[i];
-    designator_integration::KeyValuePair *field = new designator_integration::KeyValuePair(std::to_string(i));
-
-    rs::PoseAnnotation pose = inputF.pose();
-    convert(pose, field);
-
-    field->setValue("x", inputF.position().x());
-    field->setValue("y", inputF.position().y());
-
-    designator_integration::KeyValuePair *ingredients = new designator_integration::KeyValuePair("ingredient");
-    std::vector<std::string> ingredientsVec = inputF.ingredients();
-    for(size_t j = 0; j < ingredientsVec.size(); ++j)
-    {
-      ingredients->setValue(std::to_string(j), ingredientsVec[j]);
-    }
-    field->setValue("top-ingredient", ingredientsVec[ingredientsVec.size() - 1]);
-    field->addChild(ingredients);
-    fields->addChild(field);
-  }
-  pizza->addChild(fields);
-  object->addChild(pizza);
-}*/
-
 template<>
-void DesignatorWrapper::convertAll(std::vector<rs::ClusterPart> &all, designator_integration::KeyValuePair *object)
+void DesignatorWrapper::convertAll(std::vector<rs::ClusterPart> &all, rapidjson::Document *object)
 {
   if(!all.empty())
   {
-    designator_integration::KeyValuePair *objParts = new designator_integration::KeyValuePair("obj-part");
+    rapidjson::Document *objParts = new rapidjson::Document();
     for(rs::ClusterPart input : all)
     {
       convert(input, objParts);
     }
-    object->addChild(objParts);
+
+    mergeJson(*object, *objParts, "obj-part");
   }
+}
+
+void DesignatorWrapper::mergeJson(rapidjson::Document &destination, rapidjson::Document &source, std::string fieldName)
+{
+  rapidjson::Value fieldNameV(fieldName, destination.GetAllocator());
+  destination.AddMember(fieldNameV, source, destination.GetAllocator());
+}
+
+std::string DesignatorWrapper::jsonToString(rapidjson::Value &res)
+{
+  rapidjson::StringBuffer buffer;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+  res.Accept(writer);
+  return buffer.GetString();
 }
 }

@@ -1,10 +1,7 @@
 #include <rapidjson/document.h>
-#include <designator_integration_msgs/Designator.h>
-#include <designator_integration_msgs/DesignatorCommunication.h>
 
 #include <rs_queryanswering/RSControledAnalysisEngine.h>
 #include <rs_queryanswering/RSProcessManager.h>
-#include <rs_queryanswering/DesignatorWrapper.h>
 
 #include <ros/package.h>
 

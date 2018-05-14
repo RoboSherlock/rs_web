@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(rs_queryanswering)
 
 find_package(catkin REQUIRED tf tf_conversions robosherlock rs_addons 
-			     roslib rospack iai_robosherlock_msgs 
+			     roslib rospack robosherlock_msgs 
 			     image_transport visualization_msgs 
 			     resource_retriever json_prolog)
 
@@ -41,7 +41,7 @@ find_include_dirs(RS_INCLUDE_DIRS_LIST)
 
 catkin_package(
     INCLUDE_DIRS ${RS_INCLUDE_DIRS_LIST} ${SWIPL_INCLUDE_DIRS}
-    CATKIN_DEPENDS iai_robosherlock_msgs json_prolog
+    CATKIN_DEPENDS robosherlock_msgs json_prolog
     LIBRARIES rs_designator_wrapper rs_kbAEmanagement ${SWIPL_LIBRARY_DIRS}
     CFG_EXTRAS ${PROJECT_NAME}_config.cmake
 )
@@ -75,11 +75,8 @@ find_additional_files()
 
 add_library(rs_designator_wrapper SHARED 
 	src/DesignatorWrapper.cpp)
-add_dependencies(rs_designator_wrapper 
-	designator_integration_msgs_gencpp)
 target_link_libraries(rs_designator_wrapper 
 	${catkin_LIBRARIES})
-
 
 add_library(rs_kbAEmanagement 
 	src/RSControledAnalysisEngine.cpp 
@@ -94,7 +91,7 @@ target_link_libraries(rs_kbAEmanagement
 rs_add_executable(runAE 
 	src/runAECpp.cpp)
 add_dependencies(runAE 
-	iai_robosherlock_msgs_gencpp)
+	robosherlock_msgs_gencpp)
 target_link_libraries(runAE 
 	rs_kbAEmanagement ${catkin_LIBRARIES})
 

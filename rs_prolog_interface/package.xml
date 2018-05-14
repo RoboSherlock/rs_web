@@ -13,8 +13,7 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   
-  <depend>designator_integration_msgs</depend>
-  <depend>iai_robosherlock_msgs</depend> 
+  <depend>robosherlock_msgs</depend> 
   <depend>knowrob_common</depend>
   <depend>knowrob_vis</depend>
   <depend>knowrob_actions</depend>

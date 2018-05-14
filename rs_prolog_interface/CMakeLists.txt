@@ -4,7 +4,7 @@ project(rs_prolog_interface)
 
 find_package(catkin REQUIRED rosjava_build_tools rosprolog
              designator_integration_msgs knowrob_common knowrob_actions knowrob_srdl
-             tf tf_conversions knowrob_vis json_prolog iai_robosherlock_msgs)
+             tf tf_conversions knowrob_vis json_prolog robosherlock_msgs)
 
 #catkin_rosjava_setup(installApp publishMavenJavaPublicationToMavenRepository writeClasspath)
 
@@ -27,7 +27,7 @@ endif()
 
 
 catkin_package(
-    DEPENDS designator_integration_msgs iai_robosherlock_msgs 
+    DEPENDS robosherlock_msgs 
 )
 
 ###########

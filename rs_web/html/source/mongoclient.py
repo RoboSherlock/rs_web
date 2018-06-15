@@ -18,7 +18,7 @@ import time
 
 
 class MongoWrapper(object):
-    def __init__(self, dbname="PnP25ObjSymbolicGT"):
+    def __init__(self, dbname="IJRRScenes"):
         self.client = MongoClient()
         self.db = self.client[dbname]
         self.active_collection = None

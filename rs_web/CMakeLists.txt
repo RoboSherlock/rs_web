@@ -8,7 +8,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra")
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   robosherlock_knowrob roscpp rospack roslib
-  rosprolog
+  rosprolog robosherlock_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -25,7 +25,7 @@ find_package(Boost REQUIRED ${BOOST_COMPONENTS})
 catkin_package(
   INCLUDE_DIRS include
 #  LIBRARIES rs_web
-#  CATKIN_DEPENDS knowrob_robosherlock rosprolog
+  CATKIN_DEPENDS robosherlock_msgs
 #  DEPENDS system_lib
 )
 

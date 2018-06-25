@@ -204,13 +204,20 @@ function Knowrob(options){
       var desig_listener = new ROSLIB.Topic({
         ros : ros,
         name : '/RoboSherlock/result_advertiser',
-        messageType : 'std_msgs/String'
+        messageType : 'robosherlock_msgs/RSObjectDescriptions'
       });
       desig_listener.subscribe(function(message) {
-          var obj = JSON.parse(message.data);
-          document.getElementById(designatorDiv).innerHTML = "";
+
+        document.getElementById(designatorDiv).innerHTML = "";
+        var i;
+        for (i = 0; i < message.obj_descriptions.length; i++) { 
+          var obj = JSON.parse(message.obj_descriptions[i]);
           document.getElementById(designatorDiv).appendChild(document.createTextNode(JSON.stringify(obj, null, 4)));
-          $('#'+designatorDiv).change();
+          document.getElementById(designatorDiv).appendChild(document.createTextNode(" \n"));
+
+        }
+        $('#'+designatorDiv).change();
+
        // }
       });
       

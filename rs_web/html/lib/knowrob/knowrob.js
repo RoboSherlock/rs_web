@@ -200,7 +200,7 @@ function Knowrob(options){
 //         rootObject : rosViewer.scene,        
 //         path : meshPath,
 //       });
-
+        
       var desig_listener = new ROSLIB.Topic({
         ros : ros,
         name : '/RoboSherlock/result_advertiser',
@@ -211,10 +211,20 @@ function Knowrob(options){
         document.getElementById(designatorDiv).innerHTML = "";
         var i;
         for (i = 0; i < message.obj_descriptions.length; i++) { 
-          var obj = JSON.parse(message.obj_descriptions[i]);
-          document.getElementById(designatorDiv).appendChild(document.createTextNode(JSON.stringify(obj, null, 4)));
-          document.getElementById(designatorDiv).appendChild(document.createTextNode(" \n"));
-
+	      
+        var obj = JSON.parse(message.obj_descriptions[i]);
+        newcontent = document.createElement('p');    
+        newContentID = "Objdescription"+i;
+        newcontent.setAttribute("id",newContentID);
+        newcontent.setAttribute("style","margin: 15px");
+            
+        newcontent2 = document.createElement('p');
+        newcontent2.innerHTML = "Description of Obj#"+i;
+        
+        document.getElementById(designatorDiv).appendChild(newcontent2);   
+        document.getElementById(designatorDiv).appendChild(newcontent);
+ 
+        $('#'+newContentID).jsonViewer(obj,{collapsed: true}); 
         }
         $('#'+designatorDiv).change();
 
@@ -650,9 +660,9 @@ function Knowrob(options){
 
     // fill the select with json data from url
     this.populate_query_select = function (id,isSel,queries) {
-	idx = document.getElementById(isSel).selectedIndex;
+//	idx = document.getElementById(isSel).selectedIndex;
         if(queries == undefined) {
-            var episodeData = that.get_episode_data(idx);
+            var episodeData = that.get_episode_data(0);
             if(!episodeData) return;
             queries = episodeData.query;
         }

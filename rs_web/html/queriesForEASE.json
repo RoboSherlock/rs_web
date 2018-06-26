@@ -5,7 +5,7 @@
 	    "text":""
 	},	
 	{
-            "q":"owl_parse('package://iai_semantic_maps/owl/kitchen.owl'),owl_individual_of(A, knowrob:'SemanticEnvironmentMap'),add_object_with_children(A).",
+            "q":"owl_parse('package://iai_semantic_maps/owl/kitchen.owl'),owl_individual_of(A, knowrob:'SemanticEnvironmentMap'),show(A),marker_publish.",
             "text":"Load semantic map"
         },
 	{
@@ -13,37 +13,28 @@
 	    "text":"-------------"
 	},
         {
-            "q":"detect([an, object,[shape,box],[color,yellow]]).",
-            "text":"Detect a yellow box."
-        },
-	
-        {
-            "q":"detect([an, object,[type,'Cup']]).",
-            "text":"Detect Cup."
-        },
-        {
             "q":"detect([an, object,[type,'Bowl']]).",
             "text":"Detect the bowl."
-        },
-        {
-            "q":"detect([an, object,[type,'Spoon']]).",
-            "text":"Detect spoon."
         },
         {
             "q":"detect([an, object,[type,'BreakfastCereal']]).",
             "text":"Detect Cereal."
         },
         {
-            "q":"detect([an, object,[type,'Container']]).",
-            "text":"Detect all containers."
-        },
-	{
-		"q":"rs_render_view('rgb').",
-		"text":"Offscreen render the belief state."
+	    "q":"detect([an, object, [obj-part,handle_sinkblock_drawer_upper]]).",
+	    "text":"Detect a specific handle"
 	},
-	{
-		"q":"rs_render_view('mask').",
-		"text":"Show the object masks"
-	}
+        {
+	    "q":"detect([an, object, [type, 'Milk'],[location,drawer_fridge_upper_interior]]).",
+            "text":"Detect a milk in the refirdgerator."
+ 	},
+        {
+            "q":"detect([an, object,[type,'Cup']]).",
+            "text":"Detect Cup."
+        },
+        {
+            "q":"detect([an, object,[type,'Spoon']]).",
+            "text":"Detect spoon."
+        }
     ]
 }

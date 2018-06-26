@@ -7,7 +7,8 @@
   <link rel="stylesheet" type="text/css" href="static/style/layout-default-1.4.0.css" />
   <link rel="stylesheet" type="text/css" href="static/style/bootstrap.css">
   <link rel="stylesheet" type="text/css" href="static/style/user.css"/>
-
+  <link rel="stylesheet" type="text/css" href="lib/json-viewer/json-viewer.css"/>
+  
   <script type="text/javascript" src="lib/myScripts.js"></script>
 
   <script type="text/javascript" src="lib/ace/ace.js"></script>
@@ -30,8 +31,9 @@
   <script type="text/javascript" src="lib/ros/KeepAlivePublisher.js"></script>
   
   <script type="text/javascript" src="lib/ros/roslibjs/roslib.js"></script>
+     
+  <script type ="text/javascript" src = "lib/json-viewer/jsquery.json-viewer.js"></script>
     
-  <script type="text/javascript" src="lib/knowrob/desig.js"></script>
   <script type="text/javascript" src="lib/knowrob/knowrob.js"></script>
   
   <script type="text/javascript">
@@ -150,10 +152,12 @@
         </div>
       </div>
       <div id="library">
+<!--
       <select id = "querylistselector" name = "querylistselector" style="width:inherit" id="querySelect" onchange="knowrob.populate_query_select('examplequery','querylistselector')">
-	  <option value="LiveEase">Ease Symposium Live</option>
+	  <option value="LiveEase">Ease Milestone Live</option>
 	  <option value="LogsEASE">Ease Symposium Logs</option>
 	</select>
+-->
        <select onclick="knowrob.add_selected_to_queryform('examplequery')" 
           size="20" name="examplequery" id="examplequery"><option value=0></option>
         </select>	

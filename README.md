@@ -1,4 +1,7 @@
-# rs_kbreasoning
+# rs_web
+
+A web frontend for interacting with RoboSherlock and inspecting results.
+
 
 ##Dependencies:
 * Knowrob (http://www.knowrob.org)

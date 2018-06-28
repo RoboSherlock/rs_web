@@ -13,11 +13,11 @@
 	    "text":"-------------"
 	},
         {
-            "q":"detect([an, object,[type,'Bowl']]).",
+            "q":"detect([an, object,[type,'Bowl'],[location,kitchen_island_counter_top]]).",
             "text":"Detect the bowl."
         },
         {
-            "q":"detect([an, object,[type,'BreakfastCereal']]).",
+            "q":"detect([an, object,[type,'BreakfastCereal'],[location, kitchen_sink_block_counter_top]]).",
             "text":"Detect Cereal."
         },
         {
@@ -25,7 +25,7 @@
 	    "text":"Detect a specific handle"
 	},
         {
-	    "q":"detect([an, object, [type, 'Milk'],[location,drawer_fridge_upper_interior]]).",
+	    "q":"detect([an, object, [type, 'Milk'],[location,drawer_fridge_upper_interior]]),marker_hide(object('http://knowrob.org/kb/IAI-kitchen.owl#iai_kitchen_fridge_door')),marker_publish.",
             "text":"Detect a milk in the refirdgerator."
  	},
         {

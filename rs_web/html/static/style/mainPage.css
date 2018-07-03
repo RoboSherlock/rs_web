@@ -3,7 +3,7 @@ html,body {
 	padding:5;
 	height: -o-calc(100% - 50px); /* opera */
     height: -webkit-calc(100% - 60px); /* google, safari */
-    height: -moz-calc(100% - 60px); /* firefox */
+    height: calc(100% - 50px); /* firefox */
     background: #606060;
 }
 

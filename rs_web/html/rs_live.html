@@ -42,13 +42,14 @@
     
     $(document).ready(function () {
       knowrob = new Knowrob({
-         // ros_url : 'ws://192.168.100.199:9090'
           ros_url : 'ws://localhost:9090'
       });
       knowrob.init();
       $('#container').layout({
         stateManagement__enabled: true,
         south: {
+          //BOTTOM-BANNER (funding locations)
+          initClosed: false,    
           minSize: 60
         },
         west: {
@@ -71,7 +72,7 @@
             }
           }
         },
-       center: {
+        center: {
           // INNER-LAYOUT
           childOptions: {
             center: {
@@ -82,9 +83,9 @@
               minSize: 250
             },
             south: {
-              paneSelector: "#mjpeg2",
+              paneSelector: "#partialResults",
               initClosed: true,
-              minSize: 150
+              minSize: 250
             }
           }
         },
@@ -123,17 +124,40 @@
   <div class="container" id="container" style="padding-left:15px; margin-top: 0px;">
   
     <div class="ui-layout-center" id="editor-container">
-      <div id="markers">
-<!--	<input type="button" id="myButton" onclick="myFunction(this)" value="gzweb off"></input>-->
-      </div>
-      
-      <!--div id="gzweb" style="display:none;">
-	<input type="button" id="myButton" onclick="myFunction(this)" value="gzweb on"></input>
-      </div-->
-<!--       <div id="chart"></div> -->
-      <div id="mjpeg2">
-	<img align=center src="http://localhost:8080/stream?topic=/RoboSherlock/rendered_image" height ="100%"/>
-      </div>
+      <div id="markers"></div>
+      <div id= "partialResults" style="display:flex">
+
+<div id="wrap_annotator_control">
+    <div id="wrap_annotator_control_left">
+            <img id="annotator_results_img" src="http://localhost:8080/stream?topic=/RoboSherlock/output_image" />  
+    </div>
+    <div id="wrap_annotator_control_right">
+        <div id="rs_input_form">
+           <div class="dropdown">
+<!--               <button onclick="myFunction()" class="annotator_control_buttons">Dropdown</button>-->
+                
+              <input type="text" placeholder="AnnotatorName:[option]" id="myInput" onkeyup="filterFunction()" onclick="myFunction()">
+               <div id="myDropdown" class="dropdown-content">
+<!--
+                    <a href="#about">About</a>
+                    <a href="#base">Base</a>
+                    <a href="#blog">Blog</a>
+                    <a href="#contact">Contact</a>
+                    <a href="#custom">Custom</a>
+                    <a href="#support">Support</a>
+                    <a href="#tools">Tools</a>
+-->
+                </div>
+            </div>
+           <button class="annotator_control_buttons">Set</button>
+            <div>
+                <button class="annotator_control_buttons">Next</button>
+                <button class="annotator_control_buttons">Previous</button>
+            </div>
+        </div>
+    </div>
+</div>      
+      </div>         
     </div>
 
     <div class="ui-layout-west">
@@ -167,7 +191,7 @@
     <div class="ui-layout-east">
       <div id="designator"></div>
       <div id="mjpeg">
-        <img align=center src="http://localhost:8080/stream?topic=/RoboSherlock/result_image" height="100%" />
+        <img align=center src="http://localhost:8080/stream?topic=/RoboSherlock/result_image" height="100%" width=100%/>
       </div>
     </div>
     

@@ -11,6 +11,9 @@ function Knowrob(options){
     // global ROS handle
     var ros = undefined;
     
+    // annotator changer service
+    var annotatorResultsControl = undefined;
+    
     // URL for ROS server
     var rosURL = options.ros_url || 'ws://localhost:9090';
     
@@ -54,6 +57,7 @@ function Knowrob(options){
     var libSelectDiv  = options.lib_sel_div || 'querylistselector'
     var queryDiv      = options.query_div || 'user_query'
     var nextButtonDiv = options.next_button_div || 'btn_query_next'
+    var annotatorListDiv = options.annotator_list_div || 'myDropdown'
     
     var imageWidth = function() { return 0.0; };
     var imageHeight = function() { return 0.0; };
@@ -111,7 +115,7 @@ function Knowrob(options){
         transThres : 0.01,
         rate : 10.0,
         fixedFrame : 'map'
-      });    
+      });
 
       this.setup_autocompletion();
       this.setup_history_field();
@@ -200,88 +204,68 @@ function Knowrob(options){
 //         rootObject : rosViewer.scene,        
 //         path : meshPath,
 //       });
+     
+      var activeAnnotatorListListener = new ROSLIB.Topic({
+         ros: ros, 
+         name: '/RoboSherlock/vis/active_annotators',
+         messageType: 'robosherlock_msgs/RSActiveAnnotatorList'  
+      });    
+        
+      activeAnnotatorListListener.subscribe( function(message) {
+          document.getElementById(annotatorListDiv).innerHTML ="";
+          var i;
+          for (i = 0; i < message.annotators.length; i++) {
+              newcontent = document.createElement('a');  
+              newcontent.setAttribute("href",'#'+message.annotators[i]);
+              newcontent.setAttribute("id",'myAnnotListElement');
+              newcontent.setAttribute("onclick",'knowrob.setAnnotatorSelection()');
+              newcontent.innerHTML=message.annotators[i];
+              newcontent.onclick = function() {
+                    document.getElementById('myInput').value = this.innerHTML;
+                    document.getElementById('myDropdown').className='dropdown-content';
+//                    $('#myInput').change();
+              };
+              document.getElementById(annotatorListDiv).appendChild(newcontent);
+          }
+          $('#'+annotatorListDiv).change();
+      });  
         
       var desig_listener = new ROSLIB.Topic({
         ros : ros,
         name : '/RoboSherlock/result_advertiser',
         messageType : 'robosherlock_msgs/RSObjectDescriptions'
       });
+        
       desig_listener.subscribe(function(message) {
-
         document.getElementById(designatorDiv).innerHTML = "";
         var i;
         for (i = 0; i < message.obj_descriptions.length; i++) { 
-	      
-        var obj = JSON.parse(message.obj_descriptions[i]);
-        newcontent = document.createElement('p');    
-        newContentID = "Objdescription"+i;
-        newcontent.setAttribute("id",newContentID);
-        newcontent.setAttribute("style","margin: 15px");
-            
-        newcontent2 = document.createElement('p');
-        newcontent2.innerHTML = "Description of Obj#"+i;
-        
-        document.getElementById(designatorDiv).appendChild(newcontent2);   
-        document.getElementById(designatorDiv).appendChild(newcontent);
+	        var obj = JSON.parse(message.obj_descriptions[i]);
+            newcontent = document.createElement('p');    
+            newContentID = "Objdescription"+i;
+            newcontent.setAttribute("id",newContentID);
+            newcontent.setAttribute("style","margin: 15px");
+
+            newcontent2 = document.createElement('p');
+            newcontent2.innerHTML = "Description of Obj#"+i;
+
+            document.getElementById(designatorDiv).appendChild(newcontent2);   
+            document.getElementById(designatorDiv).appendChild(newcontent);
  
-        $('#'+newContentID).jsonViewer(obj,{collapsed: true}); 
+            $('#'+newContentID).jsonViewer(obj,{collapsed: true}); 
         }
         $('#'+designatorDiv).change();
-
-       // }
       });
       
-      this.waitForJsonProlog();
-    };
+      this.annotatorResultsControl = new ROSLIB.Service({
+        ros : ros,
+        name : '/RoboSherlock/vis_command',
+        serviceType : 'robosherlock_msgs/RSVisControl'
+      });
     
-//     // TODO(daniel): deprecated
-//     this.handleSpeechMessage = function (message) {
-//         // TODO(daniel): Make sprite handling more generic
-//         //    - Use marker messages?
-//         //    - clear_canvas predicate should also remove bubbles
-//         var bubble = that.speechBubbles[message.id];
-//         var bubbleTexture = that.draw_speech_bubble(message.text);
-//         
-//         if(message.text.length==0) {
-//             if(bubble) {
-//                 rosViewer.scene.remove(bubble);
-//                 delete that.speechBubbles[message.id];
-//             }
-//         }
-//         else if(!bubble) {
-//             var material = new THREE.SpriteMaterial({
-//                 useScreenCoordinates: false,
-//                 alignment: THREE.SpriteAlignment.bottomLeft});
-//             material.map = bubbleTexture;
-//             
-//             bubble = new THREE.Sprite(material);
-//             rosViewer.scene.add(bubble);
-//             that.speechBubbles[message.id] = bubble;
-//         }
-//         else {
-//             bubble.material.map = bubbleTexture;
-//         }
-//         if(bubble) {
-//             // make sure text has the same dimensions for different texture sizes
-//             var scale = bubbleTexture.image.height/100.0;
-//             // make sure text is not stretched
-//             bubble.scale.set(
-//                 scale*bubbleTexture.image.width/bubbleTexture.image.height,
-//                 scale,
-//                 1.0);
-//             bubble.position.set(message.position.x, message.position.y, message.position.z);
-//             
-//             if(message.duration>0) {
-//                 // TODO(daniel): Fade-out bubble ?
-//                 window.setTimeout(function(){
-//                     if(that.speechBubbles[message.id]) {
-//                         rosViewer.scene.remove(bubble);
-//                         delete that.speechBubbles[message.id];
-//                     }
-//               }, message.duration*1000);
-//             }
-//         }
-//     };
+      
+      this.waitForJsonProlog();
+    };    
     
     this.waitForJsonProlog = function () {
         var client = new JsonProlog(ros, {});
@@ -307,6 +291,27 @@ function Knowrob(options){
         });
     };
 
+
+    this.annotatorCommand = function(message) {
+        var msgToSend = '';
+        if (message == 'myInput'){
+            this.msgToSend = document.getElementById('myInput').value; 
+        }
+        else {
+            this.msgToSend = message;
+        }   
+        var request = new ROSLIB.ServiceRequest({
+            command: this.msgToSend
+            });
+        console.log('Whaaa:' + request);
+        this.annotatorResultsControl.callService(request, function(result) {
+            document.getElementById('myInput').value = result.active_annotator;
+            console.log('Result for service call on '+ result.success);
+     });
+        
+        console.log('Sending request: '+this.msgToSend);
+    };
+    
     this.setup_history_field = function () {
         var history = ace.edit(historyDiv);
         history.setTheme("ace/theme/solarized_light");

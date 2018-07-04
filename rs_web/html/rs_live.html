@@ -134,25 +134,14 @@
     <div id="wrap_annotator_control_right">
         <div id="rs_input_form">
            <div class="dropdown">
-<!--               <button onclick="myFunction()" class="annotator_control_buttons">Dropdown</button>-->
-                
               <input type="text" placeholder="AnnotatorName:[option]" id="myInput" onkeyup="filterFunction()" onclick="myFunction()">
                <div id="myDropdown" class="dropdown-content">
-<!--
-                    <a href="#about">About</a>
-                    <a href="#base">Base</a>
-                    <a href="#blog">Blog</a>
-                    <a href="#contact">Contact</a>
-                    <a href="#custom">Custom</a>
-                    <a href="#support">Support</a>
-                    <a href="#tools">Tools</a>
--->
                 </div>
             </div>
-           <button class="annotator_control_buttons">Set</button>
+           <button class="annotator_control_buttons" onclick="knowrob.annotatorCommand('myInput')">Set</button>
             <div>
-                <button class="annotator_control_buttons">Next</button>
-                <button class="annotator_control_buttons">Previous</button>
+                <button class="annotator_control_buttons" onclick="knowrob.annotatorCommand('next')">Next</button>
+                <button class="annotator_control_buttons" onclick="knowrob.annotatorCommand('previous')">Previous</button>
             </div>
         </div>
     </div>

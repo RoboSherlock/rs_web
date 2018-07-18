@@ -598,17 +598,16 @@ function Knowrob(options){
 
     this.add_history_item = function (query) {
         $.ajax({
-            url: "/knowrob/add_history_item",
+            url: "/robosherlock/add_new_query",
             type: "POST",
             contentType: "application/json",
             data: JSON.stringify({query: query}),  
             dataType: "json"
         }).done( function (request) {})
     };
-
     this.set_history_item = function (index) {
         $.ajax({
-            url: "/knowrob/get_history_item",
+            url: "/robosherlock/get_history_query",
             type: "POST",
             contentType: "application/json",
             data: JSON.stringify({index: index}),  

@@ -88,6 +88,14 @@ int main()
       string command="{\"item\":\"";
       if (index_i >=0 && index_i < commands_history.size()){
         command = command + commands_history[commands_history.size() - index_i - 1];
+      }else{
+          if (index_i <= -1){
+              index_s = "-1";
+          }else{
+              index_s = to_string(commands_history.size() - 1);
+              command = command + commands_history[0];
+          }
+
       }
       command = command + "\",\"index\":" + index_s;
       command = command + "}";

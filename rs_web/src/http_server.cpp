@@ -50,6 +50,7 @@ void default_resource_send(const HttpServer &server, const shared_ptr<HttpServer
 
 int main()
 {
+  vector<std::string> commands_history;
   //HTTP-server at port 8080 using 1 thread
   //Unless you do more heavy non-threaded processing in the resources,
   //1 thread is usually faster than several threads
@@ -57,42 +58,52 @@ int main()
   HttpServer server(portNr, 1);
 
   auto pkg_path = ros::package::getPath("rs_web");
-
-  //Add resources using path-regex and method-string, and an anonymous function
-  //POST-example for the path /string, responds the posted string
-  server.resource["^/string$"]["POST"] = [](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request)
-  {
-    //Retrieve string:
-    auto content = request->content.string();
-    //request->content.string() is a convenience function for:
-    //stringstream ss;
-    //ss << request->content.rdbuf();
-    //string content=ss.str();
-
-    *response << "HTTP/1.1 200 OK\r\nContent-Length: " << content.length() << "\r\n\r\n" << content;
-  };
-
-  //POST-example for the path /json, responds firstName+" "+lastName from the posted json
-  //Responds with an appropriate error message if the posted json is not valid, or if firstName or lastName is missing
-  //Example posted json:
-  //{
-  //  "firstName": "John",
-  //  "lastName": "Smith",
-  //  "age": 25
-  //}
-  server.resource["^/json$"]["POST"] = [](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request)
+  server.resource["^/robosherlock/add_new_query$"]["POST"] = [&commands_history](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request)
   {
     try
     {
       ptree pt;
       read_json(request->content, pt);
-
-      string name = pt.get<string>("firstName") + " " + pt.get<string>("lastName");
-
+      string name = pt.get<string>("query");
+      commands_history.push_back(name);
       *response << "HTTP/1.1 200 OK\r\n"
                 << "Content-Type: application/json\r\n"
                 << "Content-Length: " << name.length() << "\r\n\r\n"
                 << name;
+    }
+    catch(exception &e)
+    {
+      *response << "HTTP/1.1 400 Bad Request\r\nContent-Length: " << strlen(e.what()) << "\r\n\r\n" << e.what();
+    }
+  };
+
+  server.resource["^/robosherlock/get_history_query$"]["POST"] = [&commands_history](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request)
+  {
+    try
+    {
+      ptree pt;
+      read_json(request->content, pt);
+      string index_s = pt.get<string>("index");
+      int index_i = std::stoi(index_s);
+      string command="{\"item\":\"";
+      if (index_i >=0 && index_i < commands_history.size()){
+        command = command + commands_history[commands_history.size() - index_i - 1];
+      }else{
+          if (index_i <= -1){
+              index_s = "-1";
+          }else{
+              index_s = to_string(commands_history.size() - 1);
+              command = command + commands_history[0];
+          }
+
+      }
+      command = command + "\",\"index\":" + index_s;
+      command = command + "}";
+      cout << "command= " << command << endl;
+      *response << "HTTP/1.1 200 OK\r\n"
+                << "Content-Type: application/json\r\n"
+                << "Content-Length: " << command.length() << "\r\n\r\n"
+                << command;
     }
     catch(exception &e)
     {
@@ -124,18 +135,6 @@ int main()
   {
     string number = request->path_match[1];
     *response << "HTTP/1.1 200 OK\r\nContent-Length: " << number.length() << "\r\n\r\n" << number;
-  };
-
-  //Get example simulating heavy work in a separate thread
-  server.resource["^/work$"]["GET"] = [&server](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> /*request*/)
-  {
-    thread work_thread([response]
-    {
-      this_thread::sleep_for(chrono::seconds(5));
-      string message = "Work done";
-      *response << "HTTP/1.1 200 OK\r\nContent-Length: " << message.length() << "\r\n\r\n" << message;
-    });
-    work_thread.detach();
   };
 
   //Default GET-example. If no other matches, this anonymous function will be called.
@@ -190,27 +189,9 @@ int main()
 
   thread server_thread([&server]()
   {
-    //Start server
     server.start();
   });
-
-  //Wait for server to start so that the client can connect
   this_thread::sleep_for(chrono::seconds(1));
-
-  //Client examples
-//  std::string clientAddress = "localhost:"+to_string(portNr);
-//  HttpClient client(clientAddress);
-//  auto r1 = client.request("GET", "/match/123");
-//  cout << r1->content.rdbuf() << endl;
-
-//  string json_string = "{\"firstName\": \"John\",\"lastName\": \"Smith\",\"age\": 25}";
-//  auto r2 = client.request("POST", "/string", json_string);
-//  cout << r2->content.rdbuf() << endl;
-
-//  auto r3 = client.request("POST", "/json", json_string);
-//  cout << r3->content.rdbuf() << endl;
-
   server_thread.join();
-
   return 0;
 }

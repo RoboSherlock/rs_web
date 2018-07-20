@@ -36,10 +36,8 @@ def index():
     #         return handle_scenes()
     # print("Method was not POST", file=sys.stderr)
     # print(request.data, file=sys.stderr)
-    print("Rendering base.html", file=sys.stderr)
-    return render_template('startup.html')
-
-
+    print("Rendering rs_live.html", file=sys.stderr)
+    return render_template('rs_live.html')
 
 
 
@@ -75,7 +73,7 @@ def query_wrapper():
 
 @app.route('/_get_queries', methods=['GET'])
 def serve_static_file():
-    config = json.loads(open('testQueries.json').read())
+    config = json.loads(open('static/testQueries.json').read())
     return jsonify(config)
 
 
@@ -167,4 +165,4 @@ def show_single_page_or_not():
 
 
 if __name__ == '__main__':
-    app.run(use_reloader=True, debug=True, host="0.0.0.0", threaded=True)
+    app.run(use_reloader=True, debug=True, host="0.0.0.0", threaded=True, port=5555)

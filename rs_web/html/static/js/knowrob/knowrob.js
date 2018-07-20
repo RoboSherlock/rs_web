@@ -34,7 +34,7 @@ function Knowrob(options){
 //    var episodeURL = options.episode_url;
 //     var episodeURL = 'queriesForRoboSherlock.json'
   
-    var episodeURL = [ 'queriesForEASE.json','queriesForRoboSherlock.json'];
+    var episodeURL = [ 'static/queries/queriesForEASE.json','queriesForRoboSherlock.json'];
     // Parsed episode data file
     var episodeData = undefined;
     

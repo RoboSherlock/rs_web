@@ -183,13 +183,13 @@ li:hover ul li.zero_size > div { top: 0px; }
 /* Container holding the complete page (without menu and navbar) */
 #container,
 #page {
-  height: -o-calc(100% - 0px); 
-  height: -webkit-calc(100% - 0px); 
-  height: calc(100% - 0px); /* Firefox did not like -mox-calc   */
-  width: 100%;
+  height: -o-calc(100% - 240px); 
+  height: -webkit-calc(100% - 200px); 
+  height: -moz-calc(100% - 240px); /* Firefox did not like -mox-calc   */
+  width: 97%;
   position: absolute;
-  left: 0px;
-  top: 0px;
+  left: 1px;
+  top: 5px;
   padding: 0;
   margin: 0;
   background-color: #dadada;

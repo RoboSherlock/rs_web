@@ -2,7 +2,7 @@
 
   <!-- rosbridge for websocket visualization -->
   <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" />
-  <node name="http_server" pkg="rs_web" type="http_server" output="screen" respawn="true"/>
+<!--  <node name="http_server" pkg="rs_web" type="http_server" output="screen" respawn="true"/>-->
   <node name="web_video_server" pkg="web_video_server" type="web_video_server" output="screen" respawn="true"/> 
   
   <param name="initial_package" type="string" value="robosherlock_knowrob" />

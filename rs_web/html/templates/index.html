@@ -1,0 +1,51 @@
+<html>
+<head>
+  {% block head %}
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    
+    <title>RS_WEB</title>
+
+    <link rel="stylesheet" href="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css">
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/mainPage.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/layout-default-1.4.0.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/web.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/user.css') }}">
+    
+    
+    <script type="text/javascript" src="{{ url_for('static', filename='js/jquery-1.11.1.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.ui.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.layout-1.4.0.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.collapsible.js') }}"></script>   
+
+    <script type ="text/javascript" src = "{{ url_for('static', filename='js/myScripts.js') }}"></script>
+    
+
+   {% endblock %}
+</head>
+<body>
+    <div id ="topbar">
+      <img src="{{ url_for('static', filename='images/logos/rs_logo_text.png')}}" height="45"/>
+      <img src="{{ url_for('static', filename='images/logos/ai_logo_white.png')}}" height="45" align="right"/>
+      <img src="{{ url_for('static', filename='images/logos/uni-bremen.png')}}" height="45" align="right" align="bottom"/>
+    </div>
+    <div id="vtab">
+        <ul>
+            <li class="home"><a>LIVE QUERY</a></li>
+            <li class="objstore selected"><a>OBJECT STORE</a></li>
+        </ul>
+       
+        <div class="container" id="container" style="padding-left:15px; margin-top: 0px;">
+            {% block body %}
+            {% endblock %}
+        </div>
+    </div>
+   
+</body>
+</html>

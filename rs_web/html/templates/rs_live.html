@@ -40,10 +40,11 @@
         south: {
           //BOTTOM-BANNER (funding locations)
           initClosed: false,    
-          minSize: 60
+          minSize: 60,
+          maxSize: 60    
         },
         west: {
-          minSize: 250,
+          minSize: 400,
           maxSize: 920,
           size: 500,
           // INNER-LAYOUT
@@ -74,7 +75,6 @@
             },
             south: {
               paneSelector: "#partialResults",
-              initClosed: false,
               minSize: 250
             }
           }
@@ -106,7 +106,7 @@
 
 
 {% block body %}
-    
+<div class="container" id="container" style="padding-left:15px; margin-top: 0px;">    
  <div class="ui-layout-center" id="editor-container">
       <div id="markers"></div>
       <div id= "partialResults" style="display:flex">
@@ -184,5 +184,5 @@
         </a>
       </div>
     </div>
-
+</div>
 {% endblock %}

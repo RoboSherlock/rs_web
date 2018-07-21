@@ -185,7 +185,7 @@ li:hover ul li.zero_size > div { top: 0px; }
 #page {
   height: -o-calc(100% - 240px); 
   height: -webkit-calc(100% - 200px); 
-  height: -moz-calc(100% - 240px); /* Firefox did not like -mox-calc   */
+  height: calc(100% - 240px); /* Firefox did not like -mox-calc   */
   width: 97%;
   position: absolute;
   left: 1px;

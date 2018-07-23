@@ -1,0 +1,3 @@
+[submodule "rs_web/html/static/meshes/iai_maps"]
+	path = rs_web/html/static/meshes/iai_maps
+	url = https://github.com/code-iai/iai_maps.git

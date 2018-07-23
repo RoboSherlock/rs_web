@@ -43,7 +43,7 @@ function Knowrob(options){
     // The topic where the canvas publishes snapshots
     var snapshotTopic;
     
-    var meshPath  = options.meshPath || '/';
+    var meshPath  = options.meshPath || '/static/meshes/iai_maps';
 
     // URL for rosauth token retrieval
     var authURL  = options.auth_url || '/wsauth/v1.0/by_session';

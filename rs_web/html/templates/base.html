@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
   <head>
-    
-      
+
+
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -17,18 +17,18 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style/user.css') }}">
       
     
-    <script type="text/javascript" src="{{ url_for('static', filename='jquery-1.11.1.min.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='jquery.ui.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='jquery.layout-1.4.0.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='jquery.collapsible.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='Chart.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/jquery-1.11.1.min.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.ui.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.layout-1.4.0.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/jquery.collapsible.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/Chart.min.js') }}"></script>
     
-    <script type="text/javascript" src="{{ url_for('static', filename='ace/ace.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='ace/ext-language_tools.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/ace/ace.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/ace/ext-language_tools.js') }}"></script>
     
-    <script type="text/javascript" src="{{ url_for('static', filename='three.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='RSWelcomeAnimation.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='robosherlock.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/three.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/RSWelcomeAnimation.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/robosherlock.js') }}"></script>
       
     <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
  
@@ -37,13 +37,12 @@
       $(document).ready(function () {
 	    rs = new RoboSherlock({});
         rs.init();
-        $('body').layout({ 
+        $('body').layout({
            applyDemoStyles: true,
            west: {
             minSize: 400,
             maxSize: 500,
             size: 500,
-           //Inner layout
             childOptions: {
                 north: {
                     paneSelector: "#console",
@@ -51,7 +50,7 @@
                         ace.edit("history").resize(true);
                         ace.edit("user_query").resize(false);
                     },
-                    minSize: 250   
+                    minSize: 250
                 },
                 center: {
                     paneSelector: "#library",
@@ -72,18 +71,6 @@
       });
 
     </script>
-
-
-
-
-
-
-    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
-      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
   </head>
     
   <body>
@@ -107,72 +94,71 @@
           size="20" name="querylist" id="querylist"><option value=0></option>
         </select>
       </div>
-      <div id="info">
-       <br\></br\>
-            <p>Visualization and query interface of perception logs. Base queries commands:</p>
-            <ul>
-                <li><b>object</b>(Ob,Descr) - > shows all percieved objects from the belief state given a description</li>
-                <li><b>scenes</b>(Sc,Descr) - > shows all scenes processesed by RoboSherlock given a description</li>
-                <li><b>hypotheses</b>(objID) - > shows all hypotheses given a description</li>
-            </ul>
-            <p>Documentation of the description language is available on the project website</p>
-            <button id="opener" style="color:green">GroundTruth Annotation</button>
-            <div id="dialog"  title="GT Anno Tool" style="background-color:#fff">
-              <form method="post" class="forms" action="/newpost" style="background-color:#fff">
-                Classname: <br>
-                  <select name="classN">
-		    <option value="CupEcoOrange">CupEcoOrange</option>
-		    <option value="RedMetalPlateWhiteSpeckles">RedMetalPlateWhiteSpeckles</option>
-		    <option value="BluePlasticFork">BluePlasticFork</option>
-		    <option value="BluePlasticKnife">BluePlasticKnife</option>
-		    <option value="RedPlasticKnife">RedPlasticKnife</option>
-		    <option value="RedPlasticFork">RedPlasticFork</option>
-		    <option value="BlueMetalPlateWhiteSpeckles">BlueMetalPlateWhiteSpeckles</option>
-		    <option value="SiggBottle">SiggBottle</option>
-		    <option value="ElBrygCoffee">ElBrygCoffee</option>
-		    <option value="KelloggsCornFlakes">KelloggsCornFlakes</option>
-		    <option value="ReineButterMilch">ReineButterMilch</option>
-                      <option value="PfannerPfirsichIcetea">PfannerPfirsichIcetea</option>
- 		    <option value="VollMilch">VollMilch</option>
-		    <option value="SojaMilch">SojaMilch</option>
-		    <option value="MeerSalz">MeerSalz</option>
-		    <option value="BluePlasticBowl">BluePlasticBowl</option>
-		    <option value="SlottedSpatula">SlottedSpatula</option>
-		    <option value="TomatoAlGustoBasilikum">TomatoAlGustoBasilikum</option>
-		    <option value="SeverinPancakeMaker">SeverinPancakeMaker</option>
-		    <option value="MondaminPancakeMix">MondaminPancakeMix</option>
-		    <option value="NesquikCereal">NesquikCereal</option>
-		    <option value="TomatoSauceOroDiParma">TomatoSauceOroDiParma</option>
-		    <option value="SpitzenReis">SpitzenReis</option>
-                      <option value="LinuxCup">LinuxCup</option>
-                  </select> <br> </br>
-                <!--Classname: <input type="text" name="classN" /> <br> </br> -->
-                Timestamp: <input type="text" name="timeS" /> <br> </br>
-                Image No.: <input type="text" name="imgN" /> <br> </br>
-                <input type="submit" value="Submit" />
-              </form>
-                <script>
-                $( "#dialog" ).dialog({ autoOpen: false });
-                $( "#opener" ).click(function() {
-                    $( "#dialog" ).dialog( "open" );
-                  });
-                </script>
-            </div>
-      </div>
-
-
-
-
-
-<!--
-        <form  action = "/scenes" method="post">            
-            <input type="textarea" name ="console" style ="rows=4 cols=50"/>
-            <input type="submit" name="submit" value="Query"/>
-        </form>
-        <div id="info">
-           
-        </div>
--->   
+{#      <div id="info">#}
+{#            <p>Visualization and query interface of perception logs. Base queries commands:</p>#}
+{#            <ul>#}
+{#                <li><b>object</b>(Ob,Descr) - > shows all percieved objects from the belief state given a description</li>#}
+{#                <li><b>scenes</b>(Sc,Descr) - > shows all scenes processesed by RoboSherlock given a description</li>#}
+{#                <li><b>hypotheses</b>(objID) - > shows all hypotheses given a description</li>#}
+{#            </ul>#}
+{#            <p>Documentation of the description language is available on the project website</p>#}
+{#            <button id="opener" style="color:green">GroundTruth Annotation</button>#}
+{#            <div id="dialog"  title="GT Anno Tool" style="background-color:#fff">#}
+{#              <form method="post" class="forms" action="/newpost" style="background-color:#fff">#}
+{#                Classname: <br>#}
+{#                  <select name="classN">#}
+{#		    <option value="CupEcoOrange">CupEcoOrange</option>#}
+{#		    <option value="RedMetalPlateWhiteSpeckles">RedMetalPlateWhiteSpeckles</option>#}
+{#		    <option value="BluePlasticFork">BluePlasticFork</option>#}
+{#		    <option value="BluePlasticKnife">BluePlasticKnife</option>#}
+{#		    <option value="RedPlasticKnife">RedPlasticKnife</option>#}
+{#		    <option value="RedPlasticFork">RedPlasticFork</option>#}
+{#		    <option value="BlueMetalPlateWhiteSpeckles">BlueMetalPlateWhiteSpeckles</option>#}
+{#		    <option value="SiggBottle">SiggBottle</option>#}
+{#		    <option value="ElBrygCoffee">ElBrygCoffee</option>#}
+{#		    <option value="KelloggsCornFlakes">KelloggsCornFlakes</option>#}
+{#		    <option value="ReineButterMilch">ReineButterMilch</option>#}
+{#                      <option value="PfannerPfirsichIcetea">PfannerPfirsichIcetea</option>#}
+{# 		    <option value="VollMilch">VollMilch</option>#}
+{#		    <option value="SojaMilch">SojaMilch</option>#}
+{#		    <option value="MeerSalz">MeerSalz</option>#}
+{#		    <option value="BluePlasticBowl">BluePlasticBowl</option>#}
+{#		    <option value="SlottedSpatula">SlottedSpatula</option>#}
+{#		    <option value="TomatoAlGustoBasilikum">TomatoAlGustoBasilikum</option>#}
+{#		    <option value="SeverinPancakeMaker">SeverinPancakeMaker</option>#}
+{#		    <option value="MondaminPancakeMix">MondaminPancakeMix</option>#}
+{#		    <option value="NesquikCereal">NesquikCereal</option>#}
+{#		    <option value="TomatoSauceOroDiParma">TomatoSauceOroDiParma</option>#}
+{#		    <option value="SpitzenReis">SpitzenReis</option>#}
+{#                      <option value="LinuxCup">LinuxCup</option>#}
+{#                  </select> <br> </br>#}
+{#                <!--Classname: <input type="text" name="classN" /> <br> </br> -->#}
+{#                Timestamp: <input type="text" name="timeS" /> <br> </br>#}
+{#                Image No.: <input type="text" name="imgN" /> <br> </br>#}
+{#                <input type="submit" value="Submit" />#}
+{#              </form>#}
+{#                <script>#}
+{#                $( "#dialog" ).dialog({ autoOpen: false });#}
+{#                $( "#opener" ).click(function() {#}
+{#                    $( "#dialog" ).dialog( "open" );#}
+{#                  });#}
+{#                </script>#}
+{#            </div>#}
+{#      </div>#}
+{##}
+{##}
+{##}
+{##}
+{##}
+{#<!--#}
+{#        <form  action = "/scenes" method="post">#}
+{#            <input type="textarea" name ="console" style ="rows=4 cols=50"/>#}
+{#            <input type="submit" name="submit" value="Query"/>#}
+{#        </form>#}
+{#        <div id="info">#}
+{##}
+{#        </div>#}
+{#-->#}
     </div>
     {% block body %}
 <!--      <div class="ui-layout-center" id="bodyDiv">-->

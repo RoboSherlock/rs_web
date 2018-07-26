@@ -25,21 +25,19 @@ querys_list = []
 @app.route('/', methods=['GET', 'POST'])
 # @app.route('/query', methods=['GET', 'POST'])
 def index():
-    # if request.method == 'POST':
-    #     query_in = request.data
-    #     print("Query is : ", query_in, file=sys.stderr)
-    #     param = re.search(r"\(([0-9])\)", query_in)
-    #     if param:
-    #         return find_object_instances(int(param.group(1)))
-    #     elif query_in == 'objects':
-    #         return handle_objects()
-    #     elif query_in == 'scenes':
-    #         return handle_scenes()
-    # print("Method was not POST", file=sys.stderr)
-    # print(request.data, file=sys.stderr)
-    print("Rendering rs_live.html", file=sys.stderr)
+    print("Rendering object_store.html", file=sys.stderr)
     return render_template('rs_live.html')
 
+
+@app.route('/store', methods=['GET', 'POST'])
+def object_store_methode():
+    print("Rendering store.html", file=sys.stderr)
+    return render_template('object_store.html')
+
+@app.route('/query', methods=['GET', 'POST'])
+def query_methode():
+    print("Rendering query.html", file=sys.stderr)
+    return render_template('rs_live.html')
 
 @app.route('/robosherlock/add_new_query', methods=['POST'])
 def adding_new_query():
@@ -97,7 +95,7 @@ def query_wrapper():
 
 @app.route('/_get_queries', methods=['GET'])
 def serve_static_file():
-    config = json.loads(open('static/testQueries.json').read())
+    config = json.loads(open('static/queries/testQueries.json').read())
     return jsonify(config)
 
 

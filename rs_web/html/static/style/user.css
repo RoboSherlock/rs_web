@@ -203,7 +203,7 @@ li:hover ul li.zero_size > div { top: 0px; }
   background-position: right bottom;
   background-repeat: no-repeat;
   width: 100%;
-  height: -o-calc(100% - 70px); /* opera */
+  /*height: -o-calc(100% - 70px); !* opera *!*/
   height: -webkit-calc(100% - 70px); /* google, safari */
   height: calc(100% - 70px); /* firefox */
 }
@@ -302,7 +302,7 @@ a.btn {
 }
 .replay-box {
   margin-bottom: 8px;
-  width: -o-calc(100% - 8px); /* opera */
+  /*width: -o-calc(100% - 8px); !* opera *!*/
   width: -webkit-calc(100% - 8px); /* google, safari */
   width: calc(100% - 8px); /* firefox */
   border: 1px solid #a9a9b2;
@@ -436,6 +436,7 @@ a.btn {
 
 .ui-layout-center {
     border: 0px none;
+    overflow: auto;
 }
 .ui-layout-west {
     border: 0px none;
@@ -457,7 +458,7 @@ a.btn {
 
 #console_top {
   width: 100%;
-  height: -o-calc(100% - 25px); /* opera */
+  /*height: -o-calc(100% - 25px); !* opera *!*/
   height: -webkit-calc(100% - 25px); /* google, safari */
   height: calc(100% - 25px); /* firefox */
 }
@@ -560,7 +561,7 @@ a.btn {
 
 #mjpeg {
   min-width:100%;
-  max-height:100%
+  max-height:100%;
   height:100%;
 }
 
@@ -574,7 +575,7 @@ a.btn {
 
 #mjpeg2 {
   min-width:100%;
-  max-height:100%
+  max-height:100%;
   height:100%;
 }
 

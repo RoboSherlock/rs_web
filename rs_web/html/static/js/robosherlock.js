@@ -147,7 +147,7 @@ function RoboSherlock(options){
             var pageOverlay = document.createElement("div");
             pageOverlay.setAttribute("id", "page-overlay");
             pageOverlay.className = "ui-ios-overlay ios-overlay-hide div-overlay";
-            pageOverlay.innerHTML += '<span class="title">Please select an Episode</span';
+            pageOverlay.innerHTML += '<span class="title">Please select an Episode</span>';
             pageOverlay.style.display = 'none';
             page.appendChild(pageOverlay);
         }

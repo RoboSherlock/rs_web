@@ -18,7 +18,7 @@ app = Flask(__name__)
 app.config.from_pyfile('app.cfg')
 # http_server = WSGIServer(('', 5555), app)
 
-mc = MongoWrapper()
+mc = MongoWrapper(dbname='PnP09ObjSymbolicGTFixed')
 qh = QueryHandler()
 querys_list = []
 

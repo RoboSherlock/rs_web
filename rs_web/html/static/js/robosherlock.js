@@ -14,16 +14,68 @@ function RoboSherlock(options){
     var queries =undefined;
     
     this.init = function () {
-        this.setup_history_field();
-        this.setup_query_field();
+        // this.setup_history_field();
+        // this.setup_query_field();
         this.get_query_data();
     }
             
     $("#btn_query").click(function (){
         that.query()
     });
-    
-    
+
+    $("#filter_button").click(function () {
+        that.form_query();
+    });
+
+    this.form_query_scenes = function () {
+        var timestamp_check = $("#timestamp_check").is(":checked");
+        var from_time = $("#from_time").val();
+        var to_time = $("#to_time").val();
+        var q = "scenes(Sc,[";
+        if (timestamp_check){
+            q = q + "ts>" + from_time + ", ts<" + to_time + "]).";
+        }else{
+            q = q + "]).";
+        }
+        $.ajax({
+           type: "POST",
+           url: "/prolog_query",
+           data: q, // serializes the form's elements.
+           async: true,
+           beforeSend: function(xhr){xhr.setRequestHeader('Content-type', 'text-plain');},
+           success: function(data){
+                $("#bodyDiv").html(data);
+                $("#bodyDiv-div").find("script").each(function(i) {
+                    eval($(this).text());
+                });
+           }
+         });
+
+    }
+
+    this.form_query_hypothesis = function () {
+
+    }
+
+    this.form_query_objects = function () {
+
+    }
+
+    this.form_query = function()
+    {
+        var active_tab = $("#query_tabs").find('li.active');
+        var content_tab = active_tab.attr("id");
+        switch (content_tab) {
+            case "scenes_tab" :
+                that.form_query_scenes();
+                break;
+            case "hypothesis_tab" :
+                break;
+            case "objects_tab" :
+                break;
+        }
+    }
+
     this.query = function()
     {
        var user_query = ace.edit(queryDiv);

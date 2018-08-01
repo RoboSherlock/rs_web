@@ -1,5 +1,5 @@
 from __future__ import print_function  # In python 2.7
-
+from forms import ScenesForm, HypothesisForm
 from flask import Flask, render_template, current_app, request, jsonify, redirect
 from flask_paginate import Pagination, get_page_args
 
@@ -16,7 +16,6 @@ from pyparsing import ParseException
 
 app = Flask(__name__)
 app.config.from_pyfile('app.cfg')
-# http_server = WSGIServer(('', 5555), app)
 
 mc = MongoWrapper(dbname='PnP09ObjSymbolicGTFixed')
 qh = QueryHandler()
@@ -31,9 +30,15 @@ def index():
 
 @app.route('/store', methods=['GET', 'POST'])
 def object_store_methode():
-    print("Rendering store.html", file=sys.stderr)
-    return render_template('object_store.html')
-
+    # print("Rendering store.html", file=sys.stderr)
+    # scenes_form = ScenesForm()
+    # hypothesis_form = HypothesisForm()
+    # if scenes_form.validate_on_submit():
+    #     print("Filer = {}".format(scenes_form.filter.data), file=sys.stderr)
+    #     print("Export = {}".format(scenes_form.export.data), file=sys.stderr)
+    #
+    # return render_template('object_store_dev.html', scenes_form=scenes_form, hypothesis_form=hypothesis_form)
+    return render_template('object_store_devel.html')
 @app.route('/query', methods=['GET', 'POST'])
 def query_methode():
     print("Rendering query.html", file=sys.stderr)

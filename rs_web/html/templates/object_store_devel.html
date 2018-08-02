@@ -11,6 +11,23 @@
       $(document).ready(function () {
         rs = new RoboSherlock({});
         rs.init();
+        $("#query").layout({
+            stateManagement__enabled: true,
+             childOptions: {
+                north: {
+                    paneSelector: "#console",
+                    onresize: function() {
+                        ace.edit("history").resize(true);
+                        ace.edit("user_query").resize(false);
+                    },
+                    minSize: 250
+                },
+                center: {
+                    paneSelector: "#library",
+                    minSize: 150
+                }
+            }
+        });
       });
         </script>
     {%  endblock head %}
@@ -34,7 +51,6 @@
 
                       <div class="tab-content">
                         <div id="scenes" class="form-group tab-pane fade in active">
-                                <div class="row" >
                                     <div class="col-md-3">
                                       <input class="form-check-input" type="checkbox" id="timestamp_check">
                                       <label class="form-check-label" for="timestamp_check">Timestamp</label>
@@ -47,25 +63,30 @@
                                       <label class="col-form-label" for="to_time">To Time</label>
                                       <input class="form-control" type="text" id="to_time">
                                     </div>
-                                </div>
                         </div>
                         <div id="hypothesis" class="tab-pane fade">
 
                         </div>
                         <div id="objects" class="tab-pane fade"></div>
                         <div id="query" class="tab-pane fade">
-                            <div id="library" class="row" >
-{#                                <select class="col-md-1" name="querylist" id="querylist" > </select>#}
-                            </div>
+                            <div id="console">
+                                <div id="console_top">
+                                  <div id="history"></div>
+                                  <div id="user_query"></div>
+                                </div>
+                          </div>
+                          <div id="library">
+                           <select onclick="rs.add_selected_to_queryform('querylist')"
+                              size="20" name="querylist" id="querylist"><option value=0></option>
+                            </select>
+                          </div>
                         </div>
                       </div>
                 </div>
-                <div class="row">
-                    <div class="btn-group  col-md-offset-8">
-                        <div id="filter_button" class="btn btn-info">Filter</div>
+                    <div class="btn-group  col-md-offset-9" style="margin-top: 5px">
+                        <div id="filter_button" class="btn btn-info">Query</div>
                         <div id="export_button" class="btn btn-info">Export</div>
                     </div>
-                </div>
             </div>
             <div class="col-md-8" id="bodyDiv" style="height: 100%; overflow: auto">
                 <h1 id = "title-header">RoboSherlock Perceptual Memories</h1>

@@ -14,8 +14,8 @@ function RoboSherlock(options){
     var queries =undefined;
     
     this.init = function () {
-        // this.setup_history_field();
-        // this.setup_query_field();
+        this.setup_history_field();
+        this.setup_query_field();
         this.get_query_data();
     }
             
@@ -70,8 +70,13 @@ function RoboSherlock(options){
                 that.form_query_scenes();
                 break;
             case "hypothesis_tab" :
+                that.form_query_hypothesis();
                 break;
             case "objects_tab" :
+                that.form_query_objects();
+                break;
+            case "query_tab" :
+                that.query();
                 break;
         }
     }

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from __future__ import print_function  # In python 2.7
 from forms import ScenesForm, HypothesisForm
 from flask import Flask, render_template, current_app, request, jsonify, redirect

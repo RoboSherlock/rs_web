@@ -1,6 +1,9 @@
 from __future__ import print_function  # In python 2.7
+
+from mercurial.context import memctx
+
 from forms import ScenesForm, HypothesisForm
-from flask import Flask, render_template, current_app, request, jsonify, redirect
+from flask import Flask, render_template, current_app, request, jsonify, redirect, render_template_string
 from flask_paginate import Pagination, get_page_args
 
 from gevent.pywsgi import WSGIServer
@@ -9,20 +12,30 @@ import re
 import json
 import time
 import numpy as np
-
+import os
 from source.mongoclient import MongoWrapper
 from source.parser import QueryHandler
 from pyparsing import ParseException
-
+import shutil
+from models import Scene
 app = Flask(__name__)
 app.config.from_pyfile('app.cfg')
 
 mc = MongoWrapper(dbname='PnP09ObjSymbolicGTFixed')
-qh = QueryHandler()
-querys_list = []
+scene_handler = Scene(mc)
+qh = QueryHandler(mc)
+queries_list = []
+
+loading_type = 0    # 1 - first attempt, 2 - loading scene, 3 - loading on scroll
+export_type = 0     # 1 - scenes, 2 - hypothesis, 3 - objects
+# scenes_list = []    # once we query the database about the scenes, all of them will be locally stored in scenes_list
+# hypothesis_list = []    # same as scenes_list
+# objects_list = []   # same as scenes_list
+export_entities = []
+
 
 @app.route('/', methods=['GET', 'POST'])
-# @app.route('/query', methods=['GET', 'POST'])
+@app.route('/query', methods=['GET', 'POST'])
 def index():
     print("Rendering object_store.html", file=sys.stderr)
     return render_template('rs_live.html')
@@ -38,17 +51,19 @@ def object_store_methode():
     #     print("Export = {}".format(scenes_form.export.data), file=sys.stderr)
     #
     # return render_template('object_store_dev.html', scenes_form=scenes_form, hypothesis_form=hypothesis_form)
+    global scene_handler
+    scene_handler.reset()
     return render_template('object_store_devel.html')
-@app.route('/query', methods=['GET', 'POST'])
-def query_methode():
-    print("Rendering query.html", file=sys.stderr)
-    return render_template('rs_live.html')
+# @app.route('/query', methods=['GET', 'POST'])
+# def query_methode():
+#     print("Rendering query.html", file=sys.stderr)
+#     return render_template('rs_live.html')
 
 @app.route('/robosherlock/add_new_query', methods=['POST'])
 def adding_new_query():
     query = request.json
-    querys_list.append(query['query'])
-    print(querys_list)
+    queries_list.append(query['query'])
+    print(queries_list)
     return 'OK'
 
 
@@ -57,30 +72,38 @@ def get_history():
     data = request.json
     index = int(data['index'])
     response = "{\"item\":\""
-    lung_lista = len(querys_list) - 1
+    lung_lista = len(queries_list) - 1
     if index <= -1:
         index = -1
     elif index > lung_lista:
-        response = response + querys_list[0]
+        response = response + queries_list[0]
         index = lung_lista
     else:
-        response = response + querys_list[lung_lista - index]
+        response = response + queries_list[lung_lista - index]
     response = response + "\",\"index\":" + str(index) + "}"
     return response
+
+
+@app.route('/get_more_data', methods=['GET', 'POST'])
+def get_more_data():
+    global scene_handler
+    template = scene_handler.scroll_call()
+    return template
 
 
 @app.route('/prolog_query', methods=['GET', 'POST'])
 def query_wrapper():
 
    if request.method == 'POST':
-        query_in = request.data
+        data = request.data
+        query_in = data
         print("query is: " + query_in, file=sys.stderr)
         if query_in == 'objects':
             return handle_objects()
         elif query_in == 'scenes(Sc,[]).':
-            return handle_scenes()
-        elif query_in == 'scenes(Sc,[ts>1482401694215166627, ts<1482401807402294324]).':
-            return handle_scenes(1482401694215166627,1482401807402294324)
+            return handle_scenes_devel()
+        elif query_in == 'scenes(Sc,[ts>1472563260017208200, ts<1472563330256651508]).':
+            return handle_scenes(1472563260017208200, 1472563330256651508)
         elif query_in == 'hypotheses(Hyp, [detection:[confidence>0.5, source:DeCafClassifier], type:\'Cutlery\']).':
             print( 'DO SOME MAGIC',file=sys.stderr)
             o = qh.exec_query(query_in,1)
@@ -104,22 +127,29 @@ def serve_static_file():
     return jsonify(config)
 
 
+
+def handle_hypothesis_export():
+    pass
+
+
+def handle_objects_export():
+    pass
+
 def handle_objects():
     objects = mc.get_all_persistent_objects()
     print("handle_objects.", file=sys.stderr)
     return render_template('objects.html', objects=objects)
 
 
+def handle_scenes_devel(ts1=None, ts2=None):
+    global scene_handler
+    template = scene_handler.first_call()
+    return template
+
+
 def handle_scenes(ts1 = None, ts2 = None):
     print("handle_scenes.", file=sys.stderr)
     timestamps = mc.get_timestamps()
-    # total = len(timestamps)
-    # page, per_page, offset = get_page_args()
-    # idxB = (page-1)*per_page
-    # idxE = page*per_page
-
-
-    scenes = []
     start_time = time.time()
     idx_begin = 0
     idx_end = len(timestamps)
@@ -128,29 +158,57 @@ def handle_scenes(ts1 = None, ts2 = None):
         idx_end = timestamps.index(ts2)
         # idx_begin = 9
         # idx_end = 19
-
+    scenes = []
     for ts in timestamps[idx_begin:idx_end]:  # [idxB:idxE]:
         scene = {'ts': ts, 'rgb': mc.get_scene_image(ts), 'objects': mc.get_object_hypotheses_for_scene(ts)}
         scenes.append(scene)
+        export_entities.append(scene)
+
+    global export_type
+    export_type = 1
     print("getting data took: %s seconds ---" % (time.time() - start_time), file=sys.stderr)
-    # pagination = get_pagination(page=page,
-    #                             per_page=per_page,
-    #                             total=total,
-    #                             record_name='scenes',
-    #                             format_total=True,
-    #                             format_number=True,
-    #                             )
     start_time = time.time()
     template = render_template('scenes.html', scenes=scenes)
     print("rendering took: %s seconds ---" % (time.time() - start_time), file=sys.stderr)
     return template
-    # return render_template('scenes.html',
-    #                         scenes=scenes,
-    #                         page=page,
-    #                         per_page=per_page,
-    #                         pagination=pagination)
 
-#set new root to correct groundTruth annotations
+
+def handle_scenes_export():
+    shutil.rmtree('./scenes')
+    os.mkdir('./scenes', 0755)
+    path_to_scenes = os.getcwd() + '/scenes'
+    for scene in export_entities:
+        ts = scene['ts']
+        rgb = scene['rgb'][22:]
+        abs_dir = path_to_scenes + '/scene_' + str(ts)
+        rgb_name = abs_dir + '/rgb_' + str(ts) + '.png'
+        os.mkdir(abs_dir, 0777)
+        with open(rgb_name, 'wb') as image:
+            image.write(rgb.decode('base64'))
+        objects = scene['objects']
+        i = 0
+        objects_filename = abs_dir + '/object'
+        for _object in objects:
+            img = _object['image'][22:]
+            object_name_no = objects_filename + str(i) + '.png'
+            with open(object_name_no, 'wb') as obj_fl:
+                obj_fl.write(img.decode('base64'))
+            i = i + 1
+    return 'YES'
+
+
+@app.route('/export_data', methods=['POST'])
+def export_data():
+    if export_type == 1:
+        return handle_scenes_export()
+    elif export_type == 2:
+        return handle_hypothesis_export()
+    elif export_type == 3:
+        return handle_objects_export()
+
+    return 'NO'
+
+
 @app.route('/newpost', methods=['GET', 'POST'])
 def databaseQ():
     clname = request.form.get('classN')

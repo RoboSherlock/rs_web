@@ -21,7 +21,6 @@
             }
 
         });
-        //assign open/close all to functions
         function openAll() {
             $('.page_collapsible').collapsible('openAll');
         }
@@ -29,7 +28,6 @@
             $('.page_collapsible').collapsible('closeAll');
         }
 
-        //listen for close/open all
         $('#closeAll').click(function(event) {
             event.preventDefault();
             closeAll();
@@ -44,9 +42,7 @@
 
 {% block body %}
 {% if scenes %}
- {# {{ pagination.info }} #}
-  {#{ pagination.links }#}
- <h1 id = "title-header">RoboSherlock Perceptual Memories</h1>
+{# <h1 id = "title-header">RoboSherlock Perceptual Memories</h1>#}
   <div class="table-responsive">
     <table class="table" id=maintable>
     <thead>
@@ -60,14 +56,12 @@
     <tbody>
       {% for scene in scenes %}
       {% set outer_loop = loop %}
-      <tr>
-{# <!--  <td>{{ loop.index + (page - 1) * per_page }}</td>--> #}
-      <td>{{ loop.index }}</td>
+        <tr>
+          <td>{{ loop.index }}</td>
           <td style="width:auto; max-width:290;" > {{ scene['ts']}} <br>
-          <div class = "imgContainer"> <img style="display:block;margin-left:auto;margin-right:auto;" src="{{ scene['rgb']}}"/></div>
-      </td>
-      
-      <td>  
+            <div class = "imgContainer"> <img style="display:block;margin-left:auto;margin-right:auto;" src="{{ scene['rgb']}}"/></div>
+          </td>
+          <td>
           <table id= "hyptable">
               <thead>
                 <tr>
@@ -91,14 +85,5 @@
     </tbody>
     </table>
   </div>
-  {#{ pagination.links }#}
 {% endif %}
 {% endblock %}
-
-{#{% block js %}
-  {% if active_url %}
-    $('#{{ active_url }}').addClass('active');
-  {% else %}
-  $('#users-url').addClass('active');
-  {% endif %}
-{% endblock %}#}

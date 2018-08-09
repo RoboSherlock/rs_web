@@ -18,7 +18,9 @@ import time
 
 
 class MongoWrapper(object):
-    def __init__(self, dbname="IJRRScenes"):
+    def __init__(self, dbname=None):
+        if dbname is None:
+            dbname = 'IJRRScenes'
         self.client = MongoClient()
         self.db = self.client[dbname]
         self.active_collection = None
@@ -158,15 +160,32 @@ class MongoWrapper(object):
     def get_image_for_scene_id(self, scene_id, scale_factor):
         cas_document = self.db.cas.find({'_id': scene_id})
         color_cursor = None
+        depth_cursor = None
+        scene_img = {}
         if cas_document.count() != 0:
             color_cursor = self.db.color_image_hd.find({'_id': cas_document[0]['color_image_hd']})
+            depth_cursor = self.db.color_image_hd.find({'_id': cas_document[0]['depth_image_hd']})
         if color_cursor.count() != 0:
             width = color_cursor[0]['cols']
             height = color_cursor[0]['rows']
             img_data = color_cursor[0]['data']
             image = np.reshape(np.fromstring(img_data, np.uint8), (height, width, 3))
             small = cv2.resize(image, (0, 0), fx=scale_factor, fy=scale_factor)
-            return small
+            scene_img['rgb'] = small
+        else:
+            scene_img['rgb'] = []
+
+        if depth_cursor.count() != 0:
+            width = depth_cursor[0]['cols']
+            height = depth_cursor[0]['rows']
+            img_data = depth_cursor[0]['data']
+            image = np.reshape(np.fromstring(img_data, np.uint8), (height, width, 3))
+            small = cv2.resize(image, (0, 0), fx=scale_factor, fy=scale_factor)
+            scene_img['depth'] = small
+        else:
+            scene_img['depth'] = []
+
+        return scene_img
 
     def get_scene_images(self, timestamps):
         images = []
@@ -179,12 +198,9 @@ class MongoWrapper(object):
         # start_time = time.time()
         print(ts)
         img = self.get_image_for_scene_id(self.db.scene.find({'timestamp': ts})[0]['_parent'], 0.22)
-        # print("getting image took: %s seconds ---" % (time.time() - start_time),file=sys.stderr)
-        # start_time = time.time()
-        base64_img = self.get_base64_img(img)
-        # print("converting to base64 took: %s seconds ---" % (time.time() - start_time),file=sys.stderr)
-        return base64_img
+        base64_img = self.get_base64_img(img['rgb'])
 
+        return {'img_b64': base64_img, 'img': img['rgb'], 'depth': img['depth']}
 
     #add for set correcting groundTruth in database.....
     def setGTinDB(self, inputTS, imgNumber, objName):

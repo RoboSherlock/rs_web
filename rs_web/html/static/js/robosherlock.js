@@ -2,29 +2,69 @@
 
 //this name might just need changing
 function RoboSherlock(options){
-    
+
     var that = this;
 
     var historyDiv = options.history_div || 'history';
     var queryDiv = options.query_div || 'user_query';
     var libraryDiv = options.library_div ||'querylist';
     var contentDiv = options.conent_div || 'bodyDiv';
-    
+    var noOfItems = 0;
     var queriesData = undefined;
     var queries =undefined;
-    
+    var noOfReq=0;
+    var items = true;
     this.init = function () {
         this.setup_history_field();
         this.setup_query_field();
         this.get_query_data();
     }
-            
+
     $("#btn_query").click(function (){
         that.query()
     });
-
+    $("#export_button").click(function () {
+        $.ajax({
+           type: "POST",
+           url: "/export_data",
+           data: "hagi",
+           async: true,
+           beforeSend: function(xhr){xhr.setRequestHeader('Content-type', 'text-plain');},
+           success: function(){
+           }
+         });
+    });
     $("#filter_button").click(function () {
         that.form_query();
+    });
+
+    $("#bodyDiv").scroll(function () {
+        if (noOfReq < 1 && items){
+        var thisDiv = $(this);
+        var scrollTop = thisDiv.scrollTop();
+        var height = thisDiv[0].scrollHeight - thisDiv[0].offsetHeight;
+        if (scrollTop >= height * 0.7){
+            noOfReq++;
+            $.ajax({
+               type: "POST",
+               url: "/get_more_data",
+               data: "get more data",
+               async: true,
+               beforeSend: function(xhr){xhr.setRequestHeader('Content-type', 'text-plain');},
+               success: function(data){
+                   if (data.length !=0){
+                        $("#maintable").append(data);
+                        $("#bodyDiv").find("script").each(function(i) {
+                            eval($(this).text());
+                        });
+                        noOfReq--;
+                    }else{
+                       items = false;
+                   }
+                   }
+            });
+        }
+        }
     });
 
     this.form_query_scenes = function () {
@@ -43,6 +83,34 @@ function RoboSherlock(options){
            data: q, // serializes the form's elements.
            async: true,
            beforeSend: function(xhr){xhr.setRequestHeader('Content-type', 'text-plain');},
+           success: function(data){
+                $("#bodyDiv").html(data);
+                $("#bodyDiv-div").find("script").each(function(i) {
+                    eval($(this).text());
+                });
+           }
+         });
+
+    }
+
+    this.form_query_scenes_devel = function () {
+        var timestamp_check = $("#timestamp_check").is(":checked");
+        var from_time = $("#from_time").val();
+        var to_time = $("#to_time").val();
+        var q = "scenes(Sc,[";
+        if (timestamp_check){
+            q = q + "ts>" + from_time + ", ts<" + to_time + "]).";
+        }else{
+            q = q + "]).";
+        }
+        $.ajax({
+           type: "POST",
+           url: "/prolog_query",
+           contentType: "application/json",
+           data: JSON.stringify({query : q}), // serializes the form's elements.
+           async: true,
+           dataType: "json",
+           // beforeSend: function(xhr){xhr.setRequestHeader('Content-type', 'json');},
            success: function(data){
                 $("#bodyDiv").html(data);
                 $("#bodyDiv-div").find("script").each(function(i) {
@@ -85,12 +153,12 @@ function RoboSherlock(options){
     {
        var user_query = ace.edit(queryDiv);
        var history = ace.edit(historyDiv);
-        
+
         var q = user_query.getValue().trim();
         history.renderer.$cursorLayer.element.style.display = "none"
         history.setValue(history.getValue() + "\n\n?- " + q +  "\n", -1);
         history.navigateFileEnd();
-        
+
         $.ajax({
            type: "POST",
            url: "/prolog_query",
@@ -101,19 +169,19 @@ function RoboSherlock(options){
                 $("#bodyDiv").html(data);
                 $("#bodyDiv-div").find("script").each(function(i) {
                     eval($(this).text());
-                }); 
+                });
            }
          });
-        user_query.setValue("") 
+        user_query.setValue("")
     }
-    
-    
+
+
     this.get_query_data = function () {
         if(!that.queryData) {
             try {
                 var xmlHttp = new XMLHttpRequest();
-                xmlHttp.open("GET", "/_get_queries", true); // true for asynchronous 
-                xmlHttp.onload = function(e) { 
+                xmlHttp.open("GET", "/_get_queries", true); // true for asynchronous
+                xmlHttp.onload = function(e) {
                     if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
                     {
                         that.queryData = JSON.parse(xmlHttp.responseText);
@@ -127,7 +195,7 @@ function RoboSherlock(options){
             }
         }
     };
-    
+
     this.setup_history_field = function () {
         var history = ace.edit(historyDiv);
         history.setTheme("ace/theme/solarized_light");
@@ -186,7 +254,7 @@ function RoboSherlock(options){
             bindKey: {win: 'Down',  mac: 'Down'},
             exec: function(editor) { that.set_previous_history_item(); }
         });
-        
+
         // Create console iosOverlay
         var console = document.getElementById('console');
         if(console) {
@@ -197,7 +265,7 @@ function RoboSherlock(options){
             consoleOverlay.style.display = 'none';
             console.appendChild(consoleOverlay);
         }
-        
+
         // Create page iosOverlay
         var page = document.getElementById('page');
         if(page) {
@@ -208,10 +276,10 @@ function RoboSherlock(options){
             pageOverlay.style.display = 'none';
             page.appendChild(pageOverlay);
         }
-        
+
         return userQuery;
     };
-    
+
     this.add_selected_to_queryform = function (selectid, focus) {
       var select = document.getElementById(selectid);
       this.set_query_value(select.options[select.selectedIndex].value, focus);
@@ -224,14 +292,14 @@ function RoboSherlock(options){
       if(focus) user_query.focus();
       user_query.navigateFileEnd();
     };
-    
+
 
     // fill the select with json data from url
     this.populate_query_select = function (id, queryData) {
-        queries = queryData.query;       
+        queries = queryData.query;
         var select = document.getElementById(id);
         if(select !== null) {
-          while (select.firstChild) select.removeChild(select.firstChild);         
+          while (select.firstChild) select.removeChild(select.firstChild);
           for (var i = 0; i < queries.length; i++) {
             var opt = document.createElement('option');
             if(queries[i].q !== undefined) {

@@ -11,7 +11,7 @@ from mongoclient import MongoWrapper
 """
     @type mc: mongoclient.RSMongoClient
 """
-mc = MongoWrapper()
+# mc = MongoWrapper()
 
 key_dict = {"shape":        {"_type": "rs.annotation.Shape"},
             "size":         {"_type": "rs.annotation.SemanticSize"},
@@ -40,11 +40,12 @@ aDict = {'object':'annotations',
 
 class QueryHandler(object):
 
-    def __init__(self):
+    def __init__(self, mongo_wrapper):
         print "Init Query Handler"
         # initialize the grammar
         self.grammar = RSQueryGrammar(self)
         self.status = 0
+        self.mc = mongo_wrapper
         # track the no of kvps extracted so we can format mongo query adequately
         self.query_type = ""
         self.kvp_counter = 0
@@ -84,15 +85,15 @@ class QueryHandler(object):
         :param q: the query string
         """
         if hack == 1:
-            mc.set_main_collection('hypotheses')
-            cursor = mc.call_query([{'$project': {'_parent': 1, 'identifiables': 1, '_id': 0}},
+            self.mc.set_main_collection('hypotheses')
+            cursor = self.mc.call_query([{'$project': {'_parent': 1, 'identifiables': 1, '_id': 0}},
                                     {'$unwind': '$identifiables'}, {'$match': {'$and':
                                         [{'identifiables.annotations':
                                               {'$elemMatch':{'source': 'DeCafClassifier', 'confidence': {'$gt': 0.5}, '_type': 'rs.annotation.Detection','name':{'$in':['fork_red_plastic','fork_blue_plastic','knife_red_plastic','knife_blue_plastic']}}}}]}}])
-            return mc.process_objects_cursor(cursor)
+            return self.mc.process_objects_cursor(cursor)
         elif hack == 2:
-            mc.set_main_collection('hypotheses')
-            cursor = mc.call_query([{'$match':{'$and':[{'timestamp': {'$gt':1482401694215166627}},
+            self.mc.set_main_collection('hypotheses')
+            cursor = self.mc.call_query([{'$match':{'$and':[{'timestamp': {'$gt':1482401694215166627}},
                                                         {'timestamp': {'$lt':1482401807402294324}}]}},
                                     {'$project': {'_parent': 1, 'identifiables': 1, '_id': 0}},
                                     {'$unwind': '$identifiables'},
@@ -101,7 +102,7 @@ class QueryHandler(object):
                                                                                              'source': 'DeCafClassifier',
                                                                                              'confidence': {'$gt': 0.5},
                                                                                              '_type': 'rs.annotation.Detection'}}}]}}])
-            return mc.process_objects_cursor(cursor)
+            return self.mc.process_objects_cursor(cursor)
         self.reset()
         self.grammar.parse_query(q)
         # if self.query['$and'] == []:
@@ -111,14 +112,18 @@ class QueryHandler(object):
             self.query = {}
             self.final_query = []
         if self.query_type == "hypotheses":
-            self.final_query = [{'$project':{'_id':0,'identifiables':1,'_parent':1}},{'$unwind':'$identifiables'},{'$match': self.query}]
+            if len(self.query) == 0:
+                self.final_query = [{'$project': {'_id': 0, 'identifiables': 1, '_parent': 1}},
+                                    {'$unwind': '$identifiables'}]
+            else:
+                self.final_query = [{'$project':{'_id':0,'identifiables':1,'_parent':1}}, {'$unwind': '$identifiables'},{'$match': self.query}]
             print 'Asked for a hyp: extending query to look in the identifiables of scenes'
         elif self.query_type =="object" and self.query != {}:
             self.final_query = [ {'$match':self.query} ]
             print 'Asked for an obj. Not doins anything'
         print 'MongoQuery: %s ' % self.final_query
-        cursor = mc.call_query(self.final_query)
-        return mc.process_objects_cursor(cursor)
+        cursor = self.mc.call_query(self.final_query)
+        return self.mc.process_objects_cursor(cursor)
 
     def kvp_cb_(self, t):
         if len(t) == 2:
@@ -184,7 +189,7 @@ class QueryHandler(object):
             print '(%d) This is a nested query' % self.status
             self.status += 1
         print self.query
-        mc.set_main_collection(self.query_type)  # some that gives all views all objects or all scenes?
+        self.mc.set_main_collection(self.query_type)  # some that gives all views all objects or all scenes?
 
     def end_cb_(self, t):
         print "Query %s" % t

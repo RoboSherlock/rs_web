@@ -46,8 +46,11 @@ class Scene:
                 one_step = self.no_of_scenes - self.index
             scenes = []
             for ts in self.timestamps[self.index:self.index+one_step]:
-                scene = {'ts': ts, 'rgb': self.mongo_wrp.get_scene_image(ts), 'objects': self.mongo_wrp.get_object_hypotheses_for_scene(ts)}
+                img = self.mongo_wrp.get_scene_image(ts)
+                scene = {'ts': ts, 'rgb': img['img_b64'], 'objects': self.mongo_wrp.get_object_hypotheses_for_scene(ts)}
                 self.scenes.append(scene)
+                export_scene = {'ts': ts, 'rgb': img['img'], 'depth': img['depth'], 'objects': ''}
+                self.export_data.append(export_scene)
                 scenes.append(scene)
             template = render_template('one_scene.html', scenes=scenes, index=self.index)
             self.index = self.index + one_step

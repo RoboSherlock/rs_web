@@ -3,7 +3,7 @@ from __future__ import print_function  # In python 2.7
 from mercurial.context import memctx
 
 from forms import ScenesForm, HypothesisForm
-from flask import Flask, render_template, current_app, request, jsonify, redirect, render_template_string
+from flask import Flask, render_template, current_app, request, jsonify, redirect, render_template_string, send_from_directory
 from flask_paginate import Pagination, get_page_args
 
 from gevent.pywsgi import WSGIServer
@@ -37,7 +37,7 @@ export_entities = []
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/query', methods=['GET', 'POST'])
 def index():
-    print("Rendering object_store.html", file=sys.stderr)
+    print("Rendering rs_live.html", file=sys.stderr)
     return render_template('rs_live.html')
 
 
@@ -88,6 +88,8 @@ def get_history():
 def get_more_data():
     global scene_handler
     template = scene_handler.scroll_call()
+    global export_type
+    export_type = 1
     return template
 
 
@@ -144,6 +146,8 @@ def handle_objects():
 def handle_scenes_devel(ts1=None, ts2=None):
     global scene_handler
     template = scene_handler.first_call()
+    global export_type
+    export_type = 1
     return template
 
 
@@ -156,8 +160,6 @@ def handle_scenes(ts1 = None, ts2 = None):
     if ts1 != None and ts2!=None:
         idx_begin = timestamps.index(ts1)
         idx_end = timestamps.index(ts2)
-        # idx_begin = 9
-        # idx_end = 19
     scenes = []
     for ts in timestamps[idx_begin:idx_end]:  # [idxB:idxE]:
         scene = {'ts': ts, 'rgb': mc.get_scene_image(ts), 'objects': mc.get_object_hypotheses_for_scene(ts)}
@@ -174,28 +176,32 @@ def handle_scenes(ts1 = None, ts2 = None):
 
 
 def handle_scenes_export():
-    shutil.rmtree('./scenes')
-    os.mkdir('./scenes', 0755)
-    path_to_scenes = os.getcwd() + '/scenes'
-    for scene in export_entities:
-        ts = scene['ts']
-        rgb = scene['rgb'][22:]
-        abs_dir = path_to_scenes + '/scene_' + str(ts)
-        rgb_name = abs_dir + '/rgb_' + str(ts) + '.png'
-        os.mkdir(abs_dir, 0777)
-        with open(rgb_name, 'wb') as image:
-            image.write(rgb.decode('base64'))
-        objects = scene['objects']
-        i = 0
-        objects_filename = abs_dir + '/object'
-        for _object in objects:
-            img = _object['image'][22:]
-            object_name_no = objects_filename + str(i) + '.png'
-            with open(object_name_no, 'wb') as obj_fl:
-                obj_fl.write(img.decode('base64'))
-            i = i + 1
-    return 'YES'
-
+    #
+    # shutil.rmtree('./scenes')
+    # os.mkdir('./scenes', 0755)
+    # path_to_scenes = os.getcwd() + '/scenes'
+    # for scene in export_entities:
+    #     ts = scene['ts']
+    #     rgb = scene['rgb']
+    #     abs_dir = path_to_scenes + '/scene_' + str(ts)
+    #     rgb_name = abs_dir + '/rgb_' + str(ts) + '.png'
+    #     os.mkdir(abs_dir, 0777)
+    #     with open(rgb_name, 'wb') as image:
+    #         image.write(rgb.decode('base64'))
+    #     objects = scene['objects']
+    #     i = 0
+    #     objects_filename = abs_dir + '/object'
+    #     for _object in objects:
+    #         img = _object['image'][22:]
+    #         object_name_no = objects_filename + str(i) + '.png'
+    #         with open(object_name_no, 'wb') as obj_fl:
+    #             obj_fl.write(img.decode('base64'))
+    #         i = i + 1
+    global scene_handler
+    global scene_handler
+    scene_handler.export_all()
+    return send_from_directory('./', 'scenes.zip', mimetype="application/zip")
+    # return 'OK'
 
 @app.route('/export_data', methods=['POST'])
 def export_data():

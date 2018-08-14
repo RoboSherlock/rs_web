@@ -17,3 +17,11 @@ function filterFunction() {
         }
     }
 }
+        $('#body-section1').click(function () {
+           var item = $(this);
+           if (item.hasClass('collapse-close')){
+               item.show();
+           }else{
+               item.hide();
+           }
+        });

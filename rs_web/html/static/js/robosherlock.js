@@ -27,10 +27,17 @@ function RoboSherlock(options){
         $.ajax({
            type: "POST",
            url: "/export_data",
-           data: "hagi",
            async: true,
-           beforeSend: function(xhr){xhr.setRequestHeader('Content-type', 'text-plain');},
-           success: function(){
+           contentType: "application/zip",
+           success: function(data){
+                alert('success: ');
+                var blob = new Blob([data], {type: "application/zip"});
+                var fileName = "QCPReport.zip";
+                saveAs(blob, fileName);
+
+           },
+           error: function (data) {
+               alert("error");
            }
          });
     });
@@ -52,7 +59,7 @@ function RoboSherlock(options){
                async: true,
                beforeSend: function(xhr){xhr.setRequestHeader('Content-type', 'text-plain');},
                success: function(data){
-                   if (data.length !=0){
+                   if (data != "NU"){
                         $("#maintable").append(data);
                         $("#bodyDiv").find("script").each(function(i) {
                             eval($(this).text());

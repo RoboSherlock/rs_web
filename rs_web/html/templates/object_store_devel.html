@@ -41,6 +41,13 @@
     <div class="container" id="container" style="padding-left:15px; margin-top: 0px; background-color: #DDDDDD">
         <div class="row">
             <div class="col-md-4" id="querying" style="height: 100%; background-color: white;">
+                <div class="row " style="margin-bottom: 5px">
+                    <select id="db_names" class="form-control">
+                        {%  for db_name in db_names %}
+                            <option>{{ db_name }}</option>
+                        {%  endfor %}
+                    </select>
+                </div>
                 <div class="row">
                     <ul id="query_tabs" class="nav nav-tabs">
                         <li class="active" id="scenes_tab"><a data-toggle="tab" href="#scenes">Scenes</a></li>

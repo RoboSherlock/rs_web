@@ -81,7 +81,6 @@ class QueryHandler(object):
 
     def exec_query(self,q,hack=None):
         """
-
         :param q: the query string
         """
         if hack == 1:

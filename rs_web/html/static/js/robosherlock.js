@@ -4,7 +4,8 @@
 function RoboSherlock(options){
 
     var that = this;
-
+    var activeDB = "PnP09ObjSymbolicGTFixed";
+    var changedDB = false;
     var historyDiv = options.history_div || 'history';
     var queryDiv = options.query_div || 'user_query';
     var libraryDiv = options.library_div ||'querylist';
@@ -19,7 +20,11 @@ function RoboSherlock(options){
         this.setup_query_field();
         this.get_query_data();
     }
-
+    $("#db_names").click(function () {
+        var item = $(this);
+        activeDB = item.val();
+        changedDB = true;
+    });
     $("#btn_query").click(function (){
         that.query()
     });
@@ -42,6 +47,16 @@ function RoboSherlock(options){
          });
     });
     $("#filter_button").click(function () {
+        if (changedDB){
+            $.ajax({
+                type: "POST",
+                url: "/set_active_DB",
+                dataType: 'json',
+                data: JSON.stringify({activeDB: activeDB}),
+                async: true,
+                contentType: "application/json"
+            });
+        }
         that.form_query();
     });
 

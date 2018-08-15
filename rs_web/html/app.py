@@ -15,6 +15,7 @@ import json
 import time
 import numpy as np
 import os
+from pymongo import MongoClient
 from source.mongoclient import MongoWrapper
 from source.parser import QueryHandler
 from pyparsing import ParseException
@@ -22,7 +23,8 @@ import shutil
 from models import Scene
 app = Flask(__name__)
 app.config.from_pyfile('app.cfg')
-
+database_names = MongoClient().database_names()
+print(database_names)
 mc = MongoWrapper(dbname='PnP09ObjSymbolicGTFixed')
 scene_handler = Scene(mc)
 qh = QueryHandler(mc)
@@ -55,17 +57,26 @@ def object_store_methode():
     # return render_template('object_store_dev.html', scenes_form=scenes_form, hypothesis_form=hypothesis_form)
     global scene_handler
     scene_handler.reset()
-    return render_template('object_store_devel.html')
+    return render_template('object_store_devel.html', db_names=database_names)
 # @app.route('/query', methods=['GET', 'POST'])
 # def query_methode():
 #     print("Rendering query.html", file=sys.stderr)
 #     return render_template('rs_live.html')
+
 
 @app.route('/robosherlock/add_new_query', methods=['POST'])
 def adding_new_query():
     query = request.json
     queries_list.append(query['query'])
     print(queries_list)
+    return 'OK'
+
+
+@app.route("/set_active_DB", methods=['POST'])
+def set_active_DB():
+    name = request.json
+    global mc
+    mc = MongoWrapper(name['activeDB'])
     return 'OK'
 
 

@@ -145,6 +145,33 @@ class MongoWrapper(object):
         # print("getting obj_hyps for scene took: %s seconds ---" % (time.time() - start_time),file=sys.stderr)
         return obj_hyps
 
+    def get_object_data(self, obj_entry):
+        x = obj_entry['rois']['roi_hires']['pos']['x']
+        y = obj_entry['rois']['roi_hires']['pos']['y']
+        obj_height = obj_entry['rois']['roi_hires']['size']['height']
+        obj_width = obj_entry['rois']['roi_hires']['size']['width']
+        data = {'x': x, 'y': y, 'height': obj_height, 'width': obj_width, 'label': 'no_label'}
+        annotations = obj_entry['annotations']
+        for annotation in annotations:
+            if annotation['_type'] == 'rs.annotation.GroundTruth':
+                data['label'] = annotation['classificationGT']['classname']
+        return data
+
+    def get_object_data_for_scene(self, ts):
+        scene_doc = self.db.scene.find({'timestamp': ts})
+        obj_data = []
+        if scene_doc.count != 0:
+            hyps = scene_doc[0]['identifiables']
+            i = 0
+            for hyp in hyps:
+                data = self.get_object_data(hyp)
+                data['obj_no'] = i
+                i = i + 1
+                obj_data.append(data)
+
+        return obj_data
+
+
     def get_base64_img(self, img):
         [ret, png] = cv2.imencode('.png', img)
         b64 = base64.b64encode(png.tostring())
@@ -164,7 +191,7 @@ class MongoWrapper(object):
         scene_img = {}
         if cas_document.count() != 0:
             color_cursor = self.db.color_image_hd.find({'_id': cas_document[0]['color_image_hd']})
-            depth_cursor = self.db.color_image_hd.find({'_id': cas_document[0]['depth_image_hd']})
+            depth_cursor = self.db.depth_image_hd.find({'_id': cas_document[0]['depth_image_hd']})
         if color_cursor.count() != 0:
             width = color_cursor[0]['cols']
             height = color_cursor[0]['rows']
@@ -179,7 +206,7 @@ class MongoWrapper(object):
             width = depth_cursor[0]['cols']
             height = depth_cursor[0]['rows']
             img_data = depth_cursor[0]['data']
-            image = np.reshape(np.fromstring(img_data, np.uint8), (height, width, 3))
+            image = np.reshape(np.fromstring(img_data, np.uint16), (height, width, 1))
             small = cv2.resize(image, (0, 0), fx=scale_factor, fy=scale_factor)
             scene_img['depth'] = small
         else:

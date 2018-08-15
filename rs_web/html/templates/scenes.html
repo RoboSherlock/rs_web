@@ -7,12 +7,10 @@
             defaultOpen: 'body_section1',
             cookieName: 'body2',
             speed: 'fast',
-            animateOpen: function (elem, opts) { //replace the standard slideUp with custom function
-                elem.next().slideFadeToggle(opts.speed);
-            },
-            animateClose: function (elem, opts) { //replace the standard slideDown with custom function
-                elem.next().slideFadeToggle(opts.speed);
-            },
+            {#animateOpen: function (elem, opts) { //replace the standard slideUp with custom function#}
+            {#    elem.next().slideFadeToggle(opts.speed);},#}
+            {#animateClose: function (elem, opts) { //replace the standard slideDown with custom function#}
+            {#    elem.next().slideFadeToggle(opts.speed);},#}
             loadOpen: function (elem) { //replace the standard open state with custom function
                 elem.next().show();
             },
@@ -37,6 +35,7 @@
             event.preventDefault();
             openAll();
         });
+
         closeAll();
 </script>
 
@@ -58,7 +57,7 @@
       {% set outer_loop = loop %}
         <tr>
           <td>{{ loop.index }}</td>
-          <td style="width:auto; max-width:290;" > {{ scene['ts']}} <br>
+          <td style="width:auto; max-width:290px;" > {{ scene['ts']}} <br>
             <div class = "imgContainer"> <img style="display:block;margin-left:auto;margin-right:auto;" src="{{ scene['rgb']}}"/></div>
           </td>
           <td>

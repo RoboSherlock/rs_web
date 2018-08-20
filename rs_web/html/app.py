@@ -32,9 +32,6 @@ queries_list = []
 
 loading_type = 0    # 1 - first attempt, 2 - loading scene, 3 - loading on scroll
 export_type = 0     # 1 - scenes, 2 - hypothesis, 3 - objects
-# scenes_list = []    # once we query the database about the scenes, all of them will be locally stored in scenes_list
-# hypothesis_list = []    # same as scenes_list
-# objects_list = []   # same as scenes_list
 export_entities = []
 
 
@@ -47,21 +44,9 @@ def index():
 
 @app.route('/store', methods=['GET', 'POST'])
 def object_store_methode():
-    # print("Rendering store.html", file=sys.stderr)
-    # scenes_form = ScenesForm()
-    # hypothesis_form = HypothesisForm()
-    # if scenes_form.validate_on_submit():
-    #     print("Filer = {}".format(scenes_form.filter.data), file=sys.stderr)
-    #     print("Export = {}".format(scenes_form.export.data), file=sys.stderr)
-    #
-    # return render_template('object_store_dev.html', scenes_form=scenes_form, hypothesis_form=hypothesis_form)
     global scene_handler
     scene_handler.reset()
     return render_template('object_store_devel.html', db_names=database_names)
-# @app.route('/query', methods=['GET', 'POST'])
-# def query_methode():
-#     print("Rendering query.html", file=sys.stderr)
-#     return render_template('rs_live.html')
 
 
 @app.route('/robosherlock/add_new_query', methods=['POST'])
@@ -73,10 +58,15 @@ def adding_new_query():
 
 
 @app.route("/set_active_DB", methods=['POST'])
-def set_active_DB():
+def set_active_db():
     name = request.json
     global mc
-    mc = MongoWrapper(name['activeDB'])
+    mc = MongoWrapper(dbname=name['activeDB'])
+    global qh
+    qh.set_mongo_wrapper(mc)
+    global scene_handler
+    scene_handler.set_mongo_wrp(mc)
+    scene_handler.reset()
     return 'OK'
 
 
@@ -189,32 +179,11 @@ def handle_scenes(ts1 = None, ts2 = None):
 
 
 def handle_scenes_export():
-    #
-    # shutil.rmtree('./scenes')
-    # os.mkdir('./scenes', 0755)
-    # path_to_scenes = os.getcwd() + '/scenes'
-    # for scene in export_entities:
-    #     ts = scene['ts']
-    #     rgb = scene['rgb']
-    #     abs_dir = path_to_scenes + '/scene_' + str(ts)
-    #     rgb_name = abs_dir + '/rgb_' + str(ts) + '.png'
-    #     os.mkdir(abs_dir, 0777)
-    #     with open(rgb_name, 'wb') as image:
-    #         image.write(rgb.decode('base64'))
-    #     objects = scene['objects']
-    #     i = 0
-    #     objects_filename = abs_dir + '/object'
-    #     for _object in objects:
-    #         img = _object['image'][22:]
-    #         object_name_no = objects_filename + str(i) + '.png'
-    #         with open(object_name_no, 'wb') as obj_fl:
-    #             obj_fl.write(img.decode('base64'))
-    #         i = i + 1
     global scene_handler
     global scene_handler
     scene_handler.export_all()
     return send_from_directory('./', 'scenes.zip', mimetype="application/zip")
-    # return 'OK'
+
 
 @app.route('/export_data', methods=['POST'])
 def export_data():

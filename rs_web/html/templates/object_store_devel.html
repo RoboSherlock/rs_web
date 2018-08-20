@@ -40,7 +40,7 @@
 
     <div class="container" id="container" style="padding-left:15px; margin-top: 0px; background-color: #DDDDDD">
         <div class="row">
-            <div class="col-md-4" id="querying" style="height: 100%; background-color: white;">
+            <div class="col-md-4" id="querying" style="height: 100%;width: 350px; background-color: white;">
                 <div class="row " style="margin-bottom: 5px">
                     <select id="db_names" class="form-control">
                         {%  for db_name in db_names %}
@@ -90,12 +90,12 @@
                         </div>
                       </div>
                 </div>
-                    <div class="btn-group  col-md-offset-9" style="margin-top: 5px">
+                    <div class="btn-group  col-md-offset-7" style="margin-top: 5px">
                         <button id="filter_button" class="btn btn-info">Query</button>
-                        <div id="export_button" class="btn btn-info" >Export</div>
+                        <button id="export_button" class="btn btn-info" >Export</button>
                     </div>
             </div>
-            <div class="col-md-8" id="bodyDiv" style="height: 100%; overflow: auto">
+            <div class="col-md-8" id="bodyDiv" style="height: 100%; overflow: auto; width: 900px;">
                 <h1 id = "title-header">RoboSherlock Perceptual Memories</h1>
                 <div id="canvas-container"></div>
             </div>

@@ -63,6 +63,9 @@ class QueryHandler(object):
         self.final_query = {}
         self.kvp_map = {}
 
+    def set_mongo_wrapper(self, mongo_wrapper):
+        self.mc = mongo_wrapper
+
     @property
     def gen_dict(self, query_type="object"):
         """

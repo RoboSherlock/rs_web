@@ -5,7 +5,8 @@ function RoboSherlock(options){
 
     var that = this;
     var activeDB = "PnP09ObjSymbolicGTFixed";
-    var changedDB = false;
+    var changedDB = true;
+    var itemNo = 3;
     var historyDiv = options.history_div || 'history';
     var queryDiv = options.query_div || 'user_query';
     var libraryDiv = options.library_div ||'querylist';
@@ -46,6 +47,22 @@ function RoboSherlock(options){
            }
          });
     });
+    $(document).on('click', '.page_collapsible', function () {
+        var elem = $(this);
+        var my_css  = {display: 'none'};
+        if (elem.hasClass("collapse-close")){
+            elem.removeClass("collapse-close");
+            elem.addClass("collapse-open");
+            my_css = {display: 'block'}
+            var halo = elem.next('.container');
+            halo.css(my_css)
+        }else{
+            elem.removeClass("collapse-open");
+            elem.addClass("collapse-close");
+            var halo = elem.next('.container');
+            halo.css(my_css)
+        }
+    });
     $("#filter_button").click(function () {
         if (changedDB){
             $.ajax({
@@ -57,6 +74,8 @@ function RoboSherlock(options){
                 contentType: "application/json"
             });
         }
+        items = true;
+        noOfReq = 0;
         that.form_query();
     });
 
@@ -75,10 +94,7 @@ function RoboSherlock(options){
                beforeSend: function(xhr){xhr.setRequestHeader('Content-type', 'text-plain');},
                success: function(data){
                    if (data != "NU"){
-                        $("#maintable").append(data);
-                        $("#bodyDiv").find("script").each(function(i) {
-                            eval($(this).text());
-                        });
+                        $("#maintable>tbody").append(data);
                         noOfReq--;
                     }else{
                        items = false;
@@ -107,9 +123,10 @@ function RoboSherlock(options){
            beforeSend: function(xhr){xhr.setRequestHeader('Content-type', 'text-plain');},
            success: function(data){
                 $("#bodyDiv").html(data);
-                $("#bodyDiv-div").find("script").each(function(i) {
-                    eval($(this).text());
-                });
+                bambucha = $(this).text();
+                // $("#bodyDiv").find("script").each(function(i) {
+                //     eval($(this).text());
+                // });
            }
          });
 
@@ -135,9 +152,9 @@ function RoboSherlock(options){
            // beforeSend: function(xhr){xhr.setRequestHeader('Content-type', 'json');},
            success: function(data){
                 $("#bodyDiv").html(data);
-                $("#bodyDiv-div").find("script").each(function(i) {
-                    eval($(this).text());
-                });
+                // $("#bodyDiv-div").find("script").each(function(i) {
+                //     eval($(this).text());
+                // });
            }
          });
 
@@ -189,9 +206,9 @@ function RoboSherlock(options){
            beforeSend: function(xhr){xhr.setRequestHeader('Content-type', 'text-plain');},
            success: function(data){
                 $("#bodyDiv").html(data);
-                $("#bodyDiv-div").find("script").each(function(i) {
-                    eval($(this).text());
-                });
+                // $("#bodyDiv-div").find("script").each(function(i) {
+                //     eval($(this).text());
+                // });
            }
          });
         user_query.setValue("")

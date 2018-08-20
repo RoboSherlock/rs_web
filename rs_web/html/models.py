@@ -46,6 +46,9 @@ class Scene:
         self.index = self.index + one_step
         return render_template('scenes.html', scenes=self.scenes)
 
+    def set_mongo_wrp(self, mongo_wrapper):
+        self.mongo_wrp = mongo_wrapper
+
     def scroll_call(self):
         if self.active is True:
             one_step = 1

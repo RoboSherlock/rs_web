@@ -2,7 +2,7 @@
 
 {% for scene in scenes %}
       {% set outer_loop = loop %}
-        <tr>
+        <tr id="row{{ outer_loop.index + index}}">
           <td>{{ loop.index  + index  }}</td>
           <td style="width:auto; max-width:290px;" > {{ scene['ts']}} <br>
             <div class = "imgContainer"> <img style="display:block;margin-left:auto;margin-right:auto;" src="{{ scene['rgb']}}"/></div>
@@ -20,7 +20,7 @@
                 {% for obj in scene['objects'] %}
                 <tr>
                 <td>{{ loop.index }}</td>
-                    {{macros.showObject(obj,outer_loop.index,loop.index)}}
+                    {{macros.showObject(obj,outer_loop.index + index,loop.index)}}
                 </tr>
                 {% endfor %}
               </tbody>

@@ -33,8 +33,9 @@
 {#        });#}
 {#</script>#}
 
+{% block body %}
 {% if scenes %}
- <h1 id = "title-header">RoboSherlock Perceptual Memories</h1>
+{# <h1 id = "title-header">RoboSherlock Perceptual Memories</h1>#}
   <div class="table-responsive">
     <table class="table" id=maintable>
     <thead>
@@ -48,10 +49,10 @@
     <tbody>
       {% for scene in scenes %}
       {% set outer_loop = loop %}
-        <tr id="row{{ outer_loop.index }}" style="width: 800px">
+        <tr id="row{{ outer_loop.index }}">
           <td>{{ loop.index }}</td>
-          <td style="width:180px; max-width:290px;" > {{ scene['ts']}} <br>
-            <div class = "imgContainer"> <img style="display:block;margin-left:auto;margin-right:auto; width: 170px" src="{{ scene['rgb']}}"/></div>
+          <td style="width:auto; max-width:290px;" > {{ scene['ts']}} <br>
+            <div class = "imgContainer"> <img style="display:block;margin-left:auto;margin-right:auto;" src="{{ scene['rgb']}}"/></div>
           </td>
           <td>
           <table id= "hyptable">
@@ -78,3 +79,4 @@
     </table>
   </div>
 {% endif %}
+{% endblock %}

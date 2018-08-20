@@ -8,6 +8,8 @@ Created on Wed Nov 30 12:50:56 2016
 from __future__ import division
 from __future__ import print_function  # In python 2.7
 
+import sys
+
 from bson.objectid import ObjectId
 
 from pymongo import MongoClient

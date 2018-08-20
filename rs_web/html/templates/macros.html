@@ -182,6 +182,7 @@
 
 {% macro drawHistogram(name, id, nrOfBins, values) %}
 <script>
+   // bar chart data
    var barData = {
    labels : [{% for item in range(1,nrOfBins) %}
                   "{{item}}",
@@ -197,7 +198,9 @@
       }
       ]
    }
+   // get bar chart canvas   pclfeat_{{idx0}}{{idx}}{{aidx}}"
    var mychart = document.getElementById("{{id}}").getContext("2d");
+   // draw bar chart
    var myBarChart = new Chart(mychart, {
         type: 'bar',
         data: barData,
@@ -222,12 +225,12 @@
 {% endmacro %}
 
 {% macro colorhist(annot,idx0,idx,aidx) %}
-    <canvas style="margin-left:auto;margin-right:auto" id="chart_{{idx0}}{{idx}}{{aidx}}" width="250" height="150"></canvas>
+    <canvas style="margin-left:auto;margin-right:auto" id="chart_{{idx0}}{{idx}}{{aidx}}" width="600" height="200"></canvas>
     {{ drawHistogram('HSV Histogram','chart_'~idx0~idx~aidx, annot['bins'],annot['values'])}} 
 {% endmacro %}
 
 {% macro pclfeat(annot,idx0,idx,aidx) %}
-    <canvas style="margin-left:auto;margin-right:auto" id="pclchart_{{idx0}}{{idx}}{{aidx}}" width="250" height="150"></canvas>
+    <canvas style="margin-left:auto;margin-right:auto" id="pclchart_{{idx0}}{{idx}}{{aidx}}" width="600" height="200"></canvas>
     {{ drawHistogram('PCL VFH Feature','pclchart_'~idx0~idx~aidx, annot['bins'],annot['values'])}} 
 {% endmacro %}
 
@@ -239,8 +242,8 @@
        <td>
             <div id = content>   
             {%for a in obj['annotations']%}
-                <div class="page_collapsible collapse-close" style="width: 600px;" id="body-section1">{{a['_type']}}<span></span></div>
-                <div class="container" style="display: none; width: 600px;">
+                <div class="page_collapsible collapse-close" id="body-section1">{{a['_type']}}<span></span></div>
+                <div class="container" style="display: none">
                 <div class= "content">
                     {% if  a['_type']|string() =='rs.annotation.Shape' %}
                         {{ shape(a) }}

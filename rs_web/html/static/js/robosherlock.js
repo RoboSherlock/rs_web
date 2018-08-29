@@ -73,6 +73,7 @@ function RoboSherlock(options){
                 async: true,
                 contentType: "application/json"
             });
+            changedDB = false;
         }
         items = true;
         noOfReq = 0;
@@ -85,16 +86,19 @@ function RoboSherlock(options){
         var scrollTop = thisDiv.scrollTop();
         var height = thisDiv[0].scrollHeight - thisDiv[0].offsetHeight;
         if (scrollTop >= height * 0.7){
+            var active_tab = $("#query_tabs").find('li.active');
+            var content_tab = active_tab.attr("id");
             noOfReq++;
             $.ajax({
                type: "POST",
                url: "/get_more_data",
                data: "get more data",
                async: true,
+               data : content_tab,
                beforeSend: function(xhr){xhr.setRequestHeader('Content-type', 'text-plain');},
                success: function(data){
                    if (data != "NU"){
-                        $("#maintable>tbody").append(data);
+                       $("#maintable>tbody").append(data);
                         noOfReq--;
                     }else{
                        items = false;
@@ -117,7 +121,7 @@ function RoboSherlock(options){
         }
         $.ajax({
            type: "POST",
-           url: "/prolog_query",
+           url: "/get_scenes",
            data: q, // serializes the form's elements.
            async: true,
            beforeSend: function(xhr){xhr.setRequestHeader('Content-type', 'text-plain');},
@@ -162,6 +166,37 @@ function RoboSherlock(options){
 
     this.form_query_hypothesis = function () {
 
+        var hypo = that.hyposJson()
+        $.ajax({
+           type: "POST",
+           url: "/get_hypothesis",
+           async: true,
+           data: JSON.stringify({hypothesis: hypo}),
+           beforeSend: function(xhr){xhr.setRequestHeader('Content-type', 'text-plain');},
+           success : function (data) {
+                $("#bodyDiv").html(data);
+           } 
+        });
+    }
+
+    this.hyposJson = function(){
+        var hypoQuery = {}
+        if($("#shape_check").is(":checked")){
+            var shapeVal = $("#shapes_hypo").val();
+            var shapeConf = parseFloat($("#shape_conf").val() + "0.0");
+            hypoQuery['shape'] = {val: shapeVal, conf: shapeConf}
+        }
+        if ($("#size_check").is(":checked")){
+            var sizeVal = $("#size_hypo").val();
+            var sizeConf = parseFloat($("#size_conf").val() + "0.0");
+            hypoQuery['size'] = {val: sizeVal, conf: sizeConf}
+        }
+        if ($("#color_check").is(":checked")){
+            var colorVal = $("#color_val").val();
+            var colorConf = parseFloat($("#color_conf").val() + "0.0");
+            hypoQuery['color'] = {val: colorVal, conf: colorConf}
+        }
+        return hypoQuery;
     }
 
     this.form_query_objects = function () {

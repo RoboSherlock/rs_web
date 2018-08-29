@@ -20,13 +20,14 @@ from source.mongoclient import MongoWrapper
 from source.parser import QueryHandler
 from pyparsing import ParseException
 import shutil
-from models import Scene
+from models import Scene, Hypothesis
 app = Flask(__name__)
 app.config.from_pyfile('app.cfg')
 database_names = MongoClient().database_names()
 print(database_names)
 mc = MongoWrapper(dbname='PnP09ObjSymbolicGTFixed')
 scene_handler = Scene(mc)
+hypothesis_handler = Hypothesis(mc)
 qh = QueryHandler(mc)
 queries_list = []
 
@@ -67,6 +68,9 @@ def set_active_db():
     global scene_handler
     scene_handler.set_mongo_wrp(mc)
     scene_handler.reset()
+    global hypothesis_handler
+    hypothesis_handler.reset()
+    hypothesis_handler.set_mongo_wrp(mc)
     return 'OK'
 
 
@@ -89,10 +93,15 @@ def get_history():
 
 @app.route('/get_more_data', methods=['GET', 'POST'])
 def get_more_data():
-    global scene_handler
-    template = scene_handler.scroll_call()
-    global export_type
-    export_type = 1
+    data = request.data
+    if data == "scenes_tab":
+        global scene_handler
+        template = scene_handler.scroll_call()
+        global export_type
+        export_type = 1
+    elif data == "hypothesis_tab":
+        global hypothesis_handler
+        template = hypothesis_handler.scroll_call()
     return template
 
 
@@ -126,11 +135,11 @@ def query_wrapper():
             except ParseException:
                 return render_template("emptyPage.html")
 
+
 @app.route('/_get_queries', methods=['GET'])
 def serve_static_file():
     config = json.loads(open('static/queries/testQueries.json').read())
     return jsonify(config)
-
 
 
 def handle_hypothesis_export():
@@ -140,18 +149,28 @@ def handle_hypothesis_export():
 def handle_objects_export():
     pass
 
+
 def handle_objects():
     objects = mc.get_all_persistent_objects()
     print("handle_objects.", file=sys.stderr)
     return render_template('objects.html', objects=objects)
 
 
+@app.route('/get_scenes', methods=['POST', 'GET'])
 def handle_scenes_devel(ts1=None, ts2=None):
     global scene_handler
     template = scene_handler.first_call()
     global export_type
     export_type = 1
     return template
+
+
+@app.route('/get_hypothesis', methods=['POST', 'GET'])
+def handle_hypothesis_devel():
+    data = request.data
+    global hypothesis_handler
+    hypothesis_handler.reset()
+    return hypothesis_handler.first_call(data)
 
 
 def handle_scenes(ts1 = None, ts2 = None):
@@ -209,6 +228,7 @@ def databaseQ():
         mc.setGTinDB(int(timestm), int(imgnum), clname)
         print("Database is updated with GT tool's informations")
     return redirect("Location:http://127.0.0.1")
+
 
 def find_object_instances(obj_id):
     objects = mc.get_object_instances(obj_id)

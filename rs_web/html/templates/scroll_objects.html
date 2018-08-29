@@ -1,0 +1,9 @@
+{% import 'macros.html' as macros %}
+{% if objects %}
+      {% for obj in objects %}
+      <tr>
+      <td>{{ loop.index + index }}</td>
+      {{ macros.showObject(obj,loop.index + index)}}
+      </tr>
+      {% endfor %}
+{% endif %}

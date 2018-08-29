@@ -82,20 +82,21 @@ class QueryHandler(object):
         return dict
 
 
-    def exec_query(self,q,hack=None):
+    def exec_query(self, q, hack=None):
         """
         :param q: the query string
         """
         if hack == 1:
             self.mc.set_main_collection('hypotheses')
             cursor = self.mc.call_query([{'$project': {'_parent': 1, 'identifiables': 1, '_id': 0}},
-                                    {'$unwind': '$identifiables'}, {'$match': {'$and':
-                                        [{'identifiables.annotations':
-                                              {'$elemMatch':{'source': 'DeCafClassifier', 'confidence': {'$gt': 0.5}, '_type': 'rs.annotation.Detection','name':{'$in':['fork_red_plastic','fork_blue_plastic','knife_red_plastic','knife_blue_plastic']}}}}]}}])
+                                        {'$unwind': '$identifiables'},
+                                        {'$match': {'$and': [{'identifiables.annotations':{'$elemMatch': {'source': 'DeCafClassifier', 'confidence': {'$gt': 0.5},
+                                                             '_type': 'rs.annotation.Detection','name' :{'$in':
+                            ['fork_red_plastic', 'fork_blue_plastic', 'knife_red_plastic', 'knife_blue_plastic']}}}}]}}])
             return self.mc.process_objects_cursor(cursor)
         elif hack == 2:
             self.mc.set_main_collection('hypotheses')
-            cursor = self.mc.call_query([{'$match':{'$and':[{'timestamp': {'$gt':1482401694215166627}},
+            cursor = self.mc.call_query([{'$match': {'$and':[{'timestamp': {'$gt':1482401694215166627}},
                                                         {'timestamp': {'$lt':1482401807402294324}}]}},
                                     {'$project': {'_parent': 1, 'identifiables': 1, '_id': 0}},
                                     {'$unwind': '$identifiables'},

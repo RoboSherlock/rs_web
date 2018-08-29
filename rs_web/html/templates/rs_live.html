@@ -51,15 +51,12 @@
           childOptions: {
             center: {
               paneSelector: "#console",
-              onresize: function() {
-                ace.edit("history").resize(true);
-                ace.edit("user_query").resize(true);
-              },
+
               minSize: 250
             },
             south: {
               paneSelector: "#library",
-              minSize: 150
+              minSize: 150,
             }
           }
         },

@@ -109,7 +109,7 @@ class MongoWrapper(object):
             except:
                 cas_cursor = self.db.cas.find({'_id': objEntry['_parent']})
                 if cas_cursor.count() != 0:
-                    ts =cas_cursor[0]['_timestamp']
+                    ts = cas_cursor[0]['_timestamp']
                 obj = {'image': self.get_base64_img(self.get_object_image(objEntry['identifiables'], ts)),
                    'annotations': self.get_persistent_object_annotations(objEntry['identifiables'])}
             objects.append(obj)

@@ -5,7 +5,7 @@ import shutil
 import json
 import cv2
 from bson import ObjectId
-
+import json
 
 class Scene:
 
@@ -50,7 +50,7 @@ class Scene:
         self.mongo_wrp = mongo_wrapper
 
     def scroll_call(self):
-        if self.active is True:
+        if self.active is True and self.index < self.no_of_scenes:
             one_step = 1
             if self.no_of_scenes - self.index < one_step:
                 one_step = self.no_of_scenes - self.index
@@ -101,7 +101,82 @@ class Scene:
             shutil.make_archive('scenes', 'zip', path_to_scenes)
 
 
+class Hypothesis:
+    def __init__(self, mongo_wrapper):
+        self.mongo_wrapper = mongo_wrapper
+        self.no_of_hypos = 0
+        self.index = 0
+        self.cursor = None
+        self.hypos = []
+        self.active = False
+        self.export_data = []
+        self.step = 5
+        self.query = "[{'$project': {'_parent': 1, 'identifiables': 1, '_id': 0}},{'$unwind': '$identifiables'}"
+        self.parsers = {'shape': self.parse_shape, 'size': self.parse_size}
+        self.limit = 0
 
+    def reset(self):
+        self.no_of_hypos = 0
+        self.index = 0
+        self.hypos = []
+        self.active = False
+        self.export_data = []
+        self.cursor = None
+        self.limit = 0
+
+        self.query = [{'$project': {'_parent': 1, 'identifiables': 1, '_id': 0}}, {'$unwind': '$identifiables'}]
+        self.parsers = {'shape': self.parse_shape, 'size': self.parse_size}
+
+    def set_mongo_wrp(self, mongo_wrapper):
+        self.mongo_wrapper = mongo_wrapper
+
+    def first_call(self, query):
+        self.parse_string(query)
+
+        pipeline = self.query[:]
+
+        pipeline.append({'$limit': self.step})
+        self.mongo_wrapper.set_main_collection('hypotheses')
+        self.cursor = self.mongo_wrapper.call_query(pipeline)
+        self.hypos = self.mongo_wrapper.process_objects_cursor(self.cursor)
+        template = render_template('objects.html', objects=self.hypos, index=self.index)
+        self.index = self.step
+        return template
+
+    def scroll_call(self):
+        pipeline = self.query[:]
+        pipeline.append({'$skip': self.index})
+        pipeline.append({'$limit': self.step})
+        self.mongo_wrapper.set_main_collection('hypotheses')
+        self.cursor = self.mongo_wrapper.call_query(pipeline)
+        hypos = self.mongo_wrapper.process_objects_cursor(self.cursor)
+        if len(hypos) > 0:
+            self.hypos.extend(hypos)
+            template = render_template('scroll_objects.html', objects=hypos, index=self.index)
+            self.index += self.step
+            return template
+        else:
+            return "NU"
+
+    def parse_string(self, query):
+        data_q = json.loads(query)['hypothesis']
+        match_dict = {}
+        if len(data_q) > 0:
+            and_dict = {'$and': []}
+            match_dict['$match'] = and_dict
+            for key, val in data_q.items():
+                match_dict['$match']['$and'].append(self.parsers[key](val))
+            self.query.append(match_dict)
+
+    def parse_shape(self, shape):
+        return {'identifiables.annotations': {'$elemMatch': {'shape': shape['val'], 'confidence': {'$gt':
+                                                                                shape['conf']},
+                                                                                '_type': 'rs.annotation.Shape'}}}
+
+    def parse_size(self, size):
+        return {'identifiables.annotations': {'$elemMatch': {'size': size['val'] , 'confidence': {'$gt':
+                                                                                size['conf']},
+                                                                                '_type': 'rs.annotation.SemanticSize'}}}
 
 
 class Filter:

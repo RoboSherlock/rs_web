@@ -1,36 +1,54 @@
 {
     "query": [
+
+	{
+	    "q":"",
+	    "text":"<b>RoboSherlock interface</b>"
+	},
+
+	{
+	    "q":"",
+	    "text":"-----------------------"
+	},
+	{
+	    "q":"annotators(A).",
+	    "text":"Show RoboSherlock components."
+	},
+	{
+	    "q":"annotator_requires_input_type(rs_components:'PrimitiveShapeAnnotator',I).",
+	    "text":"Input types for PrimitiveShapeAnnotator."
+	},
+	{
+	    "q":"owl_individual_of(I, rs_components:'RoboSherlockComponent').",
+	    "text":"What are the active components?"
+	},
+	{
+	    "q":"run_annotator(rs_components:'PrimitiveShapeAnnotator').",
+	    "text":"Run PrimitiveShapeAnnotator?"
+	},
 	{
 	    "q":"",
 	    "text":""
-	},	
+	},
+{
+	    "q":"",
+	    "text":"<b>Detection queries</b>"
+	},
 	{
             "q":"owl_parse('package://iai_semantic_maps/owl/kitchen.owl'),owl_individual_of(A, knowrob:'SemanticEnvironmentMap'),show(A),marker_publish.",
-            "text":"Load semantic map"
+            "text":"<i>View semantic map</i>"
         },
-	{
+{
 	    "q":"",
 	    "text":"-------------"
 	},
         {
-            "q":"detect([an, object,[type,'Bowl'],[location,kitchen_island_counter_top]]).",
-            "text":"Detect the bowl."
+            "q":"detect([an, object,[shape, box]]).",
+            "text":"Detect objects tha have a box shape."
         },
         {
-            "q":"detect([an, object,[type,'BreakfastCereal'],[location, kitchen_sink_block_counter_top]]).",
-            "text":"Detect Cereal."
-        },
-        {
-	    "q":"detect([an, object, [obj-part,handle_sinkblock_drawer_upper]]).",
-	    "text":"Detect a specific handle"
-	},
-        {
-	    "q":"detect([an, object, [type, 'Milk'],[location,drawer_fridge_upper_interior]]),marker_hide(object('http://knowrob.org/kb/IAI-kitchen.owl#iai_kitchen_fridge_door')),marker_publish.",
-            "text":"Detect a milk in the refirdgerator."
- 	},
-        {
-            "q":"detect([an, object,[type,'Cup']]).",
-            "text":"Detect Cup."
+            "q":"detect([an, object,[color, yellow]]).",
+            "text":"Detect objects that are yellow"
         },
         {
             "q":"detect([an, object,[type,'Spoon']]).",

@@ -51,11 +51,11 @@
 	    "text":"-------------"
 	},
         {
-            "q":"detect([an, object,[shape, box]]).",
-            "text":"Detect objects tha have a box shape."
+            "q":"detect([an, object,[shape, round]]).",
+            "text":"Detect objects tha have are round."
         },
         {
-            "q":"detect([an, object,[color, yellow]]).",
+            "q":"detect([an, object,[color, blue]]).",
             "text":"Detect objects that are yellow"
         },
         {

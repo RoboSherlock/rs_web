@@ -23,8 +23,16 @@
 	    "text":"What are the active components?"
 	},
 	{
+	  "q":"build_pipeline_from_predicates_no_constraints([shape, color],P).",
+	  "text":"Plan a general pipeline for detecting shape and color."
+	},
+	{
+	  "q":"pipeline_from_predicates_with_domain_constraint([shape, color],P).",
+	  "text":"Plan a pipeline for detecting shape and color."
+	},
+	{
 	    "q":"run_annotator(rs_components:'PrimitiveShapeAnnotator').",
-	    "text":"Run PrimitiveShapeAnnotator?"
+	    "text":"Run PrimitiveShapeAnnotator"
 	},
 	{
 	    "q":"",

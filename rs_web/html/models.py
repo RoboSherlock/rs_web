@@ -6,7 +6,7 @@ import json
 import cv2
 from bson import ObjectId
 import json
-
+import numpy as np
 class Scene:
 
     def __init__(self, mongo_wrp):
@@ -162,11 +162,15 @@ class Hypothesis:
         data_q = json.loads(query)['hypothesis']
         match_dict = {}
         if len(data_q) > 0:
-            and_dict = {'$and': []}
-            match_dict['$match'] = and_dict
-            for key, val in data_q.items():
-                match_dict['$match']['$and'].append(self.parsers[key](val))
-            self.query.append(match_dict)
+            if 'timestamp' in data_q.keys():
+                self.query.insert(0,self.parse_timestamp(data_q['timestamp']))
+                del data_q['timestamp']
+            if len(data_q) > 0:
+                and_dict = {'$and': []}
+                match_dict['$match'] = and_dict
+                for key, val in data_q.items():
+                    match_dict['$match']['$and'].append(self.parsers[key](val))
+                self.query.append(match_dict)
 
     def parse_shape(self, shape):
         return {'identifiables.annotations': {'$elemMatch': {'shape': shape['val'], 'confidence': {'$gt':
@@ -175,8 +179,17 @@ class Hypothesis:
 
     def parse_size(self, size):
         return {'identifiables.annotations': {'$elemMatch': {'size': size['val'] , 'confidence': {'$gt':
-                                                                                size['conf']},
-                                                                                '_type': 'rs.annotation.SemanticSize'}}}
+                                                                                size['conf']}, '_type': 'rs.annotation.SemanticSize'}}}
+
+    def parse_timestamp(self, timestamp):
+
+        if timestamp['gt'] != '' and timestamp['lt']:
+            return {'$match': {'$and': [{'timestamp': {'$gt': np.int64(timestamp['gt'])}}, {'timestamp': {'$lt': np.int64(timestamp['lt'])}}]}}
+        elif timestamp['gt'] != '':
+            return {'$match': {'timestamp': {'$gt': np.int64(timestamp['gt'])}}}
+        elif timestamp['lt'] != '':
+            return {'$match': {'timestamp': {'$gt': np.int64(timestamp['gt'])}}}
+
 
 
 class Filter:

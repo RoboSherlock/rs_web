@@ -40,6 +40,12 @@ class MongoWrapper(object):
         print('\033[93mQuery resulted in %s results\033[0m' % cursor)
         return cursor
 
+    def exist_collection(self, collection):
+        return self.db[collection].count()
+
+    def exist_persistent_obj(self):
+        return self.exist_collection('persistent_objects')
+
     def get_object_image(self, obj_entry, ts):
         # start_time =time.time()
         x = obj_entry['rois']['roi_hires']['pos']['x']

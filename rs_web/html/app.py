@@ -47,7 +47,10 @@ def index():
 def object_store_methode():
     global scene_handler
     scene_handler.reset()
-    return render_template('object_store_devel.html', db_names=database_names)
+    global mc
+    timestamps = mc.get_timestamps()
+    return render_template('object_store_devel.html', db_names=database_names, timestamps=timestamps,
+                           no_of_obj=mc.exist_persistent_obj())
 
 
 @app.route('/robosherlock/add_new_query', methods=['POST'])
@@ -89,6 +92,15 @@ def get_history():
         response = response + queries_list[lung_lista - index]
     response = response + "\",\"index\":" + str(index) + "}"
     return response
+
+
+@app.route("/get_timestamps", methods=['GET', 'POST'])
+def get_timestamps():
+    data = request.data
+    global mc
+    mc = MongoWrapper(data)
+    timestamps = mc.get_timestamps()
+    return render_template('timestamps.html', timestamps=timestamps)
 
 
 @app.route('/get_more_data', methods=['GET', 'POST'])

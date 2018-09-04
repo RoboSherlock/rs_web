@@ -23,8 +23,23 @@ function RoboSherlock(options){
     }
     $("#db_names").click(function () {
         var item = $(this);
-        activeDB = item.val();
-        changedDB = true;
+        if (item.val() != activeDB){
+            activeDB = item.val();
+            changedDB = true;
+            $.ajax({
+                type: "POST",
+                url: "/get_timestamps",
+                async: true,
+                data: activeDB,
+                beforeSend: function(xhr){xhr.setRequestHeader('Content-type', 'text-plain');},
+                success: function(data) {
+                    $("#from_time_hypo").html(data);
+                    $("#to_time_hypo").html(data);
+                    $("#from_time").html(data);
+                    $("#to_time").html(data);
+                }
+            });
+        }
     });
     $("#btn_query").click(function (){
         that.query()
@@ -92,7 +107,6 @@ function RoboSherlock(options){
             $.ajax({
                type: "POST",
                url: "/get_more_data",
-               data: "get more data",
                async: true,
                data : content_tab,
                beforeSend: function(xhr){xhr.setRequestHeader('Content-type', 'text-plain');},
@@ -195,6 +209,12 @@ function RoboSherlock(options){
             var colorVal = $("#color_val").val();
             var colorConf = parseFloat($("#color_conf").val() + "0.0");
             hypoQuery['color'] = {val: colorVal, conf: colorConf}
+        }
+        if ($("#timestamp_check_hypo").is(":checked")) {
+            hypoQuery['timestamp'] = {gt: $("#from_time_hypo").val(), lt: $("#to_time_hypo").val()}
+        }
+        if($("#obj_check_hypo").is(":checked")){
+            hypoQuery['obj'] = {id: $("#obj_hypo").val()}
         }
         return hypoQuery;
     }

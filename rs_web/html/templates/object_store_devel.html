@@ -58,18 +58,22 @@
 
                       <div class="tab-content">
                         <div id="scenes" class="form-group tab-pane fade in active">
-                                    <div class="col-md-3">
-                                      <input class="form-check-input" type="checkbox" id="timestamp_check">
-                                      <label class="form-check-label" for="timestamp_check">Timestamp</label>
-                                    </div>
-                                    <div class="col-md-4">
-                                      <label class="col-form-label" for="from_time">From Time</label>
-                                      <input class="form-control" type="text" id="from_time">
-                                    </div>
-                                    <div class="col-md-4">
-                                      <label class="col-form-label" for="to_time">To Time</label>
-                                      <input class="form-control" type="text" id="to_time">
-                                    </div>
+                            <div class="row">
+                                 <div class="col-md-3">
+                                    <input class="form-check-input" type="checkbox" id="timestamp_check">
+                                    <label class="form-check-label" for="timestamp_check">Timestamp</label>
+                                 </div>
+                                <select id="from_time" class="col-md-4">
+                                    {% for timestamp in timestamps %}
+                                        <option>{{ timestamp }}</option>
+                                    {% endfor %}
+                                </select>
+                                <select id="to_time" class="col-md-4">
+                                    {% for timestamp in timestamps %}
+                                        <option>{{ timestamp }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
                         </div>
                         <div id="hypothesis" class="tab-pane fade">
                              <div class="row" style="margin-top: 10px">
@@ -121,33 +125,38 @@
                                     <input class="form-check-input" type="checkbox" id="timestamp_check_hypo">
                                     <label class="form-check-label" for="timestamp_check_hypo">Timestamp</label>
                                  </div>
-                                 <div class="col-md-3 col-md-offset-1">
-                                    <label class="col-form-label" for="from_time_hypo">From Time</label>
-                                    <input class="form-control" type="text" id="from_time_hypo">
-                                 </div>
-                                 <div class="col-md-3 col-md-offset-1">
-                                    <label class="col-form-label" for="to_time_hypo">To Time</label>
-                                    <input class="form-control" type="text" id="to_time_hypo">
-                                 </div>
+{#                                 <div class="col-md-3 col-md-offset-1">#}
+{#                                    <label class="col-form-label" for="from_time_hypo">From Time</label>#}
+{#                                    <input class="form-control" type="text" id="from_time_hypo">#}
+{#                                 </div>#}
+{#                                 <div class="col-md-3 col-md-offset-1">#}
+{#                                    <label class="col-form-label" for="to_time_hypo">To Time</label>#}
+{#                                    <input class="form-control" type="text" id="to_time_hypo">#}
+{#                                 </div>#}
+                                <select id="from_time_hypo" class="col-md-4">
+                                    {% for timestamp in timestamps %}
+                                        <option>{{ timestamp }}</option>
+                                    {% endfor %}
+                                </select>
+                                <select id="to_time_hypo" class="col-md-4">
+                                    {% for timestamp in timestamps %}
+                                        <option>{{ timestamp }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
-                            <div class="row" style="margin-top: 15px">
-                                 <div class="col-md-3">
-                                    <input class="form-check-input" type="checkbox" id="obj_check">
-                                    <label class="form-check-label" for="obj_check">Color</label>
-                                 </div>
-                                 <select id="obj_hypo" class="col-md-offset-1 col-md-3">
-                                    <option>1</option>
-                                    <option>2</option>
-                                    <option>3</option>
-                                    <option>4</option>
-                                    <option>5</option>
-                                    <option>6</option>
-                                    <option>7</option>
-                                    <option>8</option>
-                                    <option>9</option>
-                                 </select>
-                            </div>
-
+                            {% if not no_of_objects == 0%}
+                                <div class="row" style="margin-top: 15px">
+                                     <div class="col-md-3">
+                                        <input class="form-check-input" type="checkbox" id="obj_check_hypo">
+                                        <label class="form-check-label" for="obj_check_hypo">Object</label>
+                                     </div>
+                                     <select id="obj_hypo" class="col-md-offset-1 col-md-3">
+                                         {% for i in range(no_of_obj) %}
+                                            <option>{{ i + 1 }}</option>
+                                         {% endfor %}
+                                     </select>
+                                </div>
+                            {% endif %}
                         </div>
                         <div id="objects" class="tab-pane fade"></div>
                         <div id="query" class="tab-pane fade">

@@ -27,6 +27,12 @@ class MongoWrapper(object):
         self.db = self.client[dbname]
         self.active_collection = None
 
+    def get_hypos_for_obj(self, id):
+        my_db = self.db.persistent_objects
+        query = [{'$skip': int(id) - 1}, {'$limit': 1}, {'$project': {'clusters': 1, '_id': 0}}, {'$unwind': '$clusters'}]
+        clusters = list(my_db.aggregate(query))
+        return [x['clusters'] for x in clusters]
+
     def set_main_collection(self, _type):
         if _type == 'object':
             self.active_collection = self.db.persistent_objects
@@ -120,6 +126,7 @@ class MongoWrapper(object):
                    'annotations': self.get_persistent_object_annotations(objEntry['identifiables'])}
             objects.append(obj)
         return objects
+
 
     def get_object_instances(self, object_id):
         nr_of_objs = self.db.persistent_objects.count()

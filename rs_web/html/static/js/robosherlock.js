@@ -56,9 +56,6 @@ function RoboSherlock(options){
                 var fileName = "QCPReport.zip";
                 saveAs(blob, fileName);
 
-           },
-           error: function (data) {
-               alert("error");
            }
          });
     });
@@ -124,58 +121,30 @@ function RoboSherlock(options){
     });
 
     this.form_query_scenes = function () {
-        var timestamp_check = $("#timestamp_check").is(":checked");
-        var from_time = $("#from_time").val();
-        var to_time = $("#to_time").val();
-        var q = "scenes(Sc,[";
-        if (timestamp_check){
-            q = q + "ts>" + from_time + ", ts<" + to_time + "]).";
-        }else{
-            q = q + "]).";
-        }
+        var query = that.sceneJSON();
         $.ajax({
            type: "POST",
            url: "/get_scenes",
-           data: q, // serializes the form's elements.
+           data: JSON.stringify({scene: query}),
            async: true,
            beforeSend: function(xhr){xhr.setRequestHeader('Content-type', 'text-plain');},
            success: function(data){
                 $("#bodyDiv").html(data);
-                bambucha = $(this).text();
-                // $("#bodyDiv").find("script").each(function(i) {
-                //     eval($(this).text());
-                // });
            }
          });
-
     }
 
-    this.form_query_scenes_devel = function () {
-        var timestamp_check = $("#timestamp_check").is(":checked");
-        var from_time = $("#from_time").val();
-        var to_time = $("#to_time").val();
-        var q = "scenes(Sc,[";
-        if (timestamp_check){
-            q = q + "ts>" + from_time + ", ts<" + to_time + "]).";
-        }else{
-            q = q + "]).";
+    this.sceneJSON = function () {
+        var sceneQuery = {}
+        if ($("#timestamp_check").is(":checked")) {
+            sceneQuery['timestamp'] = {gt: $("#from_time").val(), lt: $("#to_time").val()}
         }
-        $.ajax({
-           type: "POST",
-           url: "/prolog_query",
-           contentType: "application/json",
-           data: JSON.stringify({query : q}), // serializes the form's elements.
-           async: true,
-           dataType: "json",
-           // beforeSend: function(xhr){xhr.setRequestHeader('Content-type', 'json');},
-           success: function(data){
-                $("#bodyDiv").html(data);
-                // $("#bodyDiv-div").find("script").each(function(i) {
-                //     eval($(this).text());
-                // });
-           }
-         });
-
+        if($("#objects_check").is(":checked")){
+            sceneQuery['obj'] = {ids: $("#objects_id").val().split(",").map(function (item) {
+                    return parseInt(item, 10);
+                })};
+        }
+        return sceneQuery;
     }
 
     this.form_query_hypothesis = function () {

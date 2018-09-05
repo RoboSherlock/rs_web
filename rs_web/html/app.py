@@ -170,8 +170,9 @@ def handle_objects():
 
 @app.route('/get_scenes', methods=['POST', 'GET'])
 def handle_scenes_devel(ts1=None, ts2=None):
+    data = request.data
     global scene_handler
-    template = scene_handler.first_call()
+    template = scene_handler.first_call(data)
     global export_type
     export_type = 1
     return template

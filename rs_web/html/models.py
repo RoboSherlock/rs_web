@@ -7,6 +7,18 @@ import cv2
 from bson import ObjectId
 import json
 import numpy as np
+
+
+def parse_timestamp(timestamp):
+    if timestamp['gt'] != '' and timestamp['lt']:
+        return {'$match': {'$and': [{'timestamp': {'$gt': np.int64(timestamp['gt'])}},
+                                    {'timestamp': {'$lt': np.int64(timestamp['lt'])}}]}}
+    elif timestamp['gt'] != '':
+        return {'$match': {'timestamp': {'$gt': np.int64(timestamp['gt'])}}}
+    elif timestamp['lt'] != '':
+        return {'$match': {'timestamp': {'$gt': np.int64(timestamp['gt'])}}}
+
+
 class Scene:
 
     def __init__(self, mongo_wrp):
@@ -17,6 +29,7 @@ class Scene:
         self.scenes = []
         self.active = False
         self.export_data = []
+        self.parsers = {}
 
     def reset(self):
         self.no_of_scenes = 0
@@ -24,9 +37,41 @@ class Scene:
         self.timestamps = []
         self.scenes = []
         self.active = False
+        self.parsers = {}
 
-    def first_call(self, filter=None):
-        self.timestamps = self.mongo_wrp.get_timestamps()
+    def get_timestamps(self, query):
+        data_q = json.loads(query)['scene']
+        if len(data_q) > 0:
+            pipeline = []
+            if 'timestamp' in data_q.keys():
+                pipeline.append(parse_timestamp(data_q['timestamp']))
+                del data_q['timestamp']
+            if len(data_q) > 0:
+                pipeline.extend([{'$project': {'timestamp': 1, 'identifiables': 1}}, {'$unwind': '$identifiables'}])
+                pipeline.append(self.parse_objects(data_q['obj']))
+                pipeline.append({'$project': {'timestamp': 1, '_id': 0}})
+                return pipeline
+            elif len(data_q) == 0:
+                     pipeline.append({'$project': {'timestamp': 1}})
+        else:
+            return [{'$project': {'timestamp': 1}}]
+
+    def parse_objects(self, objs):
+        objects = []
+        for id in objs['ids']:
+            objects.extend([ObjectId(x) for x in self.mongo_wrp.get_hypos_for_obj(id)])
+        if len(objects) > 0:
+            return {'$match': {'identifiables._id': {'$in': objects}}}
+
+    def first_call(self, query):
+        query1 = query
+        pipeline = self.get_timestamps(query1)
+        self.mongo_wrp.set_main_collection('hypotheses')
+        self.timestamps = []
+        tss = list(self.mongo_wrp.call_query(pipeline))
+        for ts in tss:
+            if ts['timestamp'] not in self.timestamps:
+                self.timestamps.append(np.int64(ts['timestamp']))
         self.index = 0
         self.no_of_scenes = len(self.timestamps)
         one_step = 2
@@ -111,8 +156,8 @@ class Hypothesis:
         self.active = False
         self.export_data = []
         self.step = 5
-        self.query = "[{'$project': {'_parent': 1, 'identifiables': 1, '_id': 0}},{'$unwind': '$identifiables'}"
-        self.parsers = {'shape': self.parse_shape, 'size': self.parse_size}
+        self.query = [{'$project': {'_parent': 1, 'identifiables': 1, '_id': 1}}, {'$unwind': '$identifiables'}]
+        self.parsers = {'shape': self.parse_shape, 'size': self.parse_size, 'obj': self.parse_objects}
         self.limit = 0
 
     def reset(self):
@@ -123,18 +168,16 @@ class Hypothesis:
         self.export_data = []
         self.cursor = None
         self.limit = 0
+        self.query = [{'$project': {'_parent': 1, 'identifiables': 1, '_id': 1}}, {'$unwind': '$identifiables'}]
 
-        self.query = [{'$project': {'_parent': 1, 'identifiables': 1, '_id': 0}}, {'$unwind': '$identifiables'}]
-        self.parsers = {'shape': self.parse_shape, 'size': self.parse_size}
+        self.parsers = {'shape': self.parse_shape, 'size': self.parse_size, 'obj': self.parse_objects}
 
     def set_mongo_wrp(self, mongo_wrapper):
         self.mongo_wrapper = mongo_wrapper
 
     def first_call(self, query):
         self.parse_string(query)
-
         pipeline = self.query[:]
-
         pipeline.append({'$limit': self.step})
         self.mongo_wrapper.set_main_collection('hypotheses')
         self.cursor = self.mongo_wrapper.call_query(pipeline)
@@ -163,7 +206,7 @@ class Hypothesis:
         match_dict = {}
         if len(data_q) > 0:
             if 'timestamp' in data_q.keys():
-                self.query.insert(0,self.parse_timestamp(data_q['timestamp']))
+                self.query.insert(0, parse_timestamp(data_q['timestamp']))
                 del data_q['timestamp']
             if len(data_q) > 0:
                 and_dict = {'$and': []}
@@ -181,16 +224,12 @@ class Hypothesis:
         return {'identifiables.annotations': {'$elemMatch': {'size': size['val'] , 'confidence': {'$gt':
                                                                                 size['conf']}, '_type': 'rs.annotation.SemanticSize'}}}
 
-    def parse_timestamp(self, timestamp):
-
-        if timestamp['gt'] != '' and timestamp['lt']:
-            return {'$match': {'$and': [{'timestamp': {'$gt': np.int64(timestamp['gt'])}}, {'timestamp': {'$lt': np.int64(timestamp['lt'])}}]}}
-        elif timestamp['gt'] != '':
-            return {'$match': {'timestamp': {'$gt': np.int64(timestamp['gt'])}}}
-        elif timestamp['lt'] != '':
-            return {'$match': {'timestamp': {'$gt': np.int64(timestamp['gt'])}}}
 
 
+    def parse_objects(self, obj):
+        objs = [ObjectId(x) for x in self.mongo_wrapper.get_hypos_for_obj(obj['id'])]
+        if len(objs) > 0:
+            return {'identifiables._id': {'$in': objs}}
 
 class Filter:
     def __init__(self):

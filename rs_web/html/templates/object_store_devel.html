@@ -74,6 +74,16 @@
                                     {% endfor %}
                                 </select>
                             </div>
+                            <div class="row" style="margin-top: 10px;">
+                                 <div class="col-md-3">
+                                    <input class="form-check-input" type="checkbox" id="objects_check">
+                                    <label class="form-check-label" for="objects_check">Objects</label>
+                                 </div>
+                                 <div class="col-md-6">
+                                    <label class="col-form-label" for="objects_id">Object IDs</label>
+                                    <input class="form-control" type="text" id="objects_id" defaultValue=" ">
+                                 </div>
+                            </div>
                         </div>
                         <div id="hypothesis" class="tab-pane fade">
                              <div class="row" style="margin-top: 10px">
@@ -125,14 +135,6 @@
                                     <input class="form-check-input" type="checkbox" id="timestamp_check_hypo">
                                     <label class="form-check-label" for="timestamp_check_hypo">Timestamp</label>
                                  </div>
-{#                                 <div class="col-md-3 col-md-offset-1">#}
-{#                                    <label class="col-form-label" for="from_time_hypo">From Time</label>#}
-{#                                    <input class="form-control" type="text" id="from_time_hypo">#}
-{#                                 </div>#}
-{#                                 <div class="col-md-3 col-md-offset-1">#}
-{#                                    <label class="col-form-label" for="to_time_hypo">To Time</label>#}
-{#                                    <input class="form-control" type="text" id="to_time_hypo">#}
-{#                                 </div>#}
                                 <select id="from_time_hypo" class="col-md-4">
                                     {% for timestamp in timestamps %}
                                         <option>{{ timestamp }}</option>

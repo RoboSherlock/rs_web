@@ -161,6 +161,17 @@ function RoboSherlock(options){
            } 
         });
     }
+    this.form_query_objects = function () {
+        $.ajax({
+           type: 'POST',
+           url: '/get_objects',
+           async: true,
+           beforeSend: function(xhr){xhr.setRequestHeader('Content-type', 'text-plain');},
+           success : function (data) {
+                $("#bodyDiv").html(data);
+           }
+        });
+    }
 
     this.hyposJson = function(){
         var hypoQuery = {}
@@ -188,9 +199,7 @@ function RoboSherlock(options){
         return hypoQuery;
     }
 
-    this.form_query_objects = function () {
 
-    }
 
     this.form_query = function()
     {

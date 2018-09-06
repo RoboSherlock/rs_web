@@ -19,6 +19,13 @@ def parse_timestamp(timestamp):
         return {'$match': {'timestamp': {'$gt': np.int64(timestamp['gt'])}}}
 
 
+def intersect3(timestamps):
+    inters = set(timestamps[0][:])
+    for i in range(1, len(timestamps)):
+        inters = inters.intersection(set(timestamps[i]))
+    return list(inters)
+
+
 class Scene:
 
     def __init__(self, mongo_wrp):
@@ -37,6 +44,7 @@ class Scene:
         self.timestamps = []
         self.scenes = []
         self.active = False
+        self.export_data = []
         self.parsers = {}
 
     def get_timestamps(self, query):
@@ -48,7 +56,15 @@ class Scene:
                 del data_q['timestamp']
             if len(data_q) > 0:
                 pipeline.extend([{'$project': {'timestamp': 1, 'identifiables': 1}}, {'$unwind': '$identifiables'}])
-                pipeline.append(self.parse_objects(data_q['obj']))
+                list_of_queries = []
+                for id in data_q['obj']['ids']:
+                    pip = pipeline[:]
+                    objects = [ObjectId(x) for x in self.mongo_wrp.get_hypos_for_obj(id)]
+                    pip.append({'$match': {'identifiables._id': {'$in': objects}}})
+                    pip.append({'$project': {'timestamp': 1, '_id': 0}})
+                    list_of_queries.append(pip)
+                if len(list_of_queries) > 0:
+                    return list_of_queries
                 pipeline.append({'$project': {'timestamp': 1, '_id': 0}})
                 return pipeline
             elif len(data_q) == 0:
@@ -63,15 +79,18 @@ class Scene:
         if len(objects) > 0:
             return {'$match': {'identifiables._id': {'$in': objects}}}
 
+    def call_queries(self, queries):
+        timestmps = []
+        self.mongo_wrp.set_main_collection('hypothesis')
+        for query in queries:
+            timestmps.append([ts['timestamp'] for ts in list(self.mongo_wrp.call_query(query))])
+
+        return intersect3(timestmps)
+
     def first_call(self, query):
         query1 = query
-        pipeline = self.get_timestamps(query1)
-        self.mongo_wrp.set_main_collection('hypotheses')
-        self.timestamps = []
-        tss = list(self.mongo_wrp.call_query(pipeline))
-        for ts in tss:
-            if ts['timestamp'] not in self.timestamps:
-                self.timestamps.append(np.int64(ts['timestamp']))
+        pipelines = self.get_timestamps(query1)
+        self.timestamps = self.call_queries(pipelines)
         self.index = 0
         self.no_of_scenes = len(self.timestamps)
         one_step = 2
@@ -224,12 +243,49 @@ class Hypothesis:
         return {'identifiables.annotations': {'$elemMatch': {'size': size['val'] , 'confidence': {'$gt':
                                                                                 size['conf']}, '_type': 'rs.annotation.SemanticSize'}}}
 
-
-
     def parse_objects(self, obj):
         objs = [ObjectId(x) for x in self.mongo_wrapper.get_hypos_for_obj(obj['id'])]
         if len(objs) > 0:
             return {'identifiables._id': {'$in': objs}}
+
+class Object:
+
+    def __init__(self, mongo_wrapper):
+        self.objects = []
+        self.index = 0
+        self.mongo_wrapper = mongo_wrapper
+
+    def reset(self):
+        self.objects = []
+        self.index = 0
+
+    def set_mongo_wrp(self, mongo_wrapper):
+        self.mongo_wrapper = mongo_wrapper
+
+    def first_call(self):
+        self.mongo_wrapper.set_main_collection('object')
+        pipeline = [{'$skip': self.index}, {'$limit': 5}]
+        cursor = self.mongo_wrapper.call_query(pipeline)
+        objects = self.mongo_wrapper.process_objects_cursor(cursor)
+        if len(objects) > 0:
+            self.objects = objects
+            self.index += len(objects)
+            return render_template('objects.html', objects=objects, index=0)
+        return render_template('emptyPage.html')
+
+    def scroll_call(self):
+        self.mongo_wrapper.set_main_collection('object')
+        pipeline = [{'$skip': self.index}, {'$limit': 5}]
+        cursor = self.mongo_wrapper.call_query(pipeline)
+        objects = self.mongo_wrapper.process_objects_cursor(cursor)
+        if len(objects) > 0:
+            self.objects = objects
+            template = render_template('scroll_objects.html', objects=objects, index=self.index)
+            self.index += len(objects)
+            return template
+        else:
+            return "NU"
+
 
 class Filter:
     def __init__(self):

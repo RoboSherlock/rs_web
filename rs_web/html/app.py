@@ -20,7 +20,7 @@ from source.mongoclient import MongoWrapper
 from source.parser import QueryHandler
 from pyparsing import ParseException
 import shutil
-from models import Scene, Hypothesis
+from models import Scene, Hypothesis, Object
 app = Flask(__name__)
 app.config.from_pyfile('app.cfg')
 database_names = MongoClient().database_names()
@@ -28,6 +28,7 @@ print(database_names)
 mc = MongoWrapper(dbname='PnP09ObjSymbolicGTFixed')
 scene_handler = Scene(mc)
 hypothesis_handler = Hypothesis(mc)
+object_handler = Object(mc)
 qh = QueryHandler(mc)
 queries_list = []
 
@@ -108,13 +109,15 @@ def get_more_data():
     data = request.data
     if data == "scenes_tab":
         global scene_handler
-        template = scene_handler.scroll_call()
-        global export_type
-        export_type = 1
+        return scene_handler.scroll_call()
     elif data == "hypothesis_tab":
         global hypothesis_handler
-        template = hypothesis_handler.scroll_call()
-    return template
+        return hypothesis_handler.scroll_call()
+    elif data == "objects_tab":
+        global object_handler
+        return object_handler.scroll_call()
+    return render_template('emptyPage.html')
+
 
 
 @app.route('/prolog_query', methods=['GET', 'POST'])
@@ -162,16 +165,18 @@ def handle_objects_export():
     pass
 
 
+@app.route('/get_objects', methods=['POST', 'GET'])
 def handle_objects():
-    objects = mc.get_all_persistent_objects()
-    print("handle_objects.", file=sys.stderr)
-    return render_template('objects.html', objects=objects)
+    global object_handler
+    object_handler.reset()
+    return object_handler.first_call()
 
 
 @app.route('/get_scenes', methods=['POST', 'GET'])
-def handle_scenes_devel(ts1=None, ts2=None):
+def handle_scenes_devel():
     data = request.data
     global scene_handler
+    scene_handler.reset()
     template = scene_handler.first_call(data)
     global export_type
     export_type = 1

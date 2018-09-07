@@ -1,5 +1,5 @@
 from source.mongoclient import MongoWrapper
-from flask import render_template
+from flask import render_template, send_from_directory
 import os
 import shutil
 import json
@@ -132,7 +132,7 @@ class Scene:
             return template
         return 'NU'
 
-    def export_all(self):
+    def prepare_export(self):
         for ts in self.timestamps[self.index:]:
             img = self.mongo_wrp.get_scene_image(ts)
             scene = {'ts': ts, 'rgb': img['img_b64'], 'objects': self.mongo_wrp.get_object_hypotheses_for_scene(ts)}
@@ -164,6 +164,9 @@ class Scene:
                 json.dump(objects, obj_file, cls=MyJSONEncoder)
             shutil.make_archive('scenes', 'zip', path_to_scenes)
 
+    @staticmethod
+    def export_all():
+        return send_from_directory('./', 'scenes.zip', mimetype="application/zip")
 
 class Hypothesis:
     def __init__(self, mongo_wrapper):

@@ -7,6 +7,7 @@ function RoboSherlock(options){
     var activeDB = "PnP09ObjSymbolicGTFixed";
     var changedDB = true;
     var itemNo = 3;
+    var lastQueryType = "None";
     var historyDiv = options.history_div || 'history';
     var queryDiv = options.query_div || 'user_query';
     var libraryDiv = options.library_div ||'querylist';
@@ -45,19 +46,26 @@ function RoboSherlock(options){
         that.query()
     });
     $("#export_button").click(function () {
-        $.ajax({
-           type: "POST",
-           url: "/export_data",
-           async: true,
-           contentType: "application/zip",
-           success: function(data){
-                alert('success: ');
-                var blob = new Blob([data], {type: "application/zip"});
-                var fileName = "QCPReport.zip";
-                saveAs(blob, fileName);
 
-           }
-         });
+        if (lastQueryType != "None"){
+            $.ajax({
+                type: "POST",
+                url: "/export_type",
+                dataType: 'json',
+                data: JSON.stringify({exportType: lastQueryType}),
+                async: false,
+                contentType: "application/json"
+            });
+            $.ajax({
+                type: "POST",
+                url: "/export_data",
+                async: true,
+                contentType: "application/zip",
+                success: function () {
+                    window.location = '/export_data';
+                }
+            });
+        }
     });
     $(document).on('click', '.page_collapsible', function () {
         var elem = $(this);
@@ -121,6 +129,7 @@ function RoboSherlock(options){
     });
 
     this.form_query_scenes = function () {
+        lastQueryType = "export_scenes";
         var query = that.sceneJSON();
         $.ajax({
            type: "POST",
@@ -135,7 +144,7 @@ function RoboSherlock(options){
     }
 
     this.sceneJSON = function () {
-        var sceneQuery = {}
+        var sceneQuery = {};
         if ($("#timestamp_check").is(":checked")) {
             sceneQuery['timestamp'] = {gt: $("#from_time").val(), lt: $("#to_time").val()}
         }
@@ -148,7 +157,7 @@ function RoboSherlock(options){
     }
 
     this.form_query_hypothesis = function () {
-
+        lastQueryType = "export_hypothesis";
         var hypo = that.hyposJson()
         $.ajax({
            type: "POST",
@@ -162,6 +171,7 @@ function RoboSherlock(options){
         });
     }
     this.form_query_objects = function () {
+        lastQueryType = "export_objects";
         $.ajax({
            type: 'POST',
            url: '/get_objects',

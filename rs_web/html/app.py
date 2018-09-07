@@ -33,7 +33,7 @@ qh = QueryHandler(mc)
 queries_list = []
 
 loading_type = 0    # 1 - first attempt, 2 - loading scene, 3 - loading on scroll
-export_type = 0     # 1 - scenes, 2 - hypothesis, 3 - objects
+export_type = 'None'
 export_entities = []
 
 
@@ -75,7 +75,21 @@ def set_active_db():
     global hypothesis_handler
     hypothesis_handler.reset()
     hypothesis_handler.set_mongo_wrp(mc)
+    global object_handler
+    object_handler.reset()
+    object_handler.set_mongo_wrp(mc)
     return 'OK'
+
+
+@app.route('/export_type', methods=['POST'])
+def set_export_data():
+    data = request.json
+    global export_type
+    export_type = data['exportType']
+    if export_type == "export_scenes":
+        global scene_handler
+        scene_handler.prepare_export()
+    return "OK"
 
 
 @app.route('/robosherlock/get_history_query', methods=['POST'])
@@ -215,20 +229,15 @@ def handle_scenes(ts1 = None, ts2 = None):
     return template
 
 
-def handle_scenes_export():
-    global scene_handler
-    global scene_handler
-    scene_handler.export_all()
-    return send_from_directory('./', 'scenes.zip', mimetype="application/zip")
 
-
-@app.route('/export_data', methods=['POST'])
+@app.route('/export_data', methods=['POST', 'GET'])
 def export_data():
-    if export_type == 1:
-        return handle_scenes_export()
-    elif export_type == 2:
+    if export_type == "export_scenes":
+        global scene_handler
+        return scene_handler.export_all()
+    elif export_type == "export_hypothesis":
         return handle_hypothesis_export()
-    elif export_type == 3:
+    elif export_type == "export_objects":
         return handle_objects_export()
 
     return 'NO'

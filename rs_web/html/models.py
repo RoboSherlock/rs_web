@@ -64,13 +64,17 @@ class Scene:
                     pip.append({'$project': {'timestamp': 1, '_id': 0}})
                     list_of_queries.append(pip)
                 if len(list_of_queries) > 0:
-                    return list_of_queries
+                    return self.call_queries(list_of_queries)
                 pipeline.append({'$project': {'timestamp': 1, '_id': 0}})
-                return pipeline
+                return self.mongo_wrp.call_query(pipeline)
             elif len(data_q) == 0:
-                     pipeline.append({'$project': {'timestamp': 1}})
+
+                pipeline.append({'$project': {'timestamp': 1}})
+                self.mongo_wrp.set_main_collection('hypothesis')
+                return [ts['timestamp'] for ts in self.mongo_wrp.call_query(pipeline)]
         else:
-            return [{'$project': {'timestamp': 1}}]
+            self.mongo_wrp.set_main_collection('hypothesis')
+            return [ts['timestamp'] for ts in self.mongo_wrp.call_query([{'$project': {'timestamp': 1}}])]
 
     def parse_objects(self, objs):
         objects = []
@@ -80,8 +84,8 @@ class Scene:
             return {'$match': {'identifiables._id': {'$in': objects}}}
 
     def call_queries(self, queries):
-        timestmps = []
         self.mongo_wrp.set_main_collection('hypothesis')
+        timestmps = []
         for query in queries:
             timestmps.append([ts['timestamp'] for ts in list(self.mongo_wrp.call_query(query))])
 
@@ -89,8 +93,7 @@ class Scene:
 
     def first_call(self, query):
         query1 = query
-        pipelines = self.get_timestamps(query1)
-        self.timestamps = self.call_queries(pipelines)
+        self.timestamps = self.get_timestamps(query1)
         self.index = 0
         self.no_of_scenes = len(self.timestamps)
         one_step = 2

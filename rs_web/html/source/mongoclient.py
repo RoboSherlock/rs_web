@@ -127,6 +127,16 @@ class MongoWrapper(object):
             objects.append(obj)
         return objects
 
+    def process_my_hypos(self, hypo_cursor):
+        hypos = []
+        for curs in hypo_cursor:
+            cas_cursor = self.db.cas.find({'_id': curs['_parent']})
+            if cas_cursor.count() != 0:
+                ts = cas_cursor[0]['_timestamp']
+            obj = {'image': self.get_object_image(curs['identifiables'], ts),
+                   'annotations': self.get_persistent_object_annotations(curs['identifiables'])}
+            hypos.append(obj)
+        return hypos
 
     def get_object_instances(self, object_id):
         nr_of_objs = self.db.persistent_objects.count()

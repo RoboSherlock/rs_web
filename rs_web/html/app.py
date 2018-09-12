@@ -89,6 +89,9 @@ def set_export_data():
     if export_type == "export_scenes":
         global scene_handler
         scene_handler.prepare_export()
+    elif export_type == "export_hypothesis":
+        global hypothesis_handler
+        hypothesis_handler.prepare_export()
     return "OK"
 
 
@@ -236,7 +239,8 @@ def export_data():
         global scene_handler
         return scene_handler.export_all()
     elif export_type == "export_hypothesis":
-        return handle_hypothesis_export()
+        global hypothesis_handler
+        return hypothesis_handler.export_all()
     elif export_type == "export_objects":
         return handle_objects_export()
 

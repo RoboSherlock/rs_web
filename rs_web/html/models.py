@@ -165,7 +165,7 @@ class Scene:
             objects_name = abs_dir + '/objects_' + str(ts)
             with open(objects_name, 'w') as obj_file:
                 json.dump(objects, obj_file, cls=MyJSONEncoder)
-            shutil.make_archive('scenes', 'zip', path_to_scenes)
+        shutil.make_archive('scenes', 'zip', path_to_scenes)
 
     @staticmethod
     def export_all():
@@ -253,6 +253,41 @@ class Hypothesis:
         objs = [ObjectId(x) for x in self.mongo_wrapper.get_hypos_for_obj(obj['id'])]
         if len(objs) > 0:
             return {'identifiables._id': {'$in': objs}}
+        
+    def prepare_export(self):
+        pipeline = self.query[:]
+        self.mongo_wrapper.set_main_collection('hypotheses')
+        self.cursor = self.mongo_wrapper.call_query(pipeline)
+        hypos = self.mongo_wrapper.process_my_hypos(self.cursor)
+        export_data = []
+        for hypo in hypos:
+            export_data.append({'image': hypo['image'], 'annotations': self.prepare_hypos(hypo['annotations'])})
+        try:
+            shutil.rmtree('./hypothesis')
+        except OSError:
+            print("dir doesn't exists")
+
+        os.mkdir('./hypothesis', 0755, )
+        path_to_hypos = os.getcwd() + '/hypothesis'
+        index = 0
+        for data in export_data:
+            rgb = data['image']
+            annotations = ['annotations']
+            rgb_dir = path_to_hypos + '/hypo_rgb_no_' + str(index) + '.png'
+            annot_dir = path_to_hypos + '/hypo_annot_no_' + str(index)
+            cv2.imwrite(rgb_dir,rgb)
+            with open(annot_dir, 'w') as annot_file:
+                json.dump(annotations, annot_file, cls=MyJSONEncoder)
+            index += 1
+        shutil.make_archive('hypothesis', 'zip', path_to_hypos)
+
+    def prepare_hypos(self, idents):
+        return idents
+
+    @staticmethod
+    def export_all():
+        return send_from_directory('./', 'hypothesis.zip', mimetype="application/zip")
+
 
 class Object:
 

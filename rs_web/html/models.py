@@ -289,7 +289,7 @@ class Hypothesis:
                 depth = val['depth']
                 rgb_dir = path_to_acc_hypo + '/' + the_key + '_' + str(index2) + '_crop' + '.png'
                 cv2.imwrite(rgb_dir, rgb)
-                depth_dir = path_to_acc_hypo + '/' + the_key + '_' + str(index2) + '_depth_crop' + '.png'
+                depth_dir = path_to_acc_hypo + '/' + the_key + '_' + str(index2) + '_depthcrop' + '.png'
                 cv2.imwrite(depth_dir, depth)
                 index2 += 1
             index += 1
@@ -299,6 +299,9 @@ class Hypothesis:
         for ident in idents:
             if ident['_type'] == 'rs.annotation.Detection':
                 return ident['name']
+            if ident['_type'] == 'rs.annotation.Classification':
+                return ident['classname']
+        return 'noname'
 
 
     def export_all(self):

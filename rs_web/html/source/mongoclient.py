@@ -52,7 +52,7 @@ class MongoWrapper(object):
     def exist_persistent_obj(self):
         return self.exist_collection('persistent_objects')
 
-    def get_object_image(self, obj_entry, ts):
+    def get_object_image(self, obj_entry, ts, export=False):
         # start_time =time.time()
         x = obj_entry['rois']['roi_hires']['pos']['x']
         y = obj_entry['rois']['roi_hires']['pos']['y']
@@ -60,6 +60,7 @@ class MongoWrapper(object):
         obj_width = obj_entry['rois']['roi_hires']['size']['width']
         img_id = self.db.cas.find({'_timestamp': ts})[0]['color_image_hd']
         color_cursor = self.db.color_image_hd.find({'_id': img_id})
+        imgs_data = {}
         if color_cursor.count() != 0:
             width = color_cursor[0]['cols']
             height = color_cursor[0]['rows']
@@ -70,8 +71,24 @@ class MongoWrapper(object):
             height, width = small.shape[:2]
             if width > 150:
                 small = cv2.resize(obj_image, (0, 0), fx=150 / obj_width, fy=150 / obj_width)
-            # print("getting objHyps image: %s seconds ---" % (time.time() - start_time),file=sys.stderr)
-            return small
+            imgs_data['rgb'] = small
+        if export is not False:
+            depth_id = self.db.cas.find({'_timestamp': ts})[0]['depth_image_hd']
+            depth_cursor = self.db.depth_image_hd.find({'_id': depth_id})
+            if depth_cursor.count() != 0:
+                width = depth_cursor[0]['cols']
+                height = depth_cursor[0]['rows']
+                img_data = depth_cursor[0]['data']
+                image = np.reshape(np.fromstring(img_data, np.uint16), (height, width, 1))
+                obj_image = image[y:y + obj_height, x:x + obj_width]
+                small = cv2.resize(obj_image, (0, 0), fx=100 / obj_height, fy=100 / obj_height)
+                height, width = small.shape[:2]
+                if width > 150:
+                    small = cv2.resize(obj_image, (0, 0), fx=150 / obj_width, fy=150 / obj_width)
+                imgs_data['depth'] = small
+                return imgs_data
+        else:
+            return imgs_data['rgb']
 
     def get_persistent_object_annotations(self, obj_entry):
         # start_time =time.time()
@@ -109,6 +126,9 @@ class MongoWrapper(object):
         po_cursor = self.db.persistent_objects.find()
         return self.process_objects_cursor(po_cursor)
 
+    def get_all_persistent_obj_cursor(self):
+        return self.db.persistent_objects.find()
+
     def process_objects_cursor(self, ob_cursor):
         objects = []
         for objEntry in ob_cursor:
@@ -133,10 +153,19 @@ class MongoWrapper(object):
             cas_cursor = self.db.cas.find({'_id': curs['_parent']})
             if cas_cursor.count() != 0:
                 ts = cas_cursor[0]['_timestamp']
-            obj = {'image': self.get_object_image(curs['identifiables'], ts),
+            obj = {'image': self.get_object_image(curs['identifiables'], ts, export=True),
                    'annotations': self.get_persistent_object_annotations(curs['identifiables'])}
             hypos.append(obj)
         return hypos
+
+    def process_my_obj(self, obj_cursor):
+        objs = []
+        for curs in obj_cursor:
+            ts = curs['lastSeen']
+            obj = {'image': self.get_object_image(curs, ts),
+                   'annotations': self.get_persistent_object_annotations(curs)}
+            objs.append(obj)
+        return objs
 
     def get_object_instances(self, object_id):
         nr_of_objs = self.db.persistent_objects.count()

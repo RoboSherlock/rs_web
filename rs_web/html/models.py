@@ -171,6 +171,7 @@ class Scene:
     def export_all():
         return send_from_directory('./', 'scenes.zip', mimetype="application/zip")
 
+
 class Hypothesis:
     def __init__(self, mongo_wrapper):
         self.mongo_wrapper = mongo_wrapper
@@ -259,9 +260,15 @@ class Hypothesis:
         self.mongo_wrapper.set_main_collection('hypotheses')
         self.cursor = self.mongo_wrapper.call_query(pipeline)
         hypos = self.mongo_wrapper.process_my_hypos(self.cursor)
-        export_data = []
+        export_data = {}
         for hypo in hypos:
-            export_data.append({'image': hypo['image'], 'annotations': self.prepare_hypos(hypo['annotations'])})
+            categ = self.prepare_hypos(hypo['annotations'])
+            if categ not in export_data.keys():
+                export_data[categ] = []
+                export_data[categ].append(hypo['image'])
+            else:
+                export_data[categ].append(hypo['image'])
+
         try:
             shutil.rmtree('./hypothesis')
         except OSError:
@@ -269,23 +276,32 @@ class Hypothesis:
 
         os.mkdir('./hypothesis', 0755, )
         path_to_hypos = os.getcwd() + '/hypothesis'
+        keys = export_data.keys()
         index = 0
-        for data in export_data:
-            rgb = data['image']
-            annotations = ['annotations']
-            rgb_dir = path_to_hypos + '/hypo_rgb_no_' + str(index) + '.png'
-            annot_dir = path_to_hypos + '/hypo_annot_no_' + str(index)
-            cv2.imwrite(rgb_dir,rgb)
-            with open(annot_dir, 'w') as annot_file:
-                json.dump(annotations, annot_file, cls=MyJSONEncoder)
+        the_key = ''
+        for vals in export_data.itervalues():
+            index2 = 0
+            path_to_acc_hypo = path_to_hypos + '/' + keys[index]
+            os.mkdir(path_to_acc_hypo, 0777)
+            the_key = keys[index]
+            for val in vals:
+                rgb = val['rgb']
+                depth = val['depth']
+                rgb_dir = path_to_acc_hypo + '/' + the_key + '_' + str(index2) + '_crop' + '.png'
+                cv2.imwrite(rgb_dir, rgb)
+                depth_dir = path_to_acc_hypo + '/' + the_key + '_' + str(index2) + '_depth_crop' + '.png'
+                cv2.imwrite(depth_dir, depth)
+                index2 += 1
             index += 1
         shutil.make_archive('hypothesis', 'zip', path_to_hypos)
 
     def prepare_hypos(self, idents):
-        return idents
+        for ident in idents:
+            if ident['_type'] == 'rs.annotation.Detection':
+                return ident['name']
 
-    @staticmethod
-    def export_all():
+
+    def export_all(self):
         return send_from_directory('./', 'hypothesis.zip', mimetype="application/zip")
 
 
@@ -327,6 +343,30 @@ class Object:
         else:
             return "NU"
 
+    def prepare_export(self):
+        cursor = self.mongo_wrapper.get_all_persistent_obj_cursor()
+        objects = self.mongo_wrapper.process_my_obj(cursor)
+        export_data = []
+        for obj in objects:
+            export_data.append({'image': obj['image'], 'annotations': self.prepare_obj_anot(obj['annotations'])})
+        path_to_hypos = create_directory('objects')
+        index = 0
+        for data in export_data:
+            rgb = data['image']
+            annotations = ['annotations']
+            rgb_dir = path_to_hypos + '/obj_rgb_no_' + str(index) + '.png'
+            annot_dir = path_to_hypos + '/obj_annot_no_' + str(index)
+            cv2.imwrite(rgb_dir,rgb)
+            with open(annot_dir, 'w') as annot_file:
+                json.dump(annotations, annot_file, cls=MyJSONEncoder)
+            index += 1
+        shutil.make_archive('objects', 'zip', path_to_hypos)
+
+    def prepare_obj_anot(self, annot):
+        return 'annotations'
+
+    def export_all(self):
+        return send_from_directory('./', 'objects.zip', mimetype="application/zip")
 
 class Filter:
     def __init__(self):
@@ -341,3 +381,18 @@ class MyJSONEncoder(json.JSONEncoder):
         if isinstance(o, ObjectId):
             return str(o)
         return json.JSONEncoder.default(self, o)
+
+
+def create_directory(directory, path=None):
+    abs_path = os.getcwd()
+    if path is not None:
+        abs_path=path
+
+    abs_path += "/" + directory
+    try:
+        shutil.rmtree(abs_path)
+    except OSError:
+        print("dir doesn't exists")
+
+    os.mkdir(abs_path, 0775, )
+    return abs_path

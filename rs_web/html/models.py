@@ -37,6 +37,7 @@ class Scene:
         self.active = False
         self.export_data = []
         self.parsers = {}
+        self.obj_size = 0
 
     def reset(self):
         self.no_of_scenes = 0
@@ -45,6 +46,7 @@ class Scene:
         self.scenes = []
         self.active = False
         self.export_data = []
+        self.obj_size = 0
         self.parsers = {}
 
     def get_timestamps(self, query):
@@ -96,11 +98,9 @@ class Scene:
         self.timestamps = self.get_timestamps(query1)
         self.index = 0
         self.no_of_scenes = len(self.timestamps)
-        one_step = 2
-        if self.no_of_scenes < one_step:
-            one_step = self.no_of_scenes
+        one_step = 0
 
-        for ts in self.timestamps[self.index:self.index+one_step]:
+        for ts in self.timestamps[self.index:]:
             img = self.mongo_wrp.get_scene_image(ts)
             scene = {'ts': ts, 'rgb': img['img_b64'], 'objects': self.mongo_wrp.get_object_hypotheses_for_scene(ts)}
             self.scenes.append(scene)
@@ -108,7 +108,10 @@ class Scene:
                             'objects': self.mongo_wrp.get_object_data_for_scene(ts)}
 
             self.export_data.append(export_scene)
-
+            self.obj_size += len(scene['objects']) + 1
+            one_step += 1
+            if self.obj_size > 7:
+                break
         self.active = True
         self.index = self.index + one_step
         return render_template('scenes.html', scenes=self.scenes)
@@ -183,7 +186,7 @@ class Hypothesis:
         self.export_data = []
         self.step = 5
         self.query = [{'$project': {'_parent': 1, 'identifiables': 1, '_id': 1}}, {'$unwind': '$identifiables'}]
-        self.parsers = {'shape': self.parse_shape, 'size': self.parse_size, 'obj': self.parse_objects}
+        self.parsers = {'shape': self.parse_shape, 'size': self.parse_size, 'obj': self.parse_objects, 'class': self.parse_classification}
         self.limit = 0
 
     def reset(self):
@@ -196,20 +199,29 @@ class Hypothesis:
         self.limit = 0
         self.query = [{'$project': {'_parent': 1, 'identifiables': 1, '_id': 1}}, {'$unwind': '$identifiables'}]
 
-        self.parsers = {'shape': self.parse_shape, 'size': self.parse_size, 'obj': self.parse_objects}
+        self.parsers = {'shape': self.parse_shape, 'size': self.parse_size, 'obj': self.parse_objects, 'class': self.parse_classification}
 
     def set_mongo_wrp(self, mongo_wrapper):
         self.mongo_wrapper = mongo_wrapper
 
     def first_call(self, query):
         self.parse_string(query)
-        pipeline = self.query[:]
-        pipeline.append({'$limit': self.step})
         self.mongo_wrapper.set_main_collection('hypotheses')
-        self.cursor = self.mongo_wrapper.call_query(pipeline)
-        self.hypos = self.mongo_wrapper.process_objects_cursor(self.cursor)
-        template = render_template('objects.html', objects=self.hypos, index=self.index)
-        self.index = self.step
+        self.hypos = []
+        no_of_annotations = 0
+        while no_of_annotations < 30 and no_of_annotations > -1:
+            pipeline = self.query[:]
+            pipeline.append({'$skip': self.index})
+            pipeline.append({'$limit': 2})
+            self.cursor = self.mongo_wrapper.call_query(pipeline)
+            hypos = self.mongo_wrapper.process_objects_cursor(self.cursor)
+            for hypo in hypos:
+                no_of_annotations += len(hypo['annotations'])
+            no_of_annotations -= 1
+            self.hypos.extend(hypos)
+            self.index += len(hypos)
+
+        template = render_template('objects.html', objects=self.hypos, index=0)
         return template
 
     def scroll_call(self):
@@ -254,7 +266,11 @@ class Hypothesis:
         objs = [ObjectId(x) for x in self.mongo_wrapper.get_hypos_for_obj(obj['id'])]
         if len(objs) > 0:
             return {'identifiables._id': {'$in': objs}}
-        
+
+    def parse_classification(self, clas):
+        return {'identifiables.annotations': {'$elemMatch': {'classname': clas['val'], '_type': 'rs.annotation.Classification'}}}
+
+
     def prepare_export(self):
         pipeline = self.query[:]
         self.mongo_wrapper.set_main_collection('hypotheses')
@@ -324,14 +340,21 @@ class Object:
 
     def first_call(self):
         self.mongo_wrapper.set_main_collection('object')
-        pipeline = [{'$skip': self.index}, {'$limit': 5}]
-        cursor = self.mongo_wrapper.call_query(pipeline)
-        objects = self.mongo_wrapper.process_objects_cursor(cursor)
-        if len(objects) > 0:
-            self.objects = objects
+
+        no_of_annot = 0
+        while no_of_annot < 30 and no_of_annot >= 0:
+            pipeline = [{'$skip': self.index}, {'$limit': 5}]
+            cursor = self.mongo_wrapper.call_query(pipeline)
+            objects = self.mongo_wrapper.process_objects_cursor(cursor)
+            for obj in objects:
+                no_of_annot += len(obj['annotations'])
+            self.objects.extend(objects)
             self.index += len(objects)
-            return render_template('objects.html', objects=objects, index=0)
-        return render_template('emptyPage.html')
+            no_of_annot -= 1
+
+        if len(self.objects) == 0:
+            return render_template('emptyPage.html')
+        return render_template('objects.html', objects=self.objects, index=0)
 
     def scroll_call(self):
         self.mongo_wrapper.set_main_collection('object')

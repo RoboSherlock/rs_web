@@ -53,7 +53,7 @@
                         <li class="active" id="scenes_tab"><a data-toggle="tab" href="#scenes">Scenes</a></li>
                         <li id="hypothesis_tab"><a data-toggle="tab" href="#hypothesis">Hypothesis</a></li>
                         <li id="objects_tab"><a data-toggle="tab" href="#objects">Objects</a></li>
-                        <li id="query_tab"><a data-toggle="tab" href="#query">Query</a></li>
+{#                        <li id="query_tab"><a data-toggle="tab" href="#query">Query</a></li>#}
                       </ul>
 
                       <div class="tab-content">
@@ -119,17 +119,16 @@
                              </div>
                              <div class="row" style="margin-top: 5px">
                                  <div class="col-md-3">
-                                          <input class="form-check-input" type="checkbox" id="color_check">
-                                          <label class="form-check-label" for="color_check">Color</label>
+                                          <input class="form-check-input" type="checkbox" id="class_check">
+                                          <label class="form-check-label" for="class_check">Classification</label>
                                  </div>
-                                 <select id="color_val" class="col-md-offset-1 col-md-3">
-                                    <option>magenta</option>
-                                    <option>red</option>
-                                    <option>blue</option>
-                                 </select>
+                                 <div class="col-md-4">
+                                          <label class="col-form-label" for="class_val">Class</label>
+                                          <input class="form-control" type="text" id="class_val">
+                                 </div>
                                  <div class="col-md-3 col-md-offset-1">
-                                    <label class="col-form-label" for="color_conf">Conf</label>
-                                    <input class="form-control" type="text" id="color_conf">
+                                    <label class="col-form-label" for="class_conf">Conf</label>
+                                    <input class="form-control" type="text" id="class_conf">
                                  </div>
                              </div>
                             <div class="row" style="margin-top: 5px">
@@ -163,19 +162,19 @@
                             {% endif %}
                         </div>
                         <div id="objects" class="tab-pane fade"></div>
-                        <div id="query" class="tab-pane fade">
-                            <div id="console">
-                                <div id="console_top">
-                                  <div id="history"></div>
-                                  <div id="user_query"></div>
-                                </div>
-                          </div>
-                          <div id="library">
-                           <select onclick="rs.add_selected_to_queryform('querylist')"
-                              size="20" name="querylist" id="querylist"><option value=0></option>
-                            </select>
-                          </div>
-                        </div>
+{#                        <div id="query" class="tab-pane fade">#}
+{#                            <div id="console">#}
+{#                                <div id="console_top">#}
+{#                                  <div id="history"></div>#}
+{#                                  <div id="user_query"></div>#}
+{#                                </div>#}
+{#                          </div>#}
+{#                          <div id="library">#}
+{#                           <select onclick="rs.add_selected_to_queryform('querylist')"#}
+{#                              size="20" name="querylist" id="querylist"><option value=0></option>#}
+{#                            </select>#}
+{#                          </div>#}
+{#                        </div>#}
                       </div>
                 </div>
                     <div class="btn-group  col-md-offset-7" style="margin-top: 5px">

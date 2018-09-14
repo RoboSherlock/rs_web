@@ -99,21 +99,12 @@ function RoboSherlock(options){
         noOfReq = 0;
         that.form_query();
     });
-
-    $("#bodyDiv").scroll(function () {
-        if (noOfReq < 1 && items){
-        var thisDiv = $(this);
-        var scrollTop = thisDiv.scrollTop();
-        var height = thisDiv[0].scrollHeight - thisDiv[0].offsetHeight;
-        if (scrollTop >= height * 0.7){
-            var active_tab = $("#query_tabs").find('li.active');
-            var content_tab = active_tab.attr("id");
-            noOfReq++;
-            $.ajax({
+    this.getMOreData = function(contentTab){
+        $.ajax({
                type: "POST",
                url: "/get_more_data",
                async: true,
-               data : content_tab,
+               data : contentTab,
                beforeSend: function(xhr){xhr.setRequestHeader('Content-type', 'text-plain');},
                success: function(data){
                    if (data != "NU"){
@@ -124,6 +115,17 @@ function RoboSherlock(options){
                    }
                    }
             });
+    };
+    $("#bodyDiv").scroll(function () {
+        if (noOfReq < 1 && items){
+        var thisDiv = $(this);
+        var scrollTop = thisDiv.scrollTop();
+        var height = thisDiv[0].scrollHeight - thisDiv[0].offsetHeight;
+        if (scrollTop >= height * 0.7){
+            var active_tab = $("#query_tabs").find('li.active');
+            var content_tab = active_tab.attr("id");
+            noOfReq++;
+            that.getMOreData(content_tab);
         }
         }
     });
@@ -141,7 +143,7 @@ function RoboSherlock(options){
                 $("#bodyDiv").html(data);
            }
          });
-    }
+    };
 
     this.sceneJSON = function () {
         var sceneQuery = {};
@@ -154,7 +156,7 @@ function RoboSherlock(options){
                 })};
         }
         return sceneQuery;
-    }
+    };
 
     this.form_query_hypothesis = function () {
         lastQueryType = "export_hypothesis";
@@ -195,10 +197,10 @@ function RoboSherlock(options){
             var sizeConf = parseFloat($("#size_conf").val() + "0.0");
             hypoQuery['size'] = {val: sizeVal, conf: sizeConf}
         }
-        if ($("#color_check").is(":checked")){
-            var colorVal = $("#color_val").val();
-            var colorConf = parseFloat($("#color_conf").val() + "0.0");
-            hypoQuery['color'] = {val: colorVal, conf: colorConf}
+        if ($("#class_check").is(":checked")){
+            var classVal = $("#class_val").val();
+            var classConf = parseFloat($("#class_conf").val() + "0.0");
+            hypoQuery['class'] = {val: classVal, conf: classConf}
         }
         if ($("#timestamp_check_hypo").is(":checked")) {
             hypoQuery['timestamp'] = {gt: $("#from_time_hypo").val(), lt: $("#to_time_hypo").val()}
@@ -229,7 +231,7 @@ function RoboSherlock(options){
                 that.query();
                 break;
         }
-    }
+    };
 
     this.query = function()
     {

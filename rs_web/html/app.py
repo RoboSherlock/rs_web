@@ -50,7 +50,7 @@ def object_store_methode():
     scene_handler.reset()
     global mc
     timestamps = mc.get_timestamps()
-    return render_template('object_store_devel.html', db_names=database_names, timestamps=timestamps,
+    return render_template('object_store_devel.html', db_names=MongoClient().database_names(), timestamps=timestamps,
                            no_of_obj=mc.exist_persistent_obj())
 
 

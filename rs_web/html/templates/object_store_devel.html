@@ -37,7 +37,11 @@
         <li class="home"><a href="/query">LIVE QUERY</a></li>
         <li class="objstore selected"><a href="/store">OBJECT STORE</a></li>
     </ul>
-
+     <div id="loading" class="modal" style="display: none">
+        <div class="center">
+            <img alt="" src="{{ url_for('static', filename='images/loading.gif') }}" />
+        </div>
+    </div>
     <div class="container" id="container" style="padding-left:15px; margin-top: 0px; background-color: #DDDDDD">
         <div class="row">
             <div class="col-md-3" id="querying" style="height: 100%; background-color: white;">

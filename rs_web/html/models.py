@@ -139,13 +139,14 @@ class Scene:
         return 'NU'
 
     def prepare_export(self):
+        exp_scens = self.export_data[:]
         for ts in self.timestamps[self.index:]:
             img = self.mongo_wrp.get_scene_image(ts)
             scene = {'ts': ts, 'rgb': img['img_b64'], 'objects': self.mongo_wrp.get_object_hypotheses_for_scene(ts)}
             self.scenes.append(scene)
             export_scene = {'ts': ts, 'rgb': img['img'], 'depth': img['depth'],
                             'objects': self.mongo_wrp.get_object_data_for_scene(ts)}
-            self.export_data.append(export_scene)
+            exp_scens.append(export_scene)
 
         try:
             shutil.rmtree('./scenes')
@@ -154,7 +155,7 @@ class Scene:
 
         os.mkdir('./scenes', 0755, )
         path_to_scenes = os.getcwd() + '/scenes'
-        for scene in self.export_data:
+        for scene in exp_scens:
             ts = scene['ts']
             rgb = scene['rgb']
             depth = scene['depth']
@@ -168,6 +169,7 @@ class Scene:
             objects_name = abs_dir + '/objects_' + str(ts)
             with open(objects_name, 'w') as obj_file:
                 json.dump(objects, obj_file, cls=MyJSONEncoder)
+
         shutil.make_archive('scenes', 'zip', path_to_scenes)
 
     @staticmethod

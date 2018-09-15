@@ -48,6 +48,8 @@ function RoboSherlock(options){
     $("#export_button").click(function () {
 
         if (lastQueryType != "None"){
+            $("#loading").css({display: 'block'})
+            $("#container").hide();
             $.ajax({
                 type: "POST",
                 url: "/export_type",
@@ -62,6 +64,8 @@ function RoboSherlock(options){
                 async: true,
                 contentType: "application/zip",
                 success: function () {
+                    $("#loading").css({display: 'none'})
+                    $("#container").show();
                     window.location = '/export_data';
                 }
             });

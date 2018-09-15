@@ -275,50 +275,7 @@ class Hypothesis:
         pipeline = self.query[:]
         self.mongo_wrapper.set_main_collection('hypotheses')
         self.cursor = self.mongo_wrapper.call_query(pipeline)
-        hypos = self.mongo_wrapper.process_my_hypos(self.cursor)
-        export_data = {}
-        for hypo in hypos:
-            categ = self.prepare_hypos(hypo['annotations'])
-            if categ not in export_data.keys():
-                export_data[categ] = []
-                export_data[categ].append(hypo['image'])
-            else:
-                export_data[categ].append(hypo['image'])
-
-        try:
-            shutil.rmtree('./hypothesis')
-        except OSError:
-            print("dir doesn't exists")
-
-        os.mkdir('./hypothesis', 0755, )
-        path_to_hypos = os.getcwd() + '/hypothesis'
-        keys = export_data.keys()
-        index = 0
-        the_key = ''
-        for vals in export_data.itervalues():
-            index2 = 0
-            path_to_acc_hypo = path_to_hypos + '/' + keys[index]
-            os.mkdir(path_to_acc_hypo, 0777)
-            the_key = keys[index]
-            for val in vals:
-                rgb = val['rgb']
-                depth = val['depth']
-                rgb_dir = path_to_acc_hypo + '/' + the_key + '_' + str(index2) + '_crop' + '.png'
-                cv2.imwrite(rgb_dir, rgb)
-                depth_dir = path_to_acc_hypo + '/' + the_key + '_' + str(index2) + '_depthcrop' + '.png'
-                cv2.imwrite(depth_dir, depth)
-                index2 += 1
-            index += 1
-        shutil.make_archive('hypothesis', 'zip', path_to_hypos)
-
-    def prepare_hypos(self, idents):
-        for ident in idents:
-            if ident['_type'] == 'rs.annotation.Detection':
-                return ident['name']
-            if ident['_type'] == 'rs.annotation.Classification':
-                return ident['classname']
-        return 'noname'
-
+        export_data(self.cursor, 'hipothesis', self.mongo_wrapper)
 
     def export_all(self):
         return send_from_directory('./', 'hypothesis.zip', mimetype="application/zip")
@@ -370,23 +327,10 @@ class Object:
             return "NU"
 
     def prepare_export(self):
-        cursor = self.mongo_wrapper.get_all_persistent_obj_cursor()
-        objects = self.mongo_wrapper.process_my_obj(cursor)
-        export_data = []
-        for obj in objects:
-            export_data.append({'image': obj['image'], 'annotations': self.prepare_obj_anot(obj['annotations'])})
-        path_to_hypos = create_directory('objects')
-        index = 0
-        for data in export_data:
-            rgb = data['image']
-            annotations = ['annotations']
-            rgb_dir = path_to_hypos + '/obj_rgb_no_' + str(index) + '.png'
-            annot_dir = path_to_hypos + '/obj_annot_no_' + str(index)
-            cv2.imwrite(rgb_dir,rgb)
-            with open(annot_dir, 'w') as annot_file:
-                json.dump(annotations, annot_file, cls=MyJSONEncoder)
-            index += 1
-        shutil.make_archive('objects', 'zip', path_to_hypos)
+        query = [{'$project': {'_parent': 1, 'identifiables': 1, '_id': 1}}, {'$unwind': '$identifiables'}]
+        self.mongo_wrapper.set_main_collection('hypothesis')
+        cursor = self.mongo_wrapper.call_query(query)
+        export_data(cursor, 'objects', self.mongo_wrapper)
 
     def prepare_obj_anot(self, annot):
         return 'annotations'
@@ -412,7 +356,7 @@ class MyJSONEncoder(json.JSONEncoder):
 def create_directory(directory, path=None):
     abs_path = os.getcwd()
     if path is not None:
-        abs_path=path
+        abs_path = path
 
     abs_path += "/" + directory
     try:
@@ -422,3 +366,43 @@ def create_directory(directory, path=None):
 
     os.mkdir(abs_path, 0775, )
     return abs_path
+
+
+def export_data(cursor, directory, mongo_wrapper):
+    hypos = mongo_wrapper.process_my_hypos(cursor)
+    export_data = {}
+    for hypo in hypos:
+        categ = prepare_hypos(hypo['annotations'])
+        if categ not in export_data.keys():
+            export_data[categ] = []
+            export_data[categ].append(hypo['image'])
+        else:
+            export_data[categ].append(hypo['image'])
+
+    path_to_hypos = create_directory(directory)
+    keys = export_data.keys()
+    index = 0
+    for vals in export_data.itervalues():
+        index2 = 0
+        path_to_acc_hypo = path_to_hypos + '/' + keys[index]
+        os.mkdir(path_to_acc_hypo, 0777)
+        the_key = keys[index]
+        for val in vals:
+            rgb = val['rgb']
+            depth = val['depth']
+            rgb_dir = path_to_acc_hypo + '/' + the_key + '_' + str(index2) + '_crop' + '.png'
+            cv2.imwrite(rgb_dir, rgb)
+            depth_dir = path_to_acc_hypo + '/' + the_key + '_' + str(index2) + '_depthcrop' + '.png'
+            cv2.imwrite(depth_dir, depth)
+            index2 += 1
+        index += 1
+    shutil.make_archive(directory, 'zip', path_to_hypos)
+
+
+def prepare_hypos(idents):
+    for ident in idents:
+        if ident['_type'] == 'rs.annotation.Detection':
+            return ident['name']
+        if ident['_type'] == 'rs.annotation.Classification':
+            return ident['classname']
+    return 'noname'

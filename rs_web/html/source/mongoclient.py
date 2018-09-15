@@ -153,9 +153,9 @@ class MongoWrapper(object):
             cas_cursor = self.db.cas.find({'_id': curs['_parent']})
             if cas_cursor.count() != 0:
                 ts = cas_cursor[0]['_timestamp']
-            obj = {'image': self.get_object_image(curs['identifiables'], ts, export=True),
-                   'annotations': self.get_persistent_object_annotations(curs['identifiables'])}
-            hypos.append(obj)
+                obj = {'image': self.get_object_image(curs['identifiables'], ts, export=True),
+                       'annotations': self.get_persistent_object_annotations(curs['identifiables'])}
+                hypos.append(obj)
         return hypos
 
     def process_my_obj(self, obj_cursor):

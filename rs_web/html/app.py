@@ -245,7 +245,7 @@ def export_data():
         global hypothesis_handler
         return hypothesis_handler.export_all()
     elif export_type == "export_objects":
-        global  object_handler
+        global object_handler
         return object_handler.export_all()
 
     return 'NO'

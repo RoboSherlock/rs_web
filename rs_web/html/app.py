@@ -136,7 +136,7 @@ def get_more_data():
     elif data == "objects_tab":
         global object_handler
         return object_handler.scroll_call()
-    return render_template('emptyPage.html')
+    return "OK"
 
 
 
@@ -176,13 +176,6 @@ def serve_static_file():
     config = json.loads(open('static/queries/testQueries.json').read())
     return jsonify(config)
 
-
-def handle_hypothesis_export():
-    pass
-
-
-def handle_objects_export():
-    pass
 
 
 @app.route('/get_objects', methods=['POST', 'GET'])
@@ -249,47 +242,6 @@ def export_data():
         return object_handler.export_all()
 
     return 'NO'
-
-
-@app.route('/newpost', methods=['GET', 'POST'])
-def databaseQ():
-    clname = request.form.get('classN')
-    timestm = request.form.get('timeS')
-    imgnum = request.form.get('imgN')
-    print('inputed value is:', clname, timestm, imgnum)
-    if not clname and not timestm and not imgnum:
-        print("All the GT tool's inputs are empty")
-    else:
-        mc.setGTinDB(int(timestm), int(imgnum), clname)
-        print("Database is updated with GT tool's informations")
-    return redirect("Location:http://127.0.0.1")
-
-
-def find_object_instances(obj_id):
-    objects = mc.get_object_instances(obj_id)
-    print("handle_object_instances", file=sys.stderr)
-    return render_template('objects.html', objects=objects)
-
-
-def get_pagination(**kwargs):
-    kwargs.setdefault('record_name', 'records')
-    return Pagination(css_framework=get_css_framework(),
-                      link_size=get_link_size(),
-                      show_single_page=show_single_page_or_not(),
-                      **kwargs
-                      )
-
-
-def get_css_framework():
-    return current_app.config.get('CSS_FRAMEWORK', 'bootstrap3')
-
-
-def get_link_size():
-    return current_app.config.get('LINK_SIZE', 'sm')
-
-
-def show_single_page_or_not():
-    return current_app.config.get('SHOW_SINGLE_PAGE', False)
 
 
 if __name__ == '__main__':

@@ -38,6 +38,7 @@ class Scene:
         self.export_data = []
         self.parsers = {}
         self.obj_size = 0
+        self.abs_path = ''
 
     def reset(self):
         self.no_of_scenes = 0
@@ -156,6 +157,7 @@ class Scene:
 
         os.mkdir('./scenes', 0755, )
         path_to_scenes = os.getcwd() + '/scenes'
+        self.abs_path = path_to_scenes
         for scene in exp_scens:
             ts = scene['ts']
             rgb = scene['rgb']
@@ -173,9 +175,8 @@ class Scene:
 
         shutil.make_archive('scenes', 'zip', path_to_scenes)
 
-    @staticmethod
-    def export_all():
-        return send_from_directory('./', 'scenes.zip', mimetype="application/zip")
+    def export_all(self):
+        return send_from_directory(self.abs_path, 'scenes.zip', mimetype="application/zip")
 
 
 class Hypothesis:
@@ -191,6 +192,7 @@ class Hypothesis:
         self.query = [{'$project': {'_parent': 1, 'identifiables': 1, '_id': 1}}, {'$unwind': '$identifiables'}]
         self.parsers = {'shape': self.parse_shape, 'size': self.parse_size, 'obj': self.parse_objects, 'class': self.parse_classification}
         self.limit = 0
+        self.path = ''
 
     def reset(self):
         self.no_of_hypos = 0
@@ -279,10 +281,10 @@ class Hypothesis:
         pipeline = self.query[:]
         self.mongo_wrapper.set_main_collection('hypotheses')
         self.cursor = self.mongo_wrapper.call_query(pipeline)
-        export_data(self.cursor, 'hipothesis', self.mongo_wrapper)
+        self.path = export_data(self.cursor, 'hipothesis', self.mongo_wrapper)
 
     def export_all(self):
-        return send_from_directory('./', 'hypothesis.zip', mimetype="application/zip")
+        return send_from_directory(self.path, 'hypothesis.zip', mimetype="application/zip")
 
 
 class Object:
@@ -291,6 +293,7 @@ class Object:
         self.objects = []
         self.index = 0
         self.mongo_wrapper = mongo_wrapper
+        self.abs_path = ''
 
     def reset(self):
         self.objects = []
@@ -334,13 +337,13 @@ class Object:
         query = [{'$project': {'_parent': 1, 'identifiables': 1, '_id': 1}}, {'$unwind': '$identifiables'}]
         self.mongo_wrapper.set_main_collection('hypothesis')
         cursor = self.mongo_wrapper.call_query(query)
-        export_data(cursor, 'objects', self.mongo_wrapper)
+        self.abs_path = export_data(cursor, 'objects', self.mongo_wrapper)
 
     def prepare_obj_anot(self, annot):
         return 'annotations'
 
     def export_all(self):
-        return send_from_directory('./', 'objects.zip', mimetype="application/zip")
+        return send_from_directory(self.abs_path, 'objects.zip', mimetype="application/zip")
 
 class Filter:
     def __init__(self):
@@ -401,6 +404,7 @@ def export_data(cursor, directory, mongo_wrapper):
             index2 += 1
         index += 1
     shutil.make_archive(directory, 'zip', path_to_hypos)
+    return path_to_hypos
 
 
 def prepare_hypos(idents):

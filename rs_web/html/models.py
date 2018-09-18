@@ -176,7 +176,7 @@ class Scene:
         shutil.make_archive('scenes', 'zip', path_to_scenes)
 
     def export_all(self):
-        return send_from_directory(self.abs_path, 'scenes.zip', mimetype="application/zip")
+        return send_from_directory(os.getcwd(), 'scenes.zip', mimetype="application/zip")
 
 
 class Hypothesis:
@@ -279,12 +279,12 @@ class Hypothesis:
 
     def prepare_export(self):
         pipeline = self.query[:]
-        self.mongo_wrapper.set_main_collection('hypotheses')
+        self.mongo_wrapper.set_main_collection('hypothesis')
         self.cursor = self.mongo_wrapper.call_query(pipeline)
-        self.path = export_data(self.cursor, 'hipothesis', self.mongo_wrapper)
+        export_data(self.cursor, 'hypothesis', self.mongo_wrapper)
 
     def export_all(self):
-        return send_from_directory(self.path, 'hypothesis.zip', mimetype="application/zip")
+        return send_from_directory(os.getcwd(), 'hypothesis.zip', mimetype="application/zip")
 
 
 class Object:
@@ -339,11 +339,12 @@ class Object:
         cursor = self.mongo_wrapper.call_query(query)
         self.abs_path = export_data(cursor, 'objects', self.mongo_wrapper)
 
+
     def prepare_obj_anot(self, annot):
         return 'annotations'
 
     def export_all(self):
-        return send_from_directory(self.abs_path, 'objects.zip', mimetype="application/zip")
+        return send_from_directory(os.getcwd(), 'objects.zip', mimetype="application/zip")
 
 class Filter:
     def __init__(self):
@@ -403,8 +404,7 @@ def export_data(cursor, directory, mongo_wrapper):
             cv2.imwrite(depth_dir, depth)
             index2 += 1
         index += 1
-    shutil.make_archive(directory, 'zip', path_to_hypos)
-    return path_to_hypos
+    shutil.make_archive(path_to_hypos, 'zip', path_to_hypos)
 
 
 def prepare_hypos(idents):

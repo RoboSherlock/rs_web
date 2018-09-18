@@ -99,7 +99,8 @@ class Scene:
         self.index = 0
         self.no_of_scenes = len(self.timestamps)
         one_step = 0
-
+        if self.no_of_scenes == 0:
+            return render_template('emptyPage.html')
         for ts in self.timestamps[self.index:]:
             img = self.mongo_wrp.get_scene_image(ts)
             scene = {'ts': ts, 'rgb': img['img_b64'], 'objects': self.mongo_wrp.get_object_hypotheses_for_scene(ts)}
@@ -222,7 +223,8 @@ class Hypothesis:
             no_of_annotations -= 1
             self.hypos.extend(hypos)
             self.index += len(hypos)
-
+        if len(self.hypos) == 0:
+            return render_template('emptyPage.html')
         template = render_template('objects.html', objects=self.hypos, index=0)
         return template
 

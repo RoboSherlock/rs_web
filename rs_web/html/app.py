@@ -246,5 +246,5 @@ def export_data():
 
 if __name__ == '__main__':
     # app.run(use_reloader=True, debug=True, host="0.0.0.0", threaded=True, port=5555)
-    http_server = WSGIServer(('', 5554), app)
+    http_server = WSGIServer(('', 5555), app)
     http_server.serve_forever()

@@ -246,7 +246,7 @@ class MongoWrapper(object):
         if cas_document.count() != 0:
             color_cursor = self.db.color_image_hd.find({'_id': cas_document[0]['color_image_hd']})
             depth_cursor = self.db.depth_image_hd.find({'_id': cas_document[0]['depth_image_hd']})
-        if color_cursor.count() != 0:
+        if color_cursor is not None and color_cursor.count() != 0:
             width = color_cursor[0]['cols']
             height = color_cursor[0]['rows']
             img_data = color_cursor[0]['data']
@@ -254,9 +254,9 @@ class MongoWrapper(object):
             small = cv2.resize(image, (0, 0), fx=scale_factor, fy=scale_factor)
             scene_img['rgb'] = small
         else:
-            scene_img['rgb'] = []
+            scene_img['rgb'] = np.zeros((50, 50, 3), np.uint8)
 
-        if depth_cursor.count() != 0:
+        if depth_cursor is not None and depth_cursor.count() != 0:
             width = depth_cursor[0]['cols']
             height = depth_cursor[0]['rows']
             img_data = depth_cursor[0]['data']
@@ -264,7 +264,7 @@ class MongoWrapper(object):
             small = cv2.resize(image, (0, 0), fx=scale_factor, fy=scale_factor)
             scene_img['depth'] = small
         else:
-            scene_img['depth'] = []
+            scene_img['depth'] = np.zeros((50, 50, 3), np.uint8)
 
         return scene_img
 

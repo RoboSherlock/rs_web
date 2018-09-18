@@ -67,6 +67,11 @@ function RoboSherlock(options){
                     $("#loading").css({display: 'none'})
                     $("#container").show();
                     window.location = '/export_data';
+                },
+                error: function () {
+                    $("#loading").css({display: 'none'})
+                    $("#container").show();
+
                 }
             });
         }

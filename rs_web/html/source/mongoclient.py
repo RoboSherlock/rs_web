@@ -21,18 +21,18 @@ import time
 
 class MongoWrapper(object):
     def __init__(self, dbname=None):
+        self.client = MongoClient()
         if dbname is None:
             names = self.get_db_names()
             dbname = names[0]
 
-        self.client = MongoClient()
         self.db = self.client[dbname]
         self.active_collection = None
 
     def get_db_names(self):
         names = self.client.database_names()
         names.remove('admin')
-        names.remove('client')
+        names.remove('local')
         return names
 
     def set_active_db(self, dbname):

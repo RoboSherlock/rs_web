@@ -29,7 +29,7 @@ function RoboSherlock(options){
             changedDB = true;
             $.ajax({
                 type: "POST",
-                url: "/get_timestamps",
+                url: "/change_db",
                 async: true,
                 data: activeDB,
                 beforeSend: function(xhr){xhr.setRequestHeader('Content-type', 'text-plain');},
@@ -48,32 +48,7 @@ function RoboSherlock(options){
     $("#export_button").click(function () {
 
         if (lastQueryType != "None"){
-            $("#loading").css({display: 'block'})
-            $("#container").hide();
-            $.ajax({
-                type: "POST",
-                url: "/export_type",
-                dataType: 'json',
-                data: JSON.stringify({exportType: lastQueryType}),
-                async: false,
-                contentType: "application/json"
-            });
-            $.ajax({
-                type: "POST",
-                url: "/export_data",
-                async: true,
-                contentType: "application/zip",
-                success: function () {
-                    $("#loading").css({display: 'none'})
-                    $("#container").show();
-                    window.location = '/export_data';
-                },
-                error: function () {
-                    $("#loading").css({display: 'none'})
-                    $("#container").show();
-
-                }
-            });
+              window.location = '/export_data/' + new Date().getTime();
         }
     });
     $(document).on('click', '.page_collapsible', function () {
@@ -93,17 +68,6 @@ function RoboSherlock(options){
         }
     });
     $("#filter_button").click(function () {
-        if (changedDB){
-            $.ajax({
-                type: "POST",
-                url: "/set_active_DB",
-                dataType: 'json',
-                data: JSON.stringify({activeDB: activeDB}),
-                async: true,
-                contentType: "application/json"
-            });
-            changedDB = false;
-        }
         items = true;
         noOfReq = 0;
         that.form_query();

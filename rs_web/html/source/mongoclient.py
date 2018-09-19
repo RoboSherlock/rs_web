@@ -59,19 +59,22 @@ class MongoWrapper(object):
         obj_height = obj_entry['rois']['roi_hires']['size']['height']
         obj_width = obj_entry['rois']['roi_hires']['size']['width']
         img_id = self.db.cas.find({'_timestamp': ts})[0]['color_image_hd']
-        color_cursor = self.db.color_image_hd.find({'_id': img_id})
         imgs_data = {}
-        if color_cursor.count() != 0:
-            width = color_cursor[0]['cols']
-            height = color_cursor[0]['rows']
-            img_data = color_cursor[0]['data']
-            image = np.reshape(np.fromstring(img_data, np.uint8), (height, width, 3))
-            obj_image = image[y:y + obj_height, x:x + obj_width]
-            small = cv2.resize(obj_image, (0, 0), fx=100 / obj_height, fy=100 / obj_height)
-            height, width = small.shape[:2]
-            if width > 150:
-                small = cv2.resize(obj_image, (0, 0), fx=150 / obj_width, fy=150 / obj_width)
-            imgs_data['rgb'] = small
+        try:
+            color_cursor = self.db.color_image_hd.find({'_id': img_id})
+            if color_cursor.count() != 0:
+                width = color_cursor[0]['cols']
+                height = color_cursor[0]['rows']
+                img_data = color_cursor[0]['data']
+                image = np.reshape(np.fromstring(img_data, np.uint8), (height, width, 3))
+                obj_image = image[y:y + obj_height, x:x + obj_width]
+                small = cv2.resize(obj_image, (0, 0), fx=100 / obj_height, fy=100 / obj_height)
+                height, width = small.shape[:2]
+                if width > 150:
+                    small = cv2.resize(obj_image, (0, 0), fx=150 / obj_width, fy=150 / obj_width)
+                imgs_data['rgb'] = small
+        except IndexError:
+            imgs_data['rgb'] = np.zeros((50, 50, 3), np.uint8)
         if export is not False:
             depth_id = self.db.cas.find({'_timestamp': ts})[0]['depth_image_hd']
             depth_cursor = self.db.depth_image_hd.find({'_id': depth_id})

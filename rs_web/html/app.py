@@ -57,7 +57,7 @@ def object_store_methode():
 @app.route('/robosherlock/add_new_query', methods=['POST'])
 def adding_new_query():
     query = request.json
-    queries_list.append(query['query'])
+    queries_list.append(str(query['query']+"."))
     print(queries_list)
     return 'OK'
 

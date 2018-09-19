@@ -14,31 +14,52 @@
 	    "q":"annotators(A).",
 	    "text":"Show RoboSherlock components."
 	},
+	{   "q":"assert_test_pipeline.",
+        "text":"Assertions for testing."
+	},
 	{
 	    "q":"annotator_requires_input_type(rs_components:'PrimitiveShapeAnnotator',I).",
 	    "text":"Input types for PrimitiveShapeAnnotator."
+	},
+	{
+	    "q":"annotator_outputs(rs_components:'PrimitiveShapeAnnotator',I).",
+	    "text":"Output types for PrimitiveShapeAnnotator."
 	},
 	{
 	    "q":"owl_individual_of(I, rs_components:'RoboSherlockComponent').",
 	    "text":"What are the active components?"
 	},
 	{
-	  "q":"build_pipeline_from_predicates_no_constraints([shape, color],P).",
-	  "text":"Plan a general pipeline for detecting shape and color."
+        "q":"owl_individual_of(I, rs_components:'PrimitiveShapeAnnotator'),annotator_outputs(rs_components:'PrimitiveShapeAnnotator',T),compute_annotator_output_type_domain(I, T, D).",
+        "text":"What are the output domain constraints of PrimitiveShapAnnotator?"
 	},
 	{
-	  "q":"pipeline_from_predicates_with_domain_constraint([shape, color],P).",
+	  "q":"pipeline_from_predicates_with_domain_constraint([shape],P).",
 	  "text":"Plan a pipeline for detecting shape and color."
 	},
+	{
+        "q":"pipeline_for_key_value_pair((shape,rs_components:'Box'),P).",
+        "text":"Pipeline for detecting box shape."
+	},
+	
+    {
+        "q":"pipeline_for_key_value_pair((shape,rs_components:'Cylinder'),P).",
+        "text":"Pipeline for detecting box cylinder."
+	},
+	
 	{
 	    "q":"run_annotator(rs_components:'PrimitiveShapeAnnotator').",
 	    "text":"Run PrimitiveShapeAnnotator"
 	},
 	{
+        "text":"Retact all assertions",
+        "q":"retract(requestedValueForKey(_,_)),retract_all_annotators."
+	},
+	{
 	    "q":"",
 	    "text":""
 	},
-{
+    {
 	    "q":"",
 	    "text":"<b>Detection queries</b>"
 	},

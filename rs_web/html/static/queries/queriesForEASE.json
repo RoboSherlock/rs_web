@@ -53,7 +53,7 @@
 	},
 	{
         "text":"Retact all assertions",
-        "q":"retract(requestedValueForKey(_,_)),retract_all_annotators."
+        "q":"retract_all_annotators."
 	},
 	{
 	    "q":"",
@@ -80,7 +80,7 @@
             "text":"Detect objects that are yellow"
         },
         {
-            "q":"detect([an, object,[type,'Spoon']]).",
+            "q":"detect([an, object,[type,'CupEcoOrange']]).",
             "text":"Detect spoon."
         }
     ]

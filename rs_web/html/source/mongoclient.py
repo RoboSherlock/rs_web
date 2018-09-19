@@ -58,9 +58,9 @@ class MongoWrapper(object):
         y = obj_entry['rois']['roi_hires']['pos']['y']
         obj_height = obj_entry['rois']['roi_hires']['size']['height']
         obj_width = obj_entry['rois']['roi_hires']['size']['width']
-        img_id = self.db.cas.find({'_timestamp': ts})[0]['color_image_hd']
         imgs_data = {}
         try:
+            img_id = self.db.cas.find({'_timestamp': ts})[0]['color_image_hd']
             color_cursor = self.db.color_image_hd.find({'_id': img_id})
             if color_cursor.count() != 0:
                 width = color_cursor[0]['cols']

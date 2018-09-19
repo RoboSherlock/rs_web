@@ -22,10 +22,21 @@ import time
 class MongoWrapper(object):
     def __init__(self, dbname=None):
         if dbname is None:
-            dbname = 'IJRRScenes'
+            names = self.get_db_names()
+            dbname = names[0]
+
         self.client = MongoClient()
         self.db = self.client[dbname]
         self.active_collection = None
+
+    def get_db_names(self):
+        names = self.client.database_names()
+        names.remove('admin')
+        names.remove('client')
+        return names
+
+    def set_active_db(self, dbname):
+        self.db = self.client[dbname]
 
     def get_hypos_for_obj(self, id):
         my_db = self.db.persistent_objects

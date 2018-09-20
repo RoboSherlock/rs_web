@@ -207,6 +207,7 @@ class MongoWrapper(object):
         po_cursor = self.db.persistent_objects.find()
         objects = {}
         i = 0
+        object_names = {}
         for cursor in po_cursor:
             cluster_ids = cursor['clusters']
             clusters = []
@@ -220,6 +221,11 @@ class MongoWrapper(object):
                     ts = document[0]['timestamp']
                     cluster = self.get_object_image(document[0]['identifiables'][0], ts, True)
                     clusters.append(cluster)
+            if _id not in object_names.keys():
+                object_names[_id] = 0
+            else:
+                _id = _id + str(object_names[_id])
+                object_names[_id] += 1
             objects[_id] = clusters
             i += 1
         return objects

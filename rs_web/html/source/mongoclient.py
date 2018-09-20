@@ -211,11 +211,11 @@ class MongoWrapper(object):
         for cursor in po_cursor:
             cluster_ids = cursor['clusters']
             clusters = []
-            _id = 'object' + str(i)
+            _id = 'object'
             for c in cluster_ids:
                 document = self.db.scene.find({'identifiables._id': ObjectId(c)},
                                               {'_id': 0, 'identifiables._id.$': 1, 'timestamp': 1})
-                if _id == 'object' + str(i):
+                if _id == 'object':
                     _id = self.get_class(self.get_persistent_object_annotations(document[0]['identifiables'][0]))
                 if document.count() != 0:
                     ts = document[0]['timestamp']
@@ -237,7 +237,7 @@ class MongoWrapper(object):
                 return ident['name']
             if ident['_type'] == 'rs.annotation.Classification':
                 return ident['classname']
-        return ''
+        return 'object'
 
     def get_object_hypotheses_for_scene(self, ts):
         # start_time = time.time()

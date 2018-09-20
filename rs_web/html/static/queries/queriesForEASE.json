@@ -81,7 +81,7 @@
         },
         {
             "q":"detect([an, object,[type,'CupEcoOrange']]).",
-            "text":"Detect spoon."
+            "text":"Detect a cup"
         }
     ]
 }

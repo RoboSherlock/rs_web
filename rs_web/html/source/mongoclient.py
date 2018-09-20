@@ -224,8 +224,9 @@ class MongoWrapper(object):
             if _id not in object_names.keys():
                 object_names[_id] = 0
             else:
-                _id = _id + str(object_names[_id])
+                _id2 = _id + str(object_names[_id])
                 object_names[_id] += 1
+                _id = _id2
             objects[_id] = clusters
             i += 1
         return objects

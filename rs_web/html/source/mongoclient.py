@@ -87,19 +87,23 @@ class MongoWrapper(object):
         except IndexError:
             imgs_data['rgb'] = np.zeros((50, 50, 3), np.uint8)
         if export is not False:
-            depth_id = self.db.cas.find({'_timestamp': ts})[0]['depth_image_hd']
-            depth_cursor = self.db.depth_image_hd.find({'_id': depth_id})
-            if depth_cursor.count() != 0:
-                width = depth_cursor[0]['cols']
-                height = depth_cursor[0]['rows']
-                img_data = depth_cursor[0]['data']
-                image = np.reshape(np.fromstring(img_data, np.uint16), (height, width, 1))
-                obj_image = image[y:y + obj_height, x:x + obj_width]
-                small = cv2.resize(obj_image, (0, 0), fx=100 / obj_height, fy=100 / obj_height)
-                height, width = small.shape[:2]
-                if width > 150:
-                    small = cv2.resize(obj_image, (0, 0), fx=150 / obj_width, fy=150 / obj_width)
-                imgs_data['depth'] = small
+            try:
+                depth_id = self.db.cas.find({'_timestamp': ts})[0]['depth_image_hd']
+                depth_cursor = self.db.depth_image_hd.find({'_id': depth_id})
+                if depth_cursor.count() != 0:
+                    width = depth_cursor[0]['cols']
+                    height = depth_cursor[0]['rows']
+                    img_data = depth_cursor[0]['data']
+                    image = np.reshape(np.fromstring(img_data, np.uint16), (height, width, 1))
+                    obj_image = image[y:y + obj_height, x:x + obj_width]
+                    small = cv2.resize(obj_image, (0, 0), fx=100 / obj_height, fy=100 / obj_height)
+                    height, width = small.shape[:2]
+                    if width > 150:
+                        small = cv2.resize(obj_image, (0, 0), fx=150 / obj_width, fy=150 / obj_width)
+                    imgs_data['depth'] = small
+                    return imgs_data
+            except IndexError:
+                imgs_data['depth'] = np.zeros((50, 50, 3), np.uint8)
                 return imgs_data
         else:
             return imgs_data['rgb']
@@ -320,7 +324,7 @@ class MongoWrapper(object):
 
     def get_scene_image(self, ts, scale=None):
         # start_time = time.time()
-        if scale == None:
+        if scale is None:
             scale = 0.22
         print(ts)
         img = self.get_image_for_scene_id(self.db.scene.find({'timestamp': ts})[0]['_parent'], scale)

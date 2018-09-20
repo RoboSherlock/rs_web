@@ -141,8 +141,8 @@ class Scene:
         return 'NU'
 
     def prepare_export(self):
-        exp_scens = self.export_data[:]
-        for ts in self.timestamps[self.index:]:
+        exp_scens = []
+        for ts in self.timestamps[:]:
             img = self.mongo_wrp.get_scene_image(ts, 1.0)
             # scene = {'ts': ts, 'rgb': img['img_b64'], 'objects': self.mongo_wrp.get_object_hypotheses_for_scene(ts)}
             # self.scenes.append(scene)

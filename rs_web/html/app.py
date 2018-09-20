@@ -4,19 +4,11 @@ from flask import Flask, render_template, request, jsonify
 from gevent.pywsgi import WSGIServer
 import sys
 import json
-import time
-from source.mongoclient import MongoWrapper
-from pyparsing import ParseException
 from controllers import UserController
-from source.parser import QueryHandler
 
 app = Flask(__name__)
 app.config.from_pyfile('app.cfg')
 queries_list = []
-
-#mc = MongoWrapper(dbname='PnP09ObjSymbolicGTFixed')
-#qh = QueryHandler(mc)
-#export_entities = []
 user_controller = UserController()
 
 
@@ -86,58 +78,6 @@ def export_data(data):
     return user_controller.export_all()
 
 
-#def handle_scenes(ts1 = None, ts2 = None):
-#    print("handle_scenes.", file=sys.stderr)
-#    timestamps = mc.get_timestamps()
-#    start_time = time.time()
-#    idx_begin = 0
-#    idx_end = len(timestamps)
-#    if ts1 != None and ts2!=None:
-#        idx_begin = timestamps.index(ts1)
-#        idx_end = timestamps.index(ts2)
-#    scenes = []
-#    for ts in timestamps[idx_begin:idx_end]:  # [idxB:idxE]:
-#        scene = {'ts': ts, 'rgb': mc.get_scene_image(ts), 'objects': mc.get_object_hypotheses_for_scene(ts)}
-#        scenes.append(scene)
-#        export_entities.append(scene)
-#    print("getting data took: %s seconds ---" % (time.time() - start_time), file=sys.stderr)
-#    start_time = time.time()
-#    template = render_template('scenes.html', scenes=scenes)
-#    print("rendering took: %s seconds ---" % (time.time() - start_time), file=sys.stderr)
-#    return template
-#
-#
-#@app.route('/prolog_query', methods=['GET', 'POST'])
-#def query_wrapper():
-#
-#   if request.method == 'POST':
-#        data = request.data
-#        query_in = data
-#        print("query is: " + query_in, file=sys.stderr)
-#        if query_in == 'objects':
-#            return handle_objects()
-#        elif query_in == 'scenes(Sc,[]).':
-#            return handle_scenes_devel()
-#        elif query_in == 'scenes(Sc,[ts>1472563260017208200, ts<1472563330256651508]).':
-#            return handle_scenes(1472563260017208200, 1472563330256651508)
-#        elif query_in == 'hypotheses(Hyp, [detection:[confidence>0.5, source:DeCafClassifier], type:\'Cutlery\']).':
-#            print( 'DO SOME MAGIC',file=sys.stderr)
-#            o = qh.exec_query(query_in,1)
-#            return render_template("objects.html", objects=o)
-#        elif query_in == 'hypotheses(Hyp1, [detection:[confidence>0.5, source:DeCafClassifier]]),scenes(Sc1,[ts>1482401694215166627, ts<1482401807402294324]),hypothesesInScenes(Hyp2,Sc),intersect(Hyp1, Hyp2, R).':
-#            o = qh.exec_query(query_in,2)
-#            return render_template("objects.html", objects=o)
-#        else:
-#            try:
-#                objects = qh.exec_query(query_in)
-#                if 0 != len(objects):
-#                    return render_template("objects.html", objects=objects)
-#                else:
-#                    return render_template("emptyPage.html")
-#            except ParseException:
-#                return render_template("emptyPage.html")
-
-
 @app.route('/_get_queries', methods=['GET'])
 def serve_static_file():
     config = json.loads(open('static/queries/testQueries.json').read())
@@ -162,5 +102,7 @@ def get_history():
 
 
 if __name__ == '__main__':
-    http_server = WSGIServer(('', 5555), app)
+    http_server = WSGIServer(('', 5553), app)
+    print("the server is starting ...................")
     http_server.serve_forever()
+

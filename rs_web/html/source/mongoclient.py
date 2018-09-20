@@ -199,6 +199,35 @@ class MongoWrapper(object):
                 clusters.append(cluster)
         return clusters
 
+    def get_all_export_objects(self):
+        po_cursor = self.db.persistent_objects.find()
+        objects = {}
+        i = 0
+        for cursor in po_cursor:
+            cluster_ids = cursor['clusters']
+            clusters = []
+            _id = 'object' + str(i)
+            for c in cluster_ids:
+                document = self.db.scene.find({'identifiables._id': ObjectId(c)},
+                                              {'_id': 0, 'identifiables._id.$': 1, 'timestamp': 1})
+                if _id == 'object' + str(i):
+                    _id = self.get_class(self.get_persistent_object_annotations(document[0]['identifiables'][0]))
+                if document.count() != 0:
+                    ts = document[0]['timestamp']
+                    cluster = self.get_object_image(document[0]['identifiables'][0], ts, True)
+                    clusters.append(cluster)
+            objects[_id] = clusters
+            i += 1
+        return objects
+
+    def get_class(self, annots):
+        for ident in annots:
+            if ident['_type'] == 'rs.annotation.Detection':
+                return ident['name']
+            if ident['_type'] == 'rs.annotation.Classification':
+                return ident['classname']
+        return ''
+
     def get_object_hypotheses_for_scene(self, ts):
         # start_time = time.time()
         scene_doc = self.db.scene.find({'timestamp': ts})
@@ -289,10 +318,12 @@ class MongoWrapper(object):
                 self.get_image_for_scene_id(self.db.scene.find({'timestamp': ts})[0]['_parent'], 0.22)))
         return images
 
-    def get_scene_image(self, ts):
+    def get_scene_image(self, ts, scale=None):
         # start_time = time.time()
+        if scale == None:
+            scale = 0.22
         print(ts)
-        img = self.get_image_for_scene_id(self.db.scene.find({'timestamp': ts})[0]['_parent'], 0.22)
+        img = self.get_image_for_scene_id(self.db.scene.find({'timestamp': ts})[0]['_parent'], scale)
         base64_img = self.get_base64_img(img['rgb'])
 
         return {'img_b64': base64_img, 'img': img['rgb'], 'depth': img['depth']}

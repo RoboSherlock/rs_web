@@ -143,9 +143,9 @@ class Scene:
     def prepare_export(self):
         exp_scens = self.export_data[:]
         for ts in self.timestamps[self.index:]:
-            img = self.mongo_wrp.get_scene_image(ts)
-            scene = {'ts': ts, 'rgb': img['img_b64'], 'objects': self.mongo_wrp.get_object_hypotheses_for_scene(ts)}
-            self.scenes.append(scene)
+            img = self.mongo_wrp.get_scene_image(ts, 1.0)
+            # scene = {'ts': ts, 'rgb': img['img_b64'], 'objects': self.mongo_wrp.get_object_hypotheses_for_scene(ts)}
+            # self.scenes.append(scene)
             export_scene = {'ts': ts, 'rgb': img['img'], 'depth': img['depth'],
                             'objects': self.mongo_wrp.get_object_data_for_scene(ts)}
             exp_scens.append(export_scene)
@@ -334,14 +334,8 @@ class Object:
             return "NU"
 
     def prepare_export(self):
-        query = [{'$project': {'_parent': 1, 'identifiables': 1, '_id': 1}}, {'$unwind': '$identifiables'}]
-        self.mongo_wrapper.set_main_collection('hypothesis')
-        cursor = self.mongo_wrapper.call_query(query)
-        self.abs_path = export_data(cursor, 'objects', self.mongo_wrapper)
-
-
-    def prepare_obj_anot(self, annot):
-        return 'annotations'
+        objects = self.mongo_wrapper.get_all_export_objects()
+        create_data_dir('objects', objects)
 
     def export_all(self):
         return send_from_directory(os.getcwd(), 'objects.zip', mimetype="application/zip")
@@ -386,13 +380,16 @@ def export_data(cursor, directory, mongo_wrapper):
             export_data[categ].append(hypo['image'])
         else:
             export_data[categ].append(hypo['image'])
+    create_data_dir(directory, export_data)
 
-    path_to_hypos = create_directory(directory)
+
+def create_data_dir(directory, export_data):
+    path = create_directory(directory)
     keys = export_data.keys()
     index = 0
     for vals in export_data.itervalues():
         index2 = 0
-        path_to_acc_hypo = path_to_hypos + '/' + keys[index]
+        path_to_acc_hypo = path + '/' + keys[index]
         os.mkdir(path_to_acc_hypo, 0777)
         the_key = keys[index]
         for val in vals:
@@ -404,7 +401,7 @@ def export_data(cursor, directory, mongo_wrapper):
             cv2.imwrite(depth_dir, depth)
             index2 += 1
         index += 1
-    shutil.make_archive(path_to_hypos, 'zip', path_to_hypos)
+    shutil.make_archive(path, 'zip', path)
 
 
 def prepare_hypos(idents):

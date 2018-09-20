@@ -393,7 +393,7 @@ def create_data_dir(directory, export_data):
     for vals in export_data.itervalues():
         index2 = 0
         path_to_acc_hypo = path + '/' + keys[index]
-        processed_keys[keys[index]] += 1
+        print (path_to_acc_hypo)
         os.mkdir(path_to_acc_hypo, 0777)
         the_key = keys[index]
         for val in vals:

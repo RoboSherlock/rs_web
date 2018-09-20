@@ -21,6 +21,8 @@ def index():
 
 @app.route('/store', methods=['GET', 'POST'])
 def object_store():
+    global user_controller
+    user_controller = UserController()
     names = user_controller.get_db_names()
     return render_template('object_store_devel.html', db_names=names,
                            timestamps=user_controller.get_timestamps(),

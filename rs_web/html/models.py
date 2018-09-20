@@ -392,10 +392,7 @@ def create_data_dir(directory, export_data):
     index = 0
     for vals in export_data.itervalues():
         index2 = 0
-        if processed_keys[keys[index]] > 0:
-            path_to_acc_hypo = path + '/' + keys[index] + str(processed_keys[keys[index]])
-        else:
-            path_to_acc_hypo = path + '/' + keys[index]
+        path_to_acc_hypo = path + '/' + keys[index]
         processed_keys[keys[index]] += 1
         os.mkdir(path_to_acc_hypo, 0777)
         the_key = keys[index]

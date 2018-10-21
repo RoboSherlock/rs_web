@@ -104,10 +104,11 @@ def get_history():
 
 
 if __name__ == '__main__':
-    if len(sys.argv) == 2:
-        http_server = WSGIServer(('', int(sys.argv[1])), app)
-    else:
-        http_server = WSGIServer(('', 5555), app)
     print("the server is starting ...................")
+    portnr = 5555
+    if len(sys.argv) == 2:
+        portnr = int(sys.argv[1])
+    http_server = WSGIServer(('', portnr), app)
+    print("the server has started on port: ", portnr)
     http_server.serve_forever()
 

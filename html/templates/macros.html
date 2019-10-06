@@ -78,22 +78,21 @@
 </table>
 {% endmacro %}
         
-{% macro color(annot) %}  
+{% macro color(annot) %}
 <table id = annotInfoTable >
     <thead>
         <tr>
-        {% for label in annot['color']  %}
-            <th>{{label}}</th>
-        {% endfor %}        
+            <th>Source</th>
+            <th>Color</th>
+            <th>Ratio</th>
         </tr>
     </thead>
     <tbody>
         <tr>
-            {% for r in annot['ratio']  %}
-            <td>{{'%0.3f'| format(r|float)}}</td>
-            {% endfor %}
+            <td>{{annot['source']}}</td>
+            <td>{{annot['color']}}</td>
+            <td>{{annot['ratio']}}</td>
         </tr>
-    
     </tbody>
 </table>
 {% endmacro %}

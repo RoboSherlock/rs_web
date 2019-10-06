@@ -67,7 +67,7 @@ class MongoWrapper():
             idx = 0;
             for hyp in hyps:
                 images = self.get_object_image(hyp,ts)
-                cv2.imwrite(images["gt"] + "_" + str(idx) + '_rgb_' + str(ts) + '_cropped.png', images["rgb"])
+                cv2.imwrite(images["gt"] + "_" + str(idx) + '_rgb_' + str(ts) + '_crop.png', images["rgb"])
                 cv2.imwrite(images["gt"] + "_" + str(idx) + '_depth_' + str(ts) + '_depthcropped.png', images["depth"])
                 cv2.imwrite(images["gt"] + "_" + str(idx) + '_mask_' + str(ts) + '_mask.png', images["mask"])
                 idx += 1
@@ -99,7 +99,7 @@ class MongoWrapper():
 
 if __name__ =="__main__":
 
-    mw=MongoWrapper("UnrealGenerateScenes")
+    mw=MongoWrapper("PnP09ObjSymbolicGTFixed")
     timestamps = mw.get_timestamps()
 
     for ts in timestamps:
@@ -107,5 +107,5 @@ if __name__ =="__main__":
         cv2.imwrite('rgb_'+str(ts)+'.png',rgb_image)
         mw.save_object_hypotheses_for_scene(ts)
         # TODO don't break :D
-        break
+#        break
 

@@ -248,6 +248,12 @@ class RSResultAnalysis(object):
         self.cut_off_confidence = 0.55
         self.amortization_coeff = 5
 
+    def get_relvant_episode_data(self):
+        objs = self.mw.db.persistent_objects.find()
+        for obj in objs:
+            print('Object %r has %d hypotheses'% (obj['_id'],len(obj['clusters'])))
+
+
     def set_cutoff_confidence(self, value):
         self.cut_off_confidence = value
 
@@ -360,6 +366,7 @@ class RSResultAnalysis(object):
         # sum_conf = 0.0
         while idx >= 0 and counter < self.amortization_coeff:
             c_id = obj[0]['clusters'][idx]
+
             hypotheses = self.mw.db.scene.find({'identifiables._id': ObjectId(c_id)},
                                                {'_id': 0, 'identifiables._id.$': 1, 'timestamp': 1})[0]
             # print hypotheses
@@ -420,15 +427,10 @@ def two_scales(a1, X, Y_Hypotheses, Y_Accuracy,conf_threshold):
     return a1, a2
 
 
-if __name__ == "__main__":
-
-    episodes = ['PnP09ObjSymbolicGTFixed',
-                'PnP15ObjSymbolicGTFixed',
-                'PnP20ObjSymbolicGTFixed',
-                'PnP25ObjSymbolicGTFixed']
+def perform_analysis(episodes):
 
     amortization_coefficients  = range(1,20,1)
-    confidence_thresholds = pl.frange(0.6, 0.8, 0.02)
+    confidence_thresholds = pl.frange(0.6, 0.8, 0.01)
 
     # confidence_thresholds = [0.6]
     # amortization_coefficients = [13]
@@ -487,16 +489,16 @@ if __name__ == "__main__":
                                                                res_analysis.predicted_class_oneshot,
                                                                labels=list(res_analysis.class_labels),
                                                                average='weighted')
-                print('OneShot')
-                print(e, ':', "Precision:", p, ' Recall: ', r, ' Accuracy: ', acc)
+                # print('OneShot')
+                # print(e, ':', "Precision:", p, ' Recall: ', r, ' Accuracy: ', acc)
                 acc = accuracy_score(res_analysis.gt_class_amortized, res_analysis.predicted_class_amortized)
                 [p, r, f, s] = precision_recall_fscore_support(res_analysis.gt_class_amortized,
                                                                res_analysis.predicted_class_amortized,
                                                                labels=list(res_analysis.class_labels),
                                                                average='weighted')
-                print('Amortized')
-                print(e, ':', "Precision:", p, ' Recall: ', r, ' Accuracy: ', acc)
-                print(e, 'Total number of hyp:',res_analysis.obj_hyp_count)
+                # print('Amortized')
+                # print(e, ':', "Precision:", p, ' Recall: ', r, ' Accuracy: ', acc)
+                # print(e, 'Total number of hyp:',res_analysis.obj_hyp_count)
                 total_nr_of_hypotheses = total_nr_of_hypotheses + res_analysis.obj_hyp_count
 
                 class_labels = class_labels | res_analysis.class_labels
@@ -685,3 +687,17 @@ if __name__ == "__main__":
     #                       with_labels=True,
     #                       title='CM Amortized')
     # plt.show()
+
+if __name__ == "__main__":
+
+    episodes = ['PnP09ObjSymbolicGTFixed',
+                'PnP15ObjSymbolicGTFixed',
+                'PnP20ObjSymbolicGTFixed',
+                'PnP25ObjSymbolicGTFixed']
+
+    # perform_episode_analysis(episodes)
+
+    for e in episodes:
+        print('Episode: %s'% e)
+        rs_results = RSResultAnalysis(e)
+        rs_results.get_relvant_episode_data()

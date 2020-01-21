@@ -50,7 +50,7 @@ class MongoWrapper(object):
         else:
             # if we're looking for views or scenes
             print('Setting scene as active collection')
-            self.active_collection = self.db.scene
+            self.active_collection = self.db.cam0.scene
 
     def call_query(self, query):
         cursor = self.active_collection.aggregate(query)
@@ -193,7 +193,7 @@ class MongoWrapper(object):
         cluster_ids = po_cursor[object_id]['clusters']
         clusters = []
         for c in cluster_ids:
-            document = self.db.scene.find({'identifiables._id': ObjectId(c)},
+            document = self.db.cam0.scene.find({'identifiables._id': ObjectId(c)},
                                           {'_id': 0, 'identifiables._id.$': 1, 'timestamp': 1})
             if document.count() != 0:
                 cluster = {}
@@ -213,7 +213,7 @@ class MongoWrapper(object):
             clusters = []
             _id = 'object'
             for c in cluster_ids:
-                document = self.db.scene.find({'identifiables._id': ObjectId(c)},
+                document = self.db.cam0.scene.find({'identifiables._id': ObjectId(c)},
                                               {'_id': 0, 'identifiables._id.$': 1, 'timestamp': 1})
                 if _id == 'object':
                     _id = self.get_class(self.get_persistent_object_annotations(document[0]['identifiables'][0]))
@@ -241,7 +241,7 @@ class MongoWrapper(object):
 
     def get_object_hypotheses_for_scene(self, ts):
         # start_time = time.time()
-        scene_doc = self.db.scene.find({'timestamp': ts})
+        scene_doc = self.db.cam0.scene.find({'timestamp': ts})
         # print("finding TS took: %s seconds ---" % (time.time() - start_time),file=sys.stderr)
         obj_hyps = []
         if scene_doc.count() != 0:
@@ -266,7 +266,7 @@ class MongoWrapper(object):
         return data
 
     def get_object_data_for_scene(self, ts):
-        scene_doc = self.db.scene.find({'timestamp': ts})
+        scene_doc = self.db.cam0.scene.find({'timestamp': ts})
         obj_data = []
         if scene_doc.count != 0:
             hyps = scene_doc[0]['identifiables']
@@ -326,7 +326,7 @@ class MongoWrapper(object):
         images = []
         for ts in timestamps:
             images.append(self.get_base64_img(
-                self.get_image_for_scene_id(self.db.scene.find({'timestamp': ts})[0]['_parent'], 0.22)))
+                self.get_image_for_scene_id(self.db.cam0.scene.find({'timestamp': ts})[0]['_parent'], 0.22)))
         return images
 
     def get_scene_image(self, ts, scale=None):
@@ -334,7 +334,7 @@ class MongoWrapper(object):
         if scale is None:
             scale = 0.22
         print(ts)
-        img = self.get_image_for_scene_id(self.db.scene.find({'timestamp': ts})[0]['_parent'], scale)
+        img = self.get_image_for_scene_id(self.db.cam0.scene.find({'timestamp': ts})[0]['_parent'], scale)
         base64_img = self.get_base64_img(img['rgb'])
 
         return {'img_b64': base64_img, 'img': img['rgb'], 'depth': img['depth']}
@@ -343,7 +343,7 @@ class MongoWrapper(object):
     def setGTinDB(self, inputTS, imgNumber, objName):
         print("database Name", self.db)
         identifiable_index = imgNumber-1
-        identifiable= self.db.scene.find({'timestamp':inputTS})[0]['identifiables'][identifiable_index]
+        identifiable= self.db.cam0.scene.find({'timestamp':inputTS})[0]['identifiables'][identifiable_index]
         annotations = identifiable['annotations']
 
         gt_index = -1
@@ -353,12 +353,12 @@ class MongoWrapper(object):
                 gt_index = idx
             idx = idx + 1
         if gt_index != -1:
-            self.db.scene.update({"timestamp": inputTS},
+            self.db.cam0.scene.update({"timestamp": inputTS},
                                  {"$set":{"identifiables"+"."+str(identifiable_index)+"."+
                                           "annotations"+"."+str(gt_index)+"."+
                                           "classificationGT"+"."+"classname": objName }})
         else:
-            self.db.scene.update({'timestamp':inputTS},
+            self.db.cam0.scene.update({'timestamp':inputTS},
                                  {'$push': {'identifiables'+"."+str(identifiable_index)+"."+
                                             'annotations': {'classificationGT': {"classname": objName,
                                                                                  'featurename': '',
@@ -378,7 +378,7 @@ class MongoWrapper(object):
             count = 0
             obj_dict = {}
             for c in cluster_ids:
-                document = self.db.scene.find({'identifiables._id': ObjectId(c)},
+                document = self.db.cam0.scene.find({'identifiables._id': ObjectId(c)},
                                               {'_id': 0, 'identifiables._id.$': 1, 'timestamp': 1})
 
                 for annot in document[0]['identifiables'][0]['annotations']:
@@ -395,7 +395,7 @@ class MongoWrapper(object):
         global_count = 0
         nr_of_objs = self.db.persistent_objects.count()
         po_cursor = self.db.persistent_objects.find()
-        sc_cursor = self.db.scene.find()
+        sc_cursor = self.db.cam0.scene.find()
         first_timestamp= sc_cursor[0]['timestamp']
         print(first_timestamp)
         cluster_ids = po_cursor[obj_id]['clusters']
@@ -403,7 +403,7 @@ class MongoWrapper(object):
         obj_dict = {}
         index = 1
         for c in cluster_ids:
-            document = self.db.scene.find({'identifiables._id': ObjectId(c)},
+            document = self.db.cam0.scene.find({'identifiables._id': ObjectId(c)},
                                           {'_id': 0, 'identifiables._id.$': 1, 'timestamp': 1})
 
             ts = document[0]['timestamp']

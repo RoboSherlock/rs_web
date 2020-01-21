@@ -34,24 +34,6 @@
         "text":"What are the output domain constraints of PrimitiveShapAnnotator?"
 	},
 	{
-	  "q":"pipeline_from_predicates_with_domain_constraint([shape],P).",
-	  "text":"Plan a pipeline for detecting shape and color."
-	},
-	{
-        "q":"pipeline_for_key_value_pair((shape,rs_components:'Box'),P).",
-        "text":"Pipeline for detecting box shape."
-	},
-	
-    {
-        "q":"pipeline_for_key_value_pair((shape,rs_components:'Cylinder'),P).",
-        "text":"Pipeline for detecting box cylinder."
-	},
-	
-	{
-	    "q":"run_annotator(rs_components:'PrimitiveShapeAnnotator').",
-	    "text":"Run PrimitiveShapeAnnotator"
-	},
-	{
         "text":"Retact all assertions",
         "q":"retract_all_annotators."
 	},
@@ -72,28 +54,24 @@
 	    "text":"-------------"
 	},
         {
-            "q":"detect([an, object,[shape, round],[location, kitchen_sink_block_counter_top],[timestamp, 5]]).",
-            "text":"Detect objects tha have are round."
+            "q":"detect([an, object,[shape, round]]).",
+            "text":"Detect objects that are round."
         },
         {
-            "q":"detect([an, object,[color, blue],[location, kitchen_sink_block_counter_top],[timestamp, 5]]).",
+            "q":"detect([an, object,[color, blue]]).",
             "text":"Detect objects that are blue"
         },
         {
-            "q":"detect([an, object,[class, 'AlbiHimbeerJuice'],[location, kitchen_sink_block_counter_top],[timestamp, 5]]).",
-            "text":"Detect an instance of the Albi raspberry juice."
+            "q":"detect([an, object,[class, 'VollMilch']]).",
+            "text":"Detect an instance of the VollMilch."
         },
         {
-            "q":"detect([an, object,[type,'EdibleStuff'],[location, kitchen_sink_block_counter_top],[timestamp, 5]]).",
+            "q":"detect([an, object,[type,'EdibleStuff']]).",
             "text":"Detect an edible thing"
         },
-	{
-	    "q":"detect([an, object, [type,'Container'],[color, white],[shape,round],[location, kitchen_sink_block_counter_top],[timestamp, 5]]).",
-	    "text":"Detect a white round object that is a container"
-	},
-	{
-	    "q":"detect([an, object, [type, 'CookingUtensil'],[color, black],[location, drawer_sinkblock_upper_open],[timestamp, 5]]).",
-	    "text":"Detect a black kitchen utensils in the drawer"
-	}
+        {
+            "q":"detect([an, object,[type,'ElectricalDevice']]).",
+            "text":"Detect an electrical device"
+        }
     ]
 }

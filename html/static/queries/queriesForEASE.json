@@ -80,6 +80,10 @@
         {
             "q":"detect([an, object,[type, 'Handle'], [timestamp,'1522249987296654516']]).",
             "text":"Detect a drawer handle."
-        }
-    ]
+        },
+        {
+	    "q":"detect([an, object,[type, 'SlottedSpatula'], [location, 'drawer_sinkblock_upper_open'],[timestamp,'1522250023881605117']])."
+	    "text": "Detect a spatula in the drawer"
+	}
+]
 }

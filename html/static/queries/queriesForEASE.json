@@ -54,24 +54,32 @@
 	    "text":"-------------"
 	},
         {
-            "q":"detect([an, object,[shape, round]]).",
-            "text":"Detect objects that are round."
+            "q":"detect([an, object,[class, ''],[timestamp, '1522249987296654516']]).",
+            "text":"Detect all objects."
         },
         {
-            "q":"detect([an, object,[color, blue]]).",
-            "text":"Detect objects that are blue"
+            "q":"detect([an, object,[class, 'BluePlasticSpoon'],[timestamp, '1522249987296654516']]).",
+            "text":"Detect a specific breakfast cereal."
         },
         {
-            "q":"detect([an, object,[class, 'VollMilch']]).",
-            "text":"Detect an instance of the VollMilch."
+            "q":"detect([an, object,[type,'FoodOrDrink'],[timestamp, '1522249987296654516']]).",
+            "text":"Detect a food or a drink"
         },
         {
-            "q":"detect([an, object,[type,'EdibleStuff']]).",
-            "text":"Detect an edible thing"
+            "q":"detect([an, object,[type,'FoodOrDrink'],[hasIngredient,'Honey'], [timestamp, '1522249987296654516']]).",
+            "text":"Detect a food or a drink that contains honey."
         },
         {
-            "q":"detect([an, object,[type,'ElectricalDevice']]).",
-            "text":"Detect an electrical device"
+            "q":"detect([an, object,[type,'Container']]).",
+            "text":"Detect a container"
+        },
+        {
+            "q":"detect([an, object,[type,'Container'],[canHoldAmount,'1.0']]).",
+            "text":"Detect a container that can hold one liter of stuff"
+        },
+        {
+            "q":"detect([an, object,[type, 'Handle'], [timestamp,'1522249987296654516']]).",
+            "text":"Detect a drawer handle."
         }
     ]
 }

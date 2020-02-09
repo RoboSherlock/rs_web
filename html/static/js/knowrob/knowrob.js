@@ -207,7 +207,7 @@ function Knowrob(options){
      
       var activeAnnotatorListListener = new ROSLIB.Topic({
          ros: ros, 
-         name: '/RoboSherlock/vis/active_annotators',
+         name: '/RoboSherlock/web_demo/vis/active_annotators',
          messageType: 'robosherlock_msgs/RSActiveAnnotatorList'  
       });    
         
@@ -259,7 +259,7 @@ function Knowrob(options){
       
       this.annotatorResultsControl = new ROSLIB.Service({
         ros : ros,
-        name : '/RoboSherlock/vis_command',
+        name : '/RoboSherlock/web_demo/vis_command',
         serviceType : 'robosherlock_msgs/RSVisControl'
       });
     
